@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  AGENT
+  ADMIN
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  HARDWARE
+  SOFTWARE
+  NETWORK
+  EMAIL
+  ACCESS
+  OTHER
+}
+
+enum TicketUnit {
+  ITJ
+  SFS
+  FOZ
+  DIO
+  AOL
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String?  // hash (bcrypt/argon2), opcional para usuários OAuth
+  googleId  String?  @unique // ID do Google OAuth
+  role      UserRole @default(USER)
+
+  tokenVersion Int @default(0) 
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  openedTickets   Ticket[]        @relation("OpenedTickets")
+  assignedTickets Ticket[]        @relation("AssignedTickets")
+  messages        TicketMessage[]
+}
+
+model Ticket {
+  id          String         @id @default(uuid())
+  title       String
+  description String
+  category    TicketCategory @default(OTHER)
+  unit        TicketUnit?
+
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  resolvedAt  DateTime?
+  closedAt    DateTime?
+
+  // Quem abriu
+  openedById  String
+  openedBy    User           @relation("OpenedTickets", fields: [openedById], references: [id])
+
+  // Responsável (pode ser nulo enquanto ninguém assumiu)
+  assigneeId  String?
+  assignee    User?          @relation("AssignedTickets", fields: [assigneeId], references: [id])
+
+  // Chat/comentários
+  messages    TicketMessage[]
+  
+  // Anexos
+  attachments TicketAttachment[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([openedById])
+  @@index([assigneeId])
+  @@index([category])
+  @@index([unit])
+}
+
+model TicketMessage {
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+
+  content   String
+  isInternal Boolean @default(false) // opcional: notas internas da TI (não aparecem p/ usuário)
+
+  createdAt DateTime @default(now())
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId, createdAt])
+}
+
+model TicketAttachment {
+  id        String   @id @default(uuid())
+  ticketId  String
+  filename  String
+  url       String   // URL do arquivo (pode ser path local ou URL externa)
+  mimeType  String
+  size      Int      // tamanho em bytes
+  
+  createdAt DateTime @default(now())
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
