@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { GoogleButton } from "@/components/auth/google-button";
+import { GoogleButton } from "@/components/features/auth/google-button";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 

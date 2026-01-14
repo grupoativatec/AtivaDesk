@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { TicketCard } from "@/components/tickets/ticket-card"
+import { TicketCard } from "@/components/features/tickets/shared/ticket-card"
 import {
   Select,
   SelectContent,

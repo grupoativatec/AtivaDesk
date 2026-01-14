@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { GoogleButton } from "@/components/auth/google-button";
-import { PasswordStrength } from "@/components/auth/password-strength";
+import { GoogleButton } from "@/components/features/auth/google-button";
+import { PasswordStrength } from "@/components/features/auth/password-strength";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 

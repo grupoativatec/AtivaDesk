@@ -84,6 +84,13 @@ model Ticket {
   updatedAt   DateTime       @updatedAt
   resolvedAt  DateTime?
   closedAt    DateTime?
+  
+  // Cronometragem de tempo dedicado
+  inProgressAt DateTime?     // Quando o admin assumiu o ticket (status mudou para IN_PROGRESS)
+  timeSpentMinutes Int?      // Tempo total dedicado em minutos (calculado quando resolvido/fechado)
+  timerPaused Boolean @default(false) // Se o timer está pausado
+  timerPausedAt DateTime?    // Quando o timer foi pausado pela última vez
+  totalPausedSeconds Int @default(0) // Total de segundos pausados acumulados
 
   // Quem abriu
   openedById  String

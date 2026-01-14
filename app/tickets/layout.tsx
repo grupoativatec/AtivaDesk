@@ -1,4 +1,4 @@
-import { TicketsNavbar } from "@/components/tickets/navbar"
+import { TicketsNavbar } from "@/components/features/tickets/user/navbar"
 
 export default function TicketsLayout({
   children,

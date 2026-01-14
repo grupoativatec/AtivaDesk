@@ -1,4 +1,4 @@
-import AppSidebar from "@/components/global/add-sidebar";
+import AppSidebar from "@/components/features/admin/sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Home() {

@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react"
 import { Button } from "@/components/ui/button"
-import { RichTextEditor } from "@/components/tickets/rich-text-editor"
+import { RichTextEditor } from "@/components/features/tickets/shared/rich-text-editor"
 import { Send, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -65,6 +65,14 @@ export function MessageForm({
         body: JSON.stringify({ content: messageContent }),
       })
 
+      // Verificar se a resposta é JSON
+      const contentType = res.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text()
+        console.error("Resposta não é JSON:", text.substring(0, 200))
+        throw new Error("Resposta inválida do servidor")
+      }
+
       const data = await res.json()
 
       if (!res.ok) {
@@ -86,29 +94,30 @@ export function MessageForm({
   }
 
   return (
-    <div className="border-t border-border/50 pt-4 mt-4">
-      <form onSubmit={handleSubmit} className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-3">
+      <div className="max-h-[120px] overflow-y-auto border rounded-lg">
         <RichTextEditor
           content={content}
           onChange={setContent}
           placeholder="Digite sua mensagem..."
         />
-        <div className="flex justify-end">
-          <Button type="submit" disabled={loading || !content.trim()} size="sm">
-            {loading ? (
-              <>
-                <Loader2 className="size-4 mr-2 animate-spin" />
-                Enviando...
-              </>
-            ) : (
-              <>
-                <Send className="size-4 mr-2" />
-                Enviar
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
-    </div>
+      </div>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={loading || !content.trim()} size="sm" className="text-xs sm:text-sm">
+          {loading ? (
+            <>
+              <Loader2 className="size-3 sm:size-4 mr-1.5 sm:mr-2 animate-spin" />
+              <span className="hidden sm:inline">Enviando...</span>
+            </>
+          ) : (
+            <>
+              <Send className="size-3 sm:size-4 mr-1.5 sm:mr-2" />
+              <span className="hidden sm:inline">Enviar</span>
+              <span className="sm:hidden">Enviar</span>
+            </>
+          )}
+        </Button>
+      </div>
+    </form>
   )
 }

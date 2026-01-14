@@ -1,4 +1,4 @@
-import { Clock, LayoutDashboard } from "lucide-react";
+import { Clock, LayoutDashboard, Ticket } from "lucide-react";
 
 export const data = {
   user: {
@@ -9,14 +9,14 @@ export const data = {
 
   navMain: [
     {
-      title: "TEST",
-      url: "/test",
-      icon: Clock,
+      title: "Dashboard",
+      url: "/admin/dashboard",
+      icon: LayoutDashboard,
     },
     {
-      title: "dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
+      title: "Tickets",
+      url: "/admin/tickets",
+      icon: Ticket,
     },
   ],
 

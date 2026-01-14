@@ -11,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { RichTextEditor } from "@/components/tickets/rich-text-editor"
-import { AttachmentUpload, Attachment } from "@/components/tickets/attachment-upload"
+import { RichTextEditor } from "@/components/features/tickets/shared/rich-text-editor"
+import { AttachmentUpload, Attachment } from "@/components/features/tickets/shared/attachment-upload"
 import { toast } from "sonner"
 import { ArrowLeft, Send, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"

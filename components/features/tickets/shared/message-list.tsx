@@ -25,15 +25,15 @@ interface MessageListProps {
 export function MessageList({ messages, currentUserId }: MessageListProps) {
   if (messages.length === 0) {
     return (
-      <div className="text-center py-16 border rounded-2xl bg-card/50 backdrop-blur-sm">
-        <div className="max-w-md mx-auto">
-          <div className="size-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-            <span className="text-2xl">💬</span>
+      <div className="flex items-center justify-center h-full min-h-[200px]">
+        <div className="text-center">
+          <div className="size-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
+            <span className="text-xl">💬</span>
           </div>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Nenhum comentário ainda
           </p>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Seja o primeiro a comentar!
           </p>
         </div>
@@ -42,7 +42,7 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 sm:space-y-3">
       {messages.map((message, index) => {
         const isCurrentUser = message.author.id === currentUserId
         const messageDate = new Date(message.createdAt)
@@ -88,7 +88,7 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
 
             {/* Message Bubble */}
             <div className={cn(
-              "flex flex-col max-w-[75%] sm:max-w-[65%]",
+              "flex flex-col max-w-[85%] sm:max-w-[75%]",
               isCurrentUser ? "items-end" : "items-start"
             )}>
               {showAvatar && (
@@ -102,7 +102,7 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
               
               <div
                 className={cn(
-                  "rounded-2xl px-4 py-2.5 shadow-sm",
+                  "rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm",
                   isCurrentUser
                     ? "bg-primary text-primary-foreground rounded-br-sm"
                     : "bg-muted text-foreground rounded-bl-sm"
@@ -110,13 +110,13 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
               >
                 <div
                   className={cn(
-                    "text-sm leading-relaxed",
-                    "[&_p]:my-1 [&_p]:leading-relaxed",
-                    "[&_ul]:my-1 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:space-y-0.5",
-                    "[&_ol]:my-1 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:space-y-0.5",
+                    "text-xs sm:text-sm leading-relaxed",
+                    "[&_p]:my-0.5 [&_p]:leading-relaxed",
+                    "[&_ul]:my-0.5 [&_ul]:list-disc [&_ul]:ml-3 [&_ul]:space-y-0.5",
+                    "[&_ol]:my-0.5 [&_ol]:list-decimal [&_ol]:ml-3 [&_ol]:space-y-0.5",
                     "[&_strong]:font-semibold [&_em]:italic",
                     "[&_a]:underline [&_a]:opacity-90",
-                    "[&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-2 [&_img]:border [&_img]:border-border/50",
+                    "[&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-1.5 [&_img]:border [&_img]:border-border/50",
                     isCurrentUser && "[&_a]:text-primary-foreground/90"
                   )}
                   dangerouslySetInnerHTML={{ __html: message.content }}
@@ -124,10 +124,10 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
               </div>
 
               <span className={cn(
-                "text-xs text-muted-foreground mt-1 px-1",
+                "text-[10px] sm:text-xs text-muted-foreground mt-0.5 px-1",
                 isCurrentUser ? "text-right" : "text-left"
               )}>
-                {timeAgo}
+                {format(messageDate, "HH:mm", { locale: ptBR })}
               </span>
             </div>
           </motion.div>
