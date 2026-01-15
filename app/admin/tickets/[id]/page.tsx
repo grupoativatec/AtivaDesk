@@ -8,9 +8,9 @@ import { MessageList } from "@/components/features/tickets/shared/message-list"
 import { MessageForm } from "@/components/features/tickets/shared/message-form"
 import { TicketTimeline } from "@/components/features/tickets/shared/ticket-timeline"
 import { AdminTicketEditModal } from "@/components/features/tickets/admin/admin-ticket-edit-modal"
-import { 
-  ArrowLeft, 
-  Loader2, 
+import {
+  ArrowLeft,
+  Loader2,
   Calendar,
   User,
   UserCheck,
@@ -410,7 +410,7 @@ export default function AdminTicketDetailPage() {
   const handleMessageSent = (newMessage: any) => {
     if (ticket && newMessage) {
       const messageExists = ticket.messages.some(m => m.id === newMessage.id)
-      
+
       if (!messageExists) {
         setTicket({
           ...ticket,
@@ -431,7 +431,7 @@ export default function AdminTicketDetailPage() {
           })
         }
       }, 150)
-      
+
       return () => clearTimeout(timeoutId)
     }
   }, [ticket?.messages])
@@ -457,7 +457,7 @@ export default function AdminTicketDetailPage() {
 
   const createdDate = new Date(ticket.createdAt)
   const dateFormatted = format(createdDate, "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })
-  const ticketNumber = `TKT-${ticket.id.slice(-8).toUpperCase()}`
+  const ticketNumber = `${ticket.id.slice(-8).toUpperCase()}`
 
   const isAssignedToMe = ticket.assignee?.id === currentUser.id
   const isUnassigned = !ticket.assignee
@@ -472,66 +472,71 @@ export default function AdminTicketDetailPage() {
     <div className="h-full w-full flex flex-col bg-background">
       {/* Conteúdo Principal */}
       <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-6 py-0 sm:py-6 lg:py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 sm:gap-4 lg:gap-6">
             {/* Coluna Esquerda - Informações do Ticket */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-0 sm:space-y-4 lg:space-y-6">
               {/* Card Principal - Informações do Ticket */}
-              <div className="bg-card border border-border rounded-xl shadow-sm p-6">
-                {/* Header: Botão Voltar, ID, Categoria e Badges */}
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => router.push("/admin/tickets")}
-                      className="text-muted-foreground hover:text-foreground shrink-0"
-                    >
-                      <ArrowLeft className="size-4 mr-2" />
-                      Voltar
-                    </Button>
-                    <span className="text-base font-bold text-blue-600 dark:text-blue-400">
-                      #{ticketNumber}
-                    </span>
+              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6">
+                {/* Header: Botão Voltar e ID */}
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push("/admin/tickets")}
+                    className="text-muted-foreground hover:text-foreground shrink-0 -ml-2 sm:ml-0"
+                  >
+                    <ArrowLeft className="size-4" />
+                  </Button>
+                  <span className="text-sm sm:text-base font-bold text-blue-600 dark:text-blue-400">
+                    #{ticketNumber}
+                  </span>
+                </div>
+
+                {/* Badges: Categoria, Prioridade e Status - Separados do título */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 mb-4 sm:mb-4">
+                  {/* Categoria */}
+                  <Badge
+                    variant="outline"
+                    className={cn("text-xs font-medium px-2.5 py-1.5 w-fit", categoryConfig.color)}
+                  >
+                    <CategoryIcon className="size-3.5 mr-1.5 shrink-0" />
+                    {categoryConfig.label}
+                  </Badge>
+
+                  {/* Prioridade e Status - lado a lado no mobile */}
+                  <div className="flex items-center gap-2">
                     <Badge
                       variant="outline"
-                      className={cn("text-xs font-medium px-3 py-1.5 shrink-0", categoryConfig.color)}
+                      className={cn("text-xs font-medium px-2.5 py-1.5", priorityConfig.color)}
                     >
-                      <CategoryIcon className="size-3.5 mr-1.5" />
-                      {categoryConfig.label}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge
-                      variant="outline"
-                      className={cn("text-xs font-medium px-3 py-1.5", priorityConfig.color)}
-                    >
-                      <PriorityIcon className="size-3 mr-1.5" />
+                      <PriorityIcon className="size-3.5 mr-1.5 shrink-0" />
                       {priorityConfig.label}
                     </Badge>
                     <Badge
                       variant="outline"
-                      className={cn("text-xs font-medium px-3 py-1.5", statusConfig.color)}
+                      className={cn("text-xs font-medium px-2.5 py-1.5", statusConfig.color)}
                     >
-                      <StatusIcon className="size-3 mr-1.5" />
+                      <StatusIcon className="size-3.5 mr-1.5 shrink-0" />
                       {statusConfig.label}
                     </Badge>
                   </div>
                 </div>
 
-                <h1 className="text-2xl font-bold text-foreground mb-4">
+                {/* Título */}
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground mb-3 sm:mb-4">
                   {ticket.title}
                 </h1>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="size-4" />
-                    <span>Aberto em {dateFormatted}</span>
+                <div className="flex flex-col gap-2 sm:gap-3">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                    <Calendar className="size-3.5 sm:size-4 shrink-0" />
+                    <span className="break-words">Aberto em {dateFormatted}</span>
                   </div>
-                  
+
                   {/* Timer - Mostrar para tickets em andamento, resolvidos ou fechados */}
                   {ticket.status === "IN_PROGRESS" && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       {!ticket.inProgressAt ? (
                         // Timer não iniciado - mostrar botão para iniciar
                         <Button
@@ -539,7 +544,7 @@ export default function AdminTicketDetailPage() {
                           size="sm"
                           onClick={handleTimerStart}
                           disabled={isToggling}
-                          className="h-8 px-3 shrink-0"
+                          className="h-8 px-3 shrink-0 w-full sm:w-auto"
                           title="Iniciar timer"
                         >
                           {isToggling ? (
@@ -558,11 +563,11 @@ export default function AdminTicketDetailPage() {
                         // Timer iniciado - mostrar tempo e botão de pausar/retomar
                         <>
                           <div className={cn(
-                            "flex items-center gap-2 text-sm font-medium",
+                            "flex items-center gap-2 text-xs sm:text-sm font-medium",
                             !isPaused && "text-primary"
                           )}>
                             <Clock className={cn(
-                              "size-4",
+                              "size-3.5 sm:size-4 shrink-0",
                               !isPaused && "animate-pulse"
                             )} />
                             <span>Tempo dedicado: {elapsedTime || "0s"}</span>
@@ -572,7 +577,7 @@ export default function AdminTicketDetailPage() {
                             size="sm"
                             onClick={handleTimerToggle}
                             disabled={isToggling}
-                            className="h-8 px-3 shrink-0"
+                            className="h-8 px-3 shrink-0 w-full sm:w-auto"
                             title={isPaused ? "Retomar timer" : "Pausar timer"}
                           >
                             {isToggling ? (
@@ -587,11 +592,11 @@ export default function AdminTicketDetailPage() {
                       )}
                     </div>
                   )}
-                  
+
                   {/* Timer para tickets resolvidos ou fechados */}
                   {(ticket.status === "RESOLVED" || ticket.status === "CLOSED") && elapsedTime && (
-                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <Clock className="size-4" />
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
+                      <Clock className="size-3.5 sm:size-4 shrink-0" />
                       <span>Tempo dedicado: {elapsedTime}</span>
                     </div>
                   )}
@@ -599,8 +604,8 @@ export default function AdminTicketDetailPage() {
               </div>
 
               {/* Card de Descrição */}
-              <div className="bg-card border border-border rounded-xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold text-foreground mb-4">
+              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
                   Descrição
                 </h2>
                 <div
@@ -611,23 +616,23 @@ export default function AdminTicketDetailPage() {
 
               {/* Card de Anexos (se houver) */}
               {ticket.attachments.length > 0 && (
-                <div className="bg-card border border-border rounded-xl shadow-sm p-6">
-                  <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                    <FileText className="size-5" />
+                <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6">
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                    <FileText className="size-4 sm:size-5" />
                     Anexos ({ticket.attachments.length})
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     {ticket.attachments.map((attachment) => (
                       <a
                         key={attachment.id}
                         href={attachment.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <FileText className="size-5 text-muted-foreground shrink-0" />
+                        <FileText className="size-4 sm:size-5 text-muted-foreground shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-foreground truncate">
+                          <div className="text-xs sm:text-sm font-medium text-foreground truncate">
                             {attachment.filename}
                           </div>
                           <div className="text-xs text-muted-foreground">
@@ -643,17 +648,17 @@ export default function AdminTicketDetailPage() {
               )}
 
               {/* Card de Comentários */}
-              <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col">
-                <div className="p-6 border-b border-border">
-                  <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                    <MessageSquare className="size-5" />
+              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm flex flex-col">
+                <div className="p-4 sm:p-6 border-b border-border">
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                    <MessageSquare className="size-4 sm:size-5" />
                     Comentários ({ticket.messages.length})
                   </h2>
                 </div>
 
-                <div 
+                <div
                   ref={messagesContainerRef}
-                  className="flex-1 overflow-y-auto p-6 min-h-[300px] max-h-[500px]"
+                  className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-[200px] sm:min-h-[300px] max-h-[400px] sm:max-h-[500px]"
                 >
                   <MessageList
                     messages={ticket.messages}
@@ -661,7 +666,7 @@ export default function AdminTicketDetailPage() {
                   />
                 </div>
 
-                <div className="p-6 border-t border-border bg-muted/30">
+                <div className="p-4 sm:p-6 border-t border-border bg-muted/30">
                   <MessageForm
                     ticketId={ticketId}
                     currentUserId={currentUser.id}
@@ -673,19 +678,19 @@ export default function AdminTicketDetailPage() {
             </div>
 
             {/* Coluna Direita - Ações, Responsável e Solicitante */}
-            <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-0 sm:space-y-4 lg:space-y-6 border-t sm:border-t-0 lg:border-t-0 border-border sm:border-0 bg-card sm:bg-transparent">
               {/* Card de Ações - Primeiro */}
-              <div className="bg-card border border-border rounded-xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold text-foreground mb-4">
+              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
                   Ações
                 </h2>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {isUnassigned ? (
                     <Button
                       onClick={handleAssign}
                       disabled={isAssigning}
                       className="w-full"
-                      size="lg"
+                      size="default"
                     >
                       {isAssigning ? (
                         <>
@@ -705,7 +710,7 @@ export default function AdminTicketDetailPage() {
                         onClick={handleAssign}
                         disabled={isAssigning}
                         className="w-full"
-                        size="lg"
+                        size="default"
                       >
                         {isAssigning ? (
                           <>
@@ -721,11 +726,11 @@ export default function AdminTicketDetailPage() {
                       </Button>
                     )
                   )}
-                  
+
                   <Button
                     variant="outline"
                     className="w-full"
-                    size="lg"
+                    size="default"
                     onClick={() => {
                       // Scroll para área de comentários
                       messagesContainerRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -743,7 +748,7 @@ export default function AdminTicketDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    size="lg"
+                    size="default"
                     onClick={() => setEditModalOpen(true)}
                   >
                     <Settings className="size-4 mr-2" />
@@ -754,19 +759,19 @@ export default function AdminTicketDetailPage() {
 
               {/* Card do Responsável (se atribuído) - Segundo */}
               {ticket.assignee && (
-                <div className="bg-card border border-border rounded-xl shadow-sm p-6">
-                  <h2 className="text-lg font-semibold text-foreground mb-4">
+                <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6 border-t sm:border-t border-border">
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
                     Responsável
                   </h2>
                   <div className="flex items-start gap-3">
-                    <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <UserCheck className="size-5 text-primary" />
+                    <div className="size-8 sm:size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <UserCheck className="size-4 sm:size-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-foreground mb-1">
+                      <div className="text-sm sm:text-base font-semibold text-foreground mb-1">
                         {ticket.assignee.name}
                       </div>
-                      <div className="text-sm text-muted-foreground truncate">
+                      <div className="text-xs sm:text-sm text-muted-foreground truncate">
                         {ticket.assignee.email}
                       </div>
                     </div>
@@ -775,19 +780,19 @@ export default function AdminTicketDetailPage() {
               )}
 
               {/* Card do Solicitante - Terceiro */}
-              <div className="bg-card border border-border rounded-xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold text-foreground mb-4">
+              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6 border-t sm:border-t border-border">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
                   Solicitante
                 </h2>
                 <div className="flex items-start gap-3">
-                  <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <User className="size-5 text-primary" />
+                  <div className="size-8 sm:size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <User className="size-4 sm:size-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-foreground mb-1">
+                    <div className="text-sm sm:text-base font-semibold text-foreground mb-1">
                       {ticket.openedBy.name}
                     </div>
-                    <div className="text-sm text-muted-foreground truncate">
+                    <div className="text-xs sm:text-sm text-muted-foreground truncate">
                       {ticket.openedBy.email}
                     </div>
                   </div>
@@ -795,8 +800,8 @@ export default function AdminTicketDetailPage() {
               </div>
 
               {/* Card de Timeline */}
-              <div className="bg-card border border-border rounded-xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold text-foreground mb-4">
+              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6 border-t sm:border-t border-border">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
                   Atividades Recentes
                 </h2>
                 <TicketTimeline ticket={ticket} />

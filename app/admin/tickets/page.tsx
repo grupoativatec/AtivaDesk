@@ -10,10 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { 
-  Loader2, 
-  Search, 
-  RefreshCw, 
+import {
+  Loader2,
+  Search,
+  RefreshCw,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -155,10 +155,10 @@ export default function AdminTicketsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("open") // Filtro padrão: apenas abertos
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [sortField, setSortField] = useState<SortField>("priority")
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [searchQuery, setSearchQuery] = useState<string>("")
   const [viewMode, setViewMode] = useState<"list" | "cards">("cards")
+  const [sortField, setSortField] = useState<SortField>(null)
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
   const fetchUser = async () => {
     try {
@@ -176,66 +176,83 @@ export default function AdminTicketsPage() {
   const fetchTickets = async () => {
     try {
       setLoading(true)
-      
+
       let allTickets: TicketWithRelations[] = []
-      
+
       // Se o filtro for "open", buscar ambos OPEN e IN_PROGRESS
       if (statusFilter === "open") {
-        const statuses = ["OPEN", "IN_PROGRESS"]
-        const promises = statuses.map(async (status) => {
+        const promises = ["OPEN", "IN_PROGRESS"].map(async (status) => {
           const params = new URLSearchParams()
           params.append("status", status)
+
           if (priorityFilter !== "all") {
             params.append("priority", priorityFilter)
           }
+
           if (categoryFilter !== "all") {
             params.append("category", categoryFilter)
           }
-          if (searchQuery) {
+
+          if (searchQuery.trim()) {
             params.append("search", searchQuery)
           }
-          
+
           const res = await fetch(`/api/admin/tickets?${params.toString()}`)
           const data = await res.json()
           return res.ok ? (data.tickets || []) : []
         })
-        
+
         const results = await Promise.all(promises)
         allTickets = results.flat()
-        
+
         // Remover duplicatas
         const uniqueTickets = allTickets.filter((ticket: TicketWithRelations, index: number, self: TicketWithRelations[]) =>
           index === self.findIndex((t: TicketWithRelations) => t.id === ticket.id)
         )
         allTickets = uniqueTickets
-      } else {
-        // Buscar com filtro único
+      } else if (statusFilter !== "all") {
         const params = new URLSearchParams()
-        if (statusFilter !== "all") {
-          params.append("status", statusFilter)
-        }
+        params.append("status", statusFilter)
+
         if (priorityFilter !== "all") {
           params.append("priority", priorityFilter)
         }
+
         if (categoryFilter !== "all") {
           params.append("category", categoryFilter)
         }
-        if (searchQuery) {
+
+        if (searchQuery.trim()) {
           params.append("search", searchQuery)
         }
 
         const res = await fetch(`/api/admin/tickets?${params.toString()}`)
         const data = await res.json()
+        allTickets = data.tickets || []
+      } else {
+        // Buscar todos os tickets
+        const params = new URLSearchParams()
 
-        if (!res.ok) {
-          throw new Error(data.error || "Erro ao buscar tickets")
+        if (priorityFilter !== "all") {
+          params.append("priority", priorityFilter)
         }
 
+        if (categoryFilter !== "all") {
+          params.append("category", categoryFilter)
+        }
+
+        if (searchQuery.trim()) {
+          params.append("search", searchQuery)
+        }
+
+        const res = await fetch(`/api/admin/tickets?${params.toString()}`)
+        const data = await res.json()
         allTickets = data.tickets || []
       }
-      
+
       setTickets(allTickets)
     } catch (error: any) {
+      console.error("Erro ao buscar tickets:", error)
       toast.error(error.message || "Erro ao carregar tickets")
     } finally {
       setLoading(false)
@@ -271,28 +288,30 @@ export default function AdminTicketsPage() {
     if (!sortField) return tickets
 
     return [...tickets].sort((a, b) => {
-      let comparison = 0
-
-      switch (sortField) {
-        case "priority":
-          const priorityA = PRIORITY_CONFIG[a.priority].order
-          const priorityB = PRIORITY_CONFIG[b.priority].order
-          comparison = priorityA - priorityB
-          break
-        case "createdAt":
-          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          break
-        case "status":
-          const statusOrder = { OPEN: 1, IN_PROGRESS: 2, RESOLVED: 3, CLOSED: 4 }
-          comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0)
-          break
+      if (sortField === "priority") {
+        const aOrder = PRIORITY_CONFIG[a.priority]?.order || 0
+        const bOrder = PRIORITY_CONFIG[b.priority]?.order || 0
+        return sortDirection === "asc" ? aOrder - bOrder : bOrder - aOrder
       }
 
-      return sortDirection === "asc" ? comparison : -comparison
+      if (sortField === "createdAt") {
+        const aDate = new Date(a.createdAt).getTime()
+        const bDate = new Date(b.createdAt).getTime()
+        return sortDirection === "asc" ? aDate - bDate : bDate - aDate
+      }
+
+      if (sortField === "status") {
+        const statusOrder = { OPEN: 1, IN_PROGRESS: 2, RESOLVED: 3, CLOSED: 4 }
+        const aOrder = statusOrder[a.status] || 0
+        const bOrder = statusOrder[b.status] || 0
+        return sortDirection === "asc" ? aOrder - bOrder : bOrder - aOrder
+      }
+
+      return 0
     })
   }, [tickets, sortField, sortDirection])
 
-  // A busca já é feita no servidor, então não precisa filtrar novamente
+  // Filtrar tickets (já filtrados pelo servidor, mas manter para consistência)
   const filteredTickets = sortedTickets
 
   // Estatísticas
@@ -307,18 +326,18 @@ export default function AdminTicketsPage() {
 
   if (!currentUser) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="w-full flex flex-col">
       {/* Header com Estatísticas */}
       <div className="border-b border-border bg-card shadow-sm shrink-0">
-        <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+        <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1 sm:mb-2">
                 Chamados em Aberto
@@ -360,112 +379,111 @@ export default function AdminTicketsPage() {
             </div>
           </div>
 
-          {/* Estatísticas Rápidas */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Abertos</div>
-              <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{stats.open}</div>
+          {/* Estatísticas Rápidas - Compactas */}
+          <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4">
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-2 sm:p-2.5">
+              <div className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 font-medium mb-0.5">Abertos</div>
+              <div className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-300">{stats.open}</div>
             </div>
-            <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-              <div className="text-xs text-yellow-600 dark:text-yellow-400 font-medium mb-1">Em Andamento</div>
-              <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{stats.inProgress}</div>
+            <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-2 sm:p-2.5">
+              <div className="text-[10px] sm:text-xs text-yellow-600 dark:text-yellow-400 font-medium mb-0.5">Em Andamento</div>
+              <div className="text-lg sm:text-xl font-bold text-yellow-700 dark:text-yellow-300">{stats.inProgress}</div>
             </div>
-            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
-              <div className="text-xs text-red-600 dark:text-red-400 font-medium mb-1">Críticos</div>
-              <div className="text-2xl font-bold text-red-700 dark:text-red-300">{stats.urgent}</div>
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-2 sm:p-2.5">
+              <div className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 font-medium mb-0.5">Críticos</div>
+              <div className="text-lg sm:text-xl font-bold text-red-700 dark:text-red-300">{stats.urgent}</div>
             </div>
-            <div className="bg-muted border border-border rounded-lg p-3">
-              <div className="text-xs text-muted-foreground font-medium mb-1">Total</div>
-              <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+            <div className="bg-muted border border-border rounded-lg p-2 sm:p-2.5">
+              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium mb-0.5">Total</div>
+              <div className="text-lg sm:text-xl font-bold text-foreground">{stats.total}</div>
             </div>
           </div>
 
-          {/* Barra de Busca e Filtros */}
-          <div className="space-y-4">
-            {/* Busca */}
-            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+          {/* Barra de Busca e Filtros - Compacta */}
+          <div className="space-y-2 sm:space-y-3">
+            {/* Busca e Filtros em linha compacta */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+              {/* Busca */}
               <div className="relative flex-1 min-w-0">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 sm:size-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por número, título ou descrição..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-10 w-full"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      fetchTickets()
+                    }
+                  }}
+                  className="pl-9 sm:pl-10 h-9 sm:h-10 w-full text-sm"
                 />
               </div>
-              <Button type="submit" size="sm" className="h-10 px-4 shrink-0">
-                Buscar
-              </Button>
-            </form>
 
-            {/* Filtros Rápidos */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <div className="flex items-center gap-2 shrink-0">
-                <Filter className="size-4 text-muted-foreground" />
-                <span className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:inline">Filtros:</span>
+              {/* Filtros em linha */}
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-9 w-full sm:w-[120px] lg:w-[140px] text-xs sm:text-sm">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">Abertos</SelectItem>
+                    <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                    <SelectItem value="OPEN">Apenas Abertos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger className="h-9 w-full sm:w-[110px] lg:w-[130px] text-xs sm:text-sm">
+                    <SelectValue placeholder="Prioridade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="URGENT">Crítica</SelectItem>
+                    <SelectItem value="HIGH">Alta</SelectItem>
+                    <SelectItem value="MEDIUM">Média</SelectItem>
+                    <SelectItem value="LOW">Baixa</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="h-9 w-full sm:w-[110px] lg:w-[130px] text-xs sm:text-sm">
+                    <SelectValue placeholder="Categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="HARDWARE">Hardware</SelectItem>
+                    <SelectItem value="SOFTWARE">Software</SelectItem>
+                    <SelectItem value="NETWORK">Rede</SelectItem>
+                    <SelectItem value="EMAIL">E-mail</SelectItem>
+                    <SelectItem value="ACCESS">Acesso</SelectItem>
+                    <SelectItem value="OTHER">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setPriorityFilter("all")
+                      setCategoryFilter("all")
+                      setSearchQuery("")
+                    }}
+                    className="h-9 text-xs shrink-0 px-2 sm:px-3"
+                  >
+                    Limpar
+                  </Button>
+                )}
               </div>
-              
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9 w-full sm:w-[140px] lg:w-[160px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="open">Abertos</SelectItem>
-                  <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                  <SelectItem value="OPEN">Apenas Abertos</SelectItem>
-                  <SelectItem value="all">Todos</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="h-9 w-full sm:w-[120px] lg:w-[140px]">
-                  <SelectValue placeholder="Prioridade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="URGENT">Crítica</SelectItem>
-                  <SelectItem value="HIGH">Alta</SelectItem>
-                  <SelectItem value="MEDIUM">Média</SelectItem>
-                  <SelectItem value="LOW">Baixa</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="h-9 w-full sm:w-[120px] lg:w-[140px]">
-                  <SelectValue placeholder="Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="HARDWARE">Hardware</SelectItem>
-                  <SelectItem value="SOFTWARE">Software</SelectItem>
-                  <SelectItem value="NETWORK">Rede</SelectItem>
-                  <SelectItem value="EMAIL">E-mail</SelectItem>
-                  <SelectItem value="ACCESS">Acesso</SelectItem>
-                  <SelectItem value="OTHER">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {hasActiveFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setPriorityFilter("all")
-                    setCategoryFilter("all")
-                    setSearchQuery("")
-                  }}
-                  className="h-9 text-xs shrink-0"
-                >
-                  Limpar filtros
-                </Button>
-              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-auto bg-muted/20">
+      <div className="w-full bg-muted/20">
         <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
           {loading ? (
             <div className="flex items-center justify-center py-20">
@@ -591,11 +609,9 @@ export default function AdminTicketsPage() {
                                 </div>
                               </td>
                               <td className="p-4">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 text-sm">
                                   <span className="text-base">{CATEGORY_ICONS[ticket.category] || "📋"}</span>
-                                  <span className="text-sm text-muted-foreground">
-                                    {CATEGORY_LABELS[ticket.category] || ticket.category}
-                                  </span>
+                                  <span>{CATEGORY_LABELS[ticket.category] || ticket.category}</span>
                                 </div>
                               </td>
                               <td className="p-4">
@@ -704,7 +720,7 @@ export default function AdminTicketsPage() {
           ) : (
             <>
               {/* Visualização em Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                 {filteredTickets.map((ticket) => (
                   <TicketListCard key={ticket.id} ticket={ticket} />
                 ))}

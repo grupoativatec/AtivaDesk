@@ -139,7 +139,7 @@ export function TicketListCard({ ticket }: TicketListCardProps) {
   // Extrair primeiro nome do responsável ou mostrar "Responsável não atribuído"
   const getResponsibleName = () => {
     if (!ticket.assignee) {
-      return "Responsável não atribuído"
+      return "Sem responsável"
     }
     // Pegar apenas o primeiro nome
     const firstName = ticket.assignee.name.split(" ")[0]
@@ -148,7 +148,7 @@ export function TicketListCard({ ticket }: TicketListCardProps) {
 
   return (
     <div
-      className="bg-card border border-border rounded-lg p-4 sm:p-5 hover:shadow-md transition-all cursor-pointer h-full flex flex-col min-w-0"
+      className="bg-card border border-border rounded-lg p-5 sm:p-6 hover:shadow-md transition-all cursor-pointer h-full flex flex-col min-w-0"
       onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
     >
       {/* Header: ID, Categoria e Prioridade */}
@@ -189,29 +189,27 @@ export function TicketListCard({ ticket }: TicketListCardProps) {
       </p>
 
       {/* Footer: Responsável, Data e Status */}
-      <div className="space-y-2 pt-3 border-t border-border/50">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-            <UserCheck className="size-3.5 sm:size-4 shrink-0" />
+      <div className="pt-3 border-t border-border/50">
+        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <UserCheck className="size-3 shrink-0" />
             <span className={cn(
-              "truncate",
+              "truncate max-w-[120px]",
               !ticket.assignee && "italic"
             )}>
               {getResponsibleName()}
             </span>
+            <span className="shrink-0 mx-0.5">•</span>
+            <div className="flex items-center gap-1.5 min-w-0 shrink-0">
+              <Calendar className="size-3 shrink-0" />
+              <span className="whitespace-nowrap">{dateFormatted}</span>
+            </div>
           </div>
-          <span className="hidden sm:inline mx-1">•</span>
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-            <Calendar className="size-3.5 sm:size-4 shrink-0" />
-            <span className="truncate">{dateFormatted}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
           <Badge
             variant="outline"
-            className={cn("text-xs font-medium px-2 sm:px-2.5 py-0.5 sm:py-1", statusConfig.color)}
+            className={cn("text-xs font-medium px-2 py-0.5 shrink-0", statusConfig.color)}
           >
-            <StatusIcon className="size-3 mr-1 sm:mr-1.5 shrink-0" />
+            <StatusIcon className="size-3 mr-1 shrink-0" />
             {statusConfig.label}
           </Badge>
         </div>
