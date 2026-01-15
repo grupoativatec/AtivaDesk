@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth/get-current-user"
 import { z } from "zod"
 
 const toggleTimerSchema = z.object({
-  action: z.enum(["pause", "resume"]),
+  action: z.enum(["start", "pause", "resume"]),
 })
 
 export async function POST(
@@ -62,17 +62,33 @@ export async function POST(
       )
     }
 
-    if (!ticket.inProgressAt) {
-      return NextResponse.json(
-        { error: "Timer não foi iniciado para este ticket" },
-        { status: 400 }
-      )
-    }
-
     const updateData: any = {}
     const now = new Date()
 
-    if (action === "pause") {
+    if (action === "start") {
+      // Se o timer já foi iniciado, não fazer nada
+      if (ticket.inProgressAt) {
+        return NextResponse.json({
+          ok: true,
+          message: "Timer já foi iniciado",
+          ticket,
+        })
+      }
+
+      // Iniciar o timer
+      updateData.inProgressAt = now
+      updateData.timerPaused = false
+      updateData.timerPausedAt = null
+    } else if (action === "pause") {
+      // Verificar se o timer foi iniciado
+      if (!ticket.inProgressAt) {
+        return NextResponse.json(
+          { error: "Timer não foi iniciado para este ticket" },
+          { status: 400 }
+        )
+      }
+
+      // Se já está pausado, não fazer nada
       // Se já está pausado, não fazer nada
       if (ticket.timerPaused) {
         return NextResponse.json({

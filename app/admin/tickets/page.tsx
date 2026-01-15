@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { AdminTicketCard } from "@/components/features/tickets/admin/admin-ticket-card"
 import {
   Select,
   SelectContent,
@@ -11,17 +10,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Loader2, Filter, Search, RefreshCw, ChevronDown } from "lucide-react"
+import { 
+  Loader2, 
+  Search, 
+  RefreshCw, 
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Calendar,
+  User,
+  UserCheck,
+  AlertCircle,
+  Filter,
+  Ticket as TicketIcon,
+  Grid3x3,
+  List
+} from "lucide-react"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { formatDistanceToNow, format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { TicketListCard } from "@/components/features/tickets/admin/ticket-list-card"
 
 type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT"
@@ -71,18 +82,83 @@ type User = {
   role: string
 }
 
+type SortField = "priority" | "createdAt" | "status" | null
+type SortDirection = "asc" | "desc"
+
+const STATUS_CONFIG = {
+  OPEN: {
+    label: "Aberto",
+    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
+    icon: AlertCircle,
+  },
+  IN_PROGRESS: {
+    label: "Em Andamento",
+    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800",
+    icon: Loader2,
+  },
+  RESOLVED: {
+    label: "Resolvido",
+    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
+  },
+  CLOSED: {
+    label: "Fechado",
+    color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950 dark:text-gray-300 dark:border-gray-800",
+  },
+} as const
+
+const PRIORITY_CONFIG = {
+  LOW: {
+    label: "Baixa",
+    color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800",
+    order: 1,
+  },
+  MEDIUM: {
+    label: "Média",
+    color: "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-800",
+    order: 2,
+  },
+  HIGH: {
+    label: "Alta",
+    color: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800",
+    order: 3,
+  },
+  URGENT: {
+    label: "Crítica",
+    color: "bg-red-50 text-red-600 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800",
+    order: 4,
+  },
+} as const
+
+const CATEGORY_LABELS: Record<string, string> = {
+  HARDWARE: "Hardware",
+  SOFTWARE: "Software",
+  NETWORK: "Rede",
+  EMAIL: "E-mail",
+  ACCESS: "Acesso",
+  OTHER: "Outro",
+}
+
+const CATEGORY_ICONS: Record<string, string> = {
+  HARDWARE: "💻",
+  SOFTWARE: "⚙️",
+  NETWORK: "🌐",
+  EMAIL: "📧",
+  ACCESS: "🔐",
+  OTHER: "📋",
+}
+
 export default function AdminTicketsPage() {
   const router = useRouter()
   const [tickets, setTickets] = useState<TicketWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [statusFilter, setStatusFilter] = useState<string>("OPEN")
+  const [statusFilter, setStatusFilter] = useState<string>("open") // Filtro padrão: apenas abertos
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [unitFilter, setUnitFilter] = useState<string>("all")
-  const [assigneeFilter, setAssigneeFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [sortField, setSortField] = useState<SortField>("priority")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [viewMode, setViewMode] = useState<"list" | "cards">("cards")
 
   const fetchUser = async () => {
     try {
@@ -100,34 +176,65 @@ export default function AdminTicketsPage() {
   const fetchTickets = async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      if (statusFilter !== "all") {
-        params.append("status", statusFilter)
-      }
-      if (priorityFilter !== "all") {
-        params.append("priority", priorityFilter)
-      }
-      if (categoryFilter !== "all") {
-        params.append("category", categoryFilter)
-      }
-      if (unitFilter !== "all") {
-        params.append("unit", unitFilter)
-      }
-      if (assigneeFilter !== "all") {
-        params.append("assigneeId", assigneeFilter)
-      }
-      if (searchQuery) {
-        params.append("search", searchQuery)
-      }
+      
+      let allTickets: TicketWithRelations[] = []
+      
+      // Se o filtro for "open", buscar ambos OPEN e IN_PROGRESS
+      if (statusFilter === "open") {
+        const statuses = ["OPEN", "IN_PROGRESS"]
+        const promises = statuses.map(async (status) => {
+          const params = new URLSearchParams()
+          params.append("status", status)
+          if (priorityFilter !== "all") {
+            params.append("priority", priorityFilter)
+          }
+          if (categoryFilter !== "all") {
+            params.append("category", categoryFilter)
+          }
+          if (searchQuery) {
+            params.append("search", searchQuery)
+          }
+          
+          const res = await fetch(`/api/admin/tickets?${params.toString()}`)
+          const data = await res.json()
+          return res.ok ? (data.tickets || []) : []
+        })
+        
+        const results = await Promise.all(promises)
+        allTickets = results.flat()
+        
+        // Remover duplicatas
+        const uniqueTickets = allTickets.filter((ticket: TicketWithRelations, index: number, self: TicketWithRelations[]) =>
+          index === self.findIndex((t: TicketWithRelations) => t.id === ticket.id)
+        )
+        allTickets = uniqueTickets
+      } else {
+        // Buscar com filtro único
+        const params = new URLSearchParams()
+        if (statusFilter !== "all") {
+          params.append("status", statusFilter)
+        }
+        if (priorityFilter !== "all") {
+          params.append("priority", priorityFilter)
+        }
+        if (categoryFilter !== "all") {
+          params.append("category", categoryFilter)
+        }
+        if (searchQuery) {
+          params.append("search", searchQuery)
+        }
 
-      const res = await fetch(`/api/admin/tickets?${params.toString()}`)
-      const data = await res.json()
+        const res = await fetch(`/api/admin/tickets?${params.toString()}`)
+        const data = await res.json()
 
-      if (!res.ok) {
-        throw new Error(data.error || "Erro ao buscar tickets")
+        if (!res.ok) {
+          throw new Error(data.error || "Erro ao buscar tickets")
+        }
+
+        allTickets = data.tickets || []
       }
-
-      setTickets(data.tickets || [])
+      
+      setTickets(allTickets)
     } catch (error: any) {
       toast.error(error.message || "Erro ao carregar tickets")
     } finally {
@@ -143,24 +250,60 @@ export default function AdminTicketsPage() {
     if (currentUser) {
       fetchTickets()
     }
-  }, [statusFilter, priorityFilter, categoryFilter, unitFilter, assigneeFilter, currentUser])
+  }, [statusFilter, priorityFilter, categoryFilter, currentUser])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     fetchTickets()
   }
 
-  const handleAssign = () => {
-    fetchTickets()
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortDirection("desc")
+    }
   }
 
-  const hasActiveFilters =
-    statusFilter !== "all" ||
-    priorityFilter !== "all" ||
-    categoryFilter !== "all" ||
-    unitFilter !== "all" ||
-    assigneeFilter !== "all" ||
-    searchQuery !== ""
+  // Ordenar tickets
+  const sortedTickets = useMemo(() => {
+    if (!sortField) return tickets
+
+    return [...tickets].sort((a, b) => {
+      let comparison = 0
+
+      switch (sortField) {
+        case "priority":
+          const priorityA = PRIORITY_CONFIG[a.priority].order
+          const priorityB = PRIORITY_CONFIG[b.priority].order
+          comparison = priorityA - priorityB
+          break
+        case "createdAt":
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          break
+        case "status":
+          const statusOrder = { OPEN: 1, IN_PROGRESS: 2, RESOLVED: 3, CLOSED: 4 }
+          comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0)
+          break
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison
+    })
+  }, [tickets, sortField, sortDirection])
+
+  // A busca já é feita no servidor, então não precisa filtrar novamente
+  const filteredTickets = sortedTickets
+
+  // Estatísticas
+  const stats = useMemo(() => {
+    const open = filteredTickets.filter(t => t.status === "OPEN").length
+    const inProgress = filteredTickets.filter(t => t.status === "IN_PROGRESS").length
+    const urgent = filteredTickets.filter(t => t.priority === "URGENT").length
+    return { open, inProgress, urgent, total: filteredTickets.length }
+  }, [filteredTickets])
+
+  const hasActiveFilters = priorityFilter !== "all" || categoryFilter !== "all" || searchQuery !== ""
 
   if (!currentUser) {
     return (
@@ -171,184 +314,402 @@ export default function AdminTicketsPage() {
   }
 
   return (
-    <div className="h-full w-full max-w-7xl mx-auto flex flex-col">
-      {/* Header */}
-      <div className="border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-semibold text-foreground mb-1">
-                Gerenciar Tickets
+    <div className="h-full w-full flex flex-col">
+      {/* Header com Estatísticas */}
+      <div className="border-b border-border bg-card shadow-sm shrink-0">
+        <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1 sm:mb-2">
+                Chamados em Aberto
               </h1>
-              <p className="text-sm text-muted-foreground">
-                {tickets.length} {tickets.length === 1 ? "ticket" : "tickets"}
-                {hasActiveFilters && " encontrados"}
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Exibindo {stats.total} {stats.total === 1 ? "chamado" : "chamados"}
               </p>
             </div>
-            <Button
-              onClick={fetchTickets}
-              variant="outline"
-              size="sm"
-              disabled={loading}
-              className="shrink-0"
-            >
-              <RefreshCw className={cn("size-4 mr-2", loading && "animate-spin")} />
-              Atualizar
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Toggle de Visualização */}
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("cards")}
+                  className="h-8 px-2 sm:px-3"
+                >
+                  <Grid3x3 className="size-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className="h-8 px-2 sm:px-3"
+                >
+                  <List className="size-4" />
+                </Button>
+              </div>
+              <Button
+                onClick={fetchTickets}
+                variant="outline"
+                size="sm"
+                disabled={loading}
+                className="shrink-0"
+              >
+                <RefreshCw className={cn("size-4 sm:mr-2", loading && "animate-spin")} />
+                <span className="hidden sm:inline">Atualizar</span>
+              </Button>
+            </div>
           </div>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar tickets por título ou descrição..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-9"
-              />
+          {/* Estatísticas Rápidas */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Abertos</div>
+              <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{stats.open}</div>
             </div>
-          </form>
+            <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+              <div className="text-xs text-yellow-600 dark:text-yellow-400 font-medium mb-1">Em Andamento</div>
+              <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{stats.inProgress}</div>
+            </div>
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+              <div className="text-xs text-red-600 dark:text-red-400 font-medium mb-1">Críticos</div>
+              <div className="text-2xl font-bold text-red-700 dark:text-red-300">{stats.urgent}</div>
+            </div>
+            <div className="bg-muted border border-border rounded-lg p-3">
+              <div className="text-xs text-muted-foreground font-medium mb-1">Total</div>
+              <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+            </div>
+          </div>
 
-          {/* Filters - Modal */}
-          <div className="flex items-center gap-3">
-            <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
-              <DialogTrigger asChild>
+          {/* Barra de Busca e Filtros */}
+          <div className="space-y-4">
+            {/* Busca */}
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por número, título ou descrição..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-10 w-full"
+                />
+              </div>
+              <Button type="submit" size="sm" className="h-10 px-4 shrink-0">
+                Buscar
+              </Button>
+            </form>
+
+            {/* Filtros Rápidos */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 shrink-0">
+                <Filter className="size-4 text-muted-foreground" />
+                <span className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:inline">Filtros:</span>
+              </div>
+              
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 w-full sm:w-[140px] lg:w-[160px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="open">Abertos</SelectItem>
+                  <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                  <SelectItem value="OPEN">Apenas Abertos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="h-9 w-full sm:w-[120px] lg:w-[140px]">
+                  <SelectValue placeholder="Prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="URGENT">Crítica</SelectItem>
+                  <SelectItem value="HIGH">Alta</SelectItem>
+                  <SelectItem value="MEDIUM">Média</SelectItem>
+                  <SelectItem value="LOW">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="h-9 w-full sm:w-[120px] lg:w-[140px]">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="HARDWARE">Hardware</SelectItem>
+                  <SelectItem value="SOFTWARE">Software</SelectItem>
+                  <SelectItem value="NETWORK">Rede</SelectItem>
+                  <SelectItem value="EMAIL">E-mail</SelectItem>
+                  <SelectItem value="ACCESS">Acesso</SelectItem>
+                  <SelectItem value="OTHER">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {hasActiveFilters && (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="h-9"
+                  onClick={() => {
+                    setPriorityFilter("all")
+                    setCategoryFilter("all")
+                    setSearchQuery("")
+                  }}
+                  className="h-9 text-xs shrink-0"
                 >
-                  <Filter className="size-4 mr-2" />
-                  Filtros
+                  Limpar filtros
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-[500px] max-h-[85vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Filtros</DialogTitle>
-                </DialogHeader>
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Status</label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os status</SelectItem>
-                        <SelectItem value="OPEN">Aberto</SelectItem>
-                        <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                        <SelectItem value="RESOLVED">Resolvido</SelectItem>
-                        <SelectItem value="CLOSED">Fechado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Prioridade</label>
-                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Prioridade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas</SelectItem>
-                        <SelectItem value="LOW">Baixa</SelectItem>
-                        <SelectItem value="MEDIUM">Média</SelectItem>
-                        <SelectItem value="HIGH">Alta</SelectItem>
-                        <SelectItem value="URGENT">Urgente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Categoria</label>
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas</SelectItem>
-                        <SelectItem value="HARDWARE">Hardware</SelectItem>
-                        <SelectItem value="SOFTWARE">Software</SelectItem>
-                        <SelectItem value="NETWORK">Rede</SelectItem>
-                        <SelectItem value="EMAIL">E-mail</SelectItem>
-                        <SelectItem value="ACCESS">Acesso</SelectItem>
-                        <SelectItem value="OTHER">Outro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Unidade</label>
-                    <Select value={unitFilter} onValueChange={setUnitFilter}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Unidade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas</SelectItem>
-                        <SelectItem value="ITJ">ITJ</SelectItem>
-                        <SelectItem value="SFS">SFS</SelectItem>
-                        <SelectItem value="FOZ">FOZ</SelectItem>
-                        <SelectItem value="DIO">DIO</SelectItem>
-                        <SelectItem value="AOL">AOL</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Atribuição</label>
-                    <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Atribuição" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="unassigned">Não atribuídos</SelectItem>
-                        {currentUser && (
-                          <SelectItem value={currentUser.id}>Meus tickets</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-auto bg-muted/30 rounded-lg">
-        <div className="p-6">
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
-          ) : tickets.length === 0 ? (
+          ) : filteredTickets.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                <Filter className="size-6 text-muted-foreground" />
+              <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                <TicketIcon className="size-8 text-muted-foreground" />
               </div>
-              <h3 className="text-base font-medium mb-1">
-                {hasActiveFilters ? "Nenhum ticket encontrado" : "Nenhum ticket ainda"}
+              <h3 className="text-lg font-semibold mb-2">
+                {hasActiveFilters ? "Nenhum chamado encontrado" : "Nenhum chamado em aberto"}
               </h3>
               <p className="text-sm text-muted-foreground">
                 {hasActiveFilters
                   ? "Tente ajustar os filtros ou a busca"
-                  : "Aguardando tickets serem criados"}
+                  : "Todos os chamados foram resolvidos ou não há chamados pendentes"}
               </p>
             </div>
+          ) : viewMode === "list" ? (
+            <>
+              {/* Tabela Desktop */}
+              <div className="hidden lg:block">
+                <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-muted/50 border-b border-border">
+                        <tr>
+                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <button
+                              onClick={() => handleSort("priority")}
+                              className="flex items-center gap-2 hover:text-foreground transition-colors"
+                            >
+                              Prioridade
+                              {sortField === "priority" ? (
+                                sortDirection === "asc" ? (
+                                  <ArrowUp className="size-3" />
+                                ) : (
+                                  <ArrowDown className="size-3" />
+                                )
+                              ) : (
+                                <ArrowUpDown className="size-3 opacity-50" />
+                              )}
+                            </button>
+                          </th>
+                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Número / Título
+                          </th>
+                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Categoria
+                          </th>
+                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <button
+                              onClick={() => handleSort("status")}
+                              className="flex items-center gap-2 hover:text-foreground transition-colors"
+                            >
+                              Status
+                              {sortField === "status" ? (
+                                sortDirection === "asc" ? (
+                                  <ArrowUp className="size-3" />
+                                ) : (
+                                  <ArrowDown className="size-3" />
+                                )
+                              ) : (
+                                <ArrowUpDown className="size-3 opacity-50" />
+                              )}
+                            </button>
+                          </th>
+                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <button
+                              onClick={() => handleSort("createdAt")}
+                              className="flex items-center gap-2 hover:text-foreground transition-colors"
+                            >
+                              Data
+                              {sortField === "createdAt" ? (
+                                sortDirection === "asc" ? (
+                                  <ArrowUp className="size-3" />
+                                ) : (
+                                  <ArrowDown className="size-3" />
+                                )
+                              ) : (
+                                <ArrowUpDown className="size-3 opacity-50" />
+                              )}
+                            </button>
+                          </th>
+                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Solicitante
+                          </th>
+                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Responsável
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {filteredTickets.map((ticket) => {
+                          const statusConfig = STATUS_CONFIG[ticket.status]
+                          const priorityConfig = PRIORITY_CONFIG[ticket.priority]
+                          const createdDate = new Date(ticket.createdAt)
+                          const timeAgo = formatDistanceToNow(createdDate, { addSuffix: true, locale: ptBR })
+
+                          return (
+                            <tr
+                              key={ticket.id}
+                              className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                              onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
+                            >
+                              <td className="p-4">
+                                <Badge
+                                  variant="outline"
+                                  className={cn("text-xs font-semibold px-2.5 py-1", priorityConfig.color)}
+                                >
+                                  {priorityConfig.label}
+                                </Badge>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-mono text-muted-foreground">#{ticket.id.slice(0, 8)}</span>
+                                  </div>
+                                  <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
+                                    {ticket.title}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-base">{CATEGORY_ICONS[ticket.category] || "📋"}</span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {CATEGORY_LABELS[ticket.category] || ticket.category}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <Badge
+                                  variant="outline"
+                                  className={cn("text-xs font-medium px-2.5 py-1", statusConfig.color)}
+                                >
+                                  {statusConfig.label}
+                                </Badge>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Calendar className="size-3.5" />
+                                  <span>{format(createdDate, "dd/MM/yyyy", { locale: ptBR })}</span>
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-0.5">{timeAgo}</div>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <User className="size-3.5 text-muted-foreground" />
+                                  <span className="text-foreground">{ticket.openedBy.name}</span>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <UserCheck className="size-3.5 text-muted-foreground" />
+                                  <span className={cn(
+                                    "text-foreground",
+                                    !ticket.assignee && "text-muted-foreground italic"
+                                  )}>
+                                    {ticket.assignee ? ticket.assignee.name : "Não definido"}
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cards Mobile */}
+              <div className="lg:hidden space-y-4">
+                {filteredTickets.map((ticket) => {
+                  const statusConfig = STATUS_CONFIG[ticket.status]
+                  const priorityConfig = PRIORITY_CONFIG[ticket.priority]
+                  const createdDate = new Date(ticket.createdAt)
+                  const timeAgo = formatDistanceToNow(createdDate, { addSuffix: true, locale: ptBR })
+
+                  return (
+                    <div
+                      key={ticket.id}
+                      className="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                      onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-mono text-muted-foreground">#{ticket.id.slice(0, 8)}</span>
+                            <Badge
+                              variant="outline"
+                              className={cn("text-xs font-semibold px-2 py-0.5", priorityConfig.color)}
+                            >
+                              {priorityConfig.label}
+                            </Badge>
+                          </div>
+                          <h3 className="font-semibold text-sm text-foreground mb-2 line-clamp-2">
+                            {ticket.title}
+                          </h3>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={cn("text-xs font-medium px-2 py-1 shrink-0", statusConfig.color)}
+                        >
+                          {statusConfig.label}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-2 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{CATEGORY_ICONS[ticket.category] || "📋"}</span>
+                          <span>{CATEGORY_LABELS[ticket.category] || ticket.category}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="size-3.5" />
+                          <span>{format(createdDate, "dd/MM/yyyy", { locale: ptBR })} • {timeAgo}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <User className="size-3.5" />
+                          <span>Solicitante: {ticket.openedBy.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <UserCheck className="size-3.5" />
+                          <span className={cn(!ticket.assignee && "italic")}>
+                            Responsável: {ticket.assignee ? ticket.assignee.name : "Não definido"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {tickets.map((ticket) => (
-                <AdminTicketCard
-                  key={ticket.id}
-                  ticket={ticket}
-                  currentUserId={currentUser.id}
-                  onAssign={handleAssign}
-                />
-              ))}
-            </div>
+            <>
+              {/* Visualização em Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
+                {filteredTickets.map((ticket) => (
+                  <TicketListCard key={ticket.id} ticket={ticket} />
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>
