@@ -12,10 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { RichTextEditor } from "@/components/features/tickets/shared/rich-text-editor"
-import { AttachmentUpload, Attachment } from "@/components/features/tickets/shared/attachment-upload"
 import { toast } from "sonner"
 import { ArrowLeft, Send, Loader2 } from "lucide-react"
-import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 const PRIORITIES = [
@@ -52,7 +50,6 @@ export default function NewTicketPage() {
   const [priority, setPriority] = useState<TicketPriority>("MEDIUM")
   const [unit, setUnit] = useState<TicketUnit | "">("")
   const [description, setDescription] = useState("")
-  const [attachments, setAttachments] = useState<Attachment[]>([])
 
   // Validation errors
   const [errors, setErrors] = useState<{
@@ -107,23 +104,28 @@ export default function NewTicketPage() {
     setLoading(true)
 
     try {
-      // Upload anexos primeiro
+      // Extrair anexos do HTML da descrição (imagens e links para arquivos)
       const uploadedAttachments: string[] = []
-
-      for (const attachment of attachments) {
-        const formData = new FormData()
-        formData.append("file", attachment.file)
-
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        })
-
-        if (uploadRes.ok) {
-          const data = await uploadRes.json()
-          uploadedAttachments.push(data.url)
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(description, "text/html")
+      
+      // Buscar todas as imagens
+      const images = doc.querySelectorAll("img")
+      images.forEach((img) => {
+        const src = img.getAttribute("src")
+        if (src && !src.startsWith("data:")) {
+          uploadedAttachments.push(src)
         }
-      }
+      })
+
+      // Buscar links para arquivos (arquivos anexados)
+      const fileLinks = doc.querySelectorAll("a[data-file-url]")
+      fileLinks.forEach((link) => {
+        const fileUrl = link.getAttribute("data-file-url")
+        if (fileUrl) {
+          uploadedAttachments.push(fileUrl)
+        }
+      })
 
       // Criar ticket
       const res = await fetch("/api/tickets", {
@@ -161,45 +163,32 @@ export default function NewTicketPage() {
   }
 
   return (
-    <div className="min-h-screen relative">
-      {/* Modern Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.03),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
-      </div>
-
-      <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="border rounded-2xl bg-card/60 backdrop-blur-sm shadow-lg p-6 sm:p-8 lg:p-10"
-        >
-          {/* Header */}
-          <div className="mb-8">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/tickets")}
-              className="mb-6 hover:bg-accent/50"
-            >
-              <ArrowLeft className="size-4 mr-2" />
-              Voltar
-            </Button>
-            <div>
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Novo Chamado
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                Descreva seu problema em detalhes para que possamos ajudá-lo
-              </p>
-            </div>
+    <div className="min-h-screen bg-background">
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/tickets")}
+            className="mb-4 sm:mb-6"
+          >
+            <ArrowLeft className="size-4 mr-2" />
+            Voltar
+          </Button>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">
+              Novo Chamado
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Descreva seu problema em detalhes para que possamos ajudá-lo
+            </p>
           </div>
+        </div>
 
-          {/* Form Container */}
-          <div className="border rounded-xl bg-card/40 backdrop-blur-sm shadow-md p-6 sm:p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form */}
+        <div className="bg-card dark:bg-card/50 border border-border dark:border-border/50 rounded-lg p-5 sm:p-6 lg:p-8 shadow-sm dark:shadow-none">
+          <form onSubmit={handleSubmit} className="space-y-6">
               {/* Título */}
               <div className="space-y-2">
                 <label htmlFor="title" className="text-sm font-semibold">
@@ -352,19 +341,8 @@ export default function NewTicketPage() {
                   <p className="text-sm text-destructive">{errors.description}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Use o editor para formatar o texto, adicionar links e inserir imagens
+                  Use o editor para formatar o texto, adicionar links, imagens e anexar arquivos diretamente
                 </p>
-              </div>
-
-              {/* Anexos */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">
-                  Anexos (opcional)
-                </label>
-                <AttachmentUpload
-                  attachments={attachments}
-                  onAttachmentsChange={setAttachments}
-                />
               </div>
 
               {/* Actions */}
@@ -398,8 +376,7 @@ export default function NewTicketPage() {
                 </Button>
               </div>
             </form>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   )

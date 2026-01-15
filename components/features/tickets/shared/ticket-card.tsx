@@ -5,7 +5,6 @@ import {
   Clock, 
   MessageSquare, 
   Paperclip, 
-  ChevronRight,
   AlertCircle,
   CheckCircle2,
   XCircle,
@@ -48,50 +47,31 @@ type TicketWithRelations = {
 
 interface TicketCardProps {
   ticket: TicketWithRelations
-  gradientIndex?: number
 }
 
 const STATUS_CONFIG = {
   OPEN: {
     label: "Aberto",
-    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400/80 dark:border-blue-900/30",
     icon: AlertCircle,
   },
   IN_PROGRESS: {
     label: "Em Andamento",
-    color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
+    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400/80 dark:border-yellow-900/30",
     icon: Loader2,
   },
   RESOLVED: {
     label: "Resolvido",
-    color: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
+    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400/80 dark:border-green-900/30",
     icon: CheckCircle2,
   },
   CLOSED: {
     label: "Fechado",
-    color: "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20",
+    color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950/20 dark:text-gray-400/80 dark:border-gray-900/30",
     icon: XCircle,
   },
 } as const
 
-const PRIORITY_CONFIG = {
-  LOW: {
-    label: "Baixa",
-    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  },
-  MEDIUM: {
-    label: "Média",
-    color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-  },
-  HIGH: {
-    label: "Alta",
-    color: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  },
-  URGENT: {
-    label: "Urgente",
-    color: "bg-red-500/10 text-red-600 dark:text-red-400",
-  },
-} as const
 
 const CATEGORY_LABELS: Record<string, string> = {
   HARDWARE: "Hardware",
@@ -102,39 +82,21 @@ const CATEGORY_LABELS: Record<string, string> = {
   OTHER: "Outro",
 }
 
-export function TicketCard({ ticket, gradientIndex = 0 }: TicketCardProps) {
+export function TicketCard({ ticket }: TicketCardProps) {
   const router = useRouter()
   const statusConfig = STATUS_CONFIG[ticket.status]
-  const priorityConfig = PRIORITY_CONFIG[ticket.priority]
   const StatusIcon = statusConfig.icon
 
-  const lastMessage = ticket.messages[ticket.messages.length - 1]
   const timeAgo = formatDistanceToNow(new Date(ticket.createdAt), {
     addSuffix: true,
     locale: ptBR,
   })
 
-  // Gradientes diferentes para cada ticket
-  const gradients = [
-    "bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-pink-500/10",
-    "bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/10",
-    "bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-yellow-500/10",
-    "bg-gradient-to-br from-indigo-500/10 via-blue-500/5 to-cyan-500/10",
-    "bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-fuchsia-500/10",
-    "bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-indigo-500/10",
-    "bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-lime-500/10",
-    "bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-indigo-500/10",
-    "bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-red-500/10",
-  ]
-  const gradient = gradients[gradientIndex % gradients.length]
-
   return (
     <div
       className={cn(
-        "group relative border rounded-xl p-5 h-full hover:shadow-lg transition-all cursor-pointer",
-        "backdrop-blur-sm border-border/50 hover:border-border",
-        "hover:scale-[1.02] flex flex-col",
-        gradient
+        "group relative border border-border dark:border-border/50 rounded-lg p-5 h-full hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer",
+        "bg-card dark:bg-card/50 hover:border-border/80 flex flex-col"
       )}
       onClick={() => router.push(`/tickets/${ticket.id}`)}
     >
@@ -168,24 +130,14 @@ export function TicketCard({ ticket, gradientIndex = 0 }: TicketCardProps) {
               {statusConfig.label}
             </Badge>
 
-            <Badge
-              variant="outline"
-              className={cn(
-                "text-xs font-medium px-2.5 py-0.5",
-                priorityConfig.color
-              )}
-            >
-              {priorityConfig.label}
-            </Badge>
-
-            <Badge variant="outline" className="text-xs px-2.5 py-0.5">
+            <Badge variant="outline" className="text-xs px-2.5 py-0.5 text-muted-foreground">
               {CATEGORY_LABELS[ticket.category] || ticket.category}
             </Badge>
           </div>
 
           {/* Footer Info */}
-          <div className="mt-auto pt-4 border-t border-border/50">
-            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
+          <div className="mt-auto pt-4 border-t border-border/50 dark:border-border/30">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <Clock className="size-3.5" />
                 <span>{timeAgo}</span>
@@ -204,16 +156,6 @@ export function TicketCard({ ticket, gradientIndex = 0 }: TicketCardProps) {
                   <span>{ticket._count.attachments}</span>
                 </div>
               )}
-            </div>
-
-            {ticket.assignee && (
-              <div className="text-xs text-muted-foreground">
-                Atribuído a: <span className="font-medium text-foreground">{ticket.assignee.name}</span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-end mt-3">
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
           </div>
         </div>

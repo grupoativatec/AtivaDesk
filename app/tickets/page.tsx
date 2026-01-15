@@ -11,10 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Loader2, Filter, Search } from "lucide-react"
-import { motion } from "framer-motion"
+import { Plus, Loader2, Filter, Search, Grid3x3, List, Clock, MessageSquare, Paperclip } from "lucide-react"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import { formatDistanceToNow } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { NewTicketModal } from "@/components/features/tickets/shared/new-ticket-modal"
 
 type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT"
@@ -54,8 +58,11 @@ export default function TicketsPage() {
   const [tickets, setTickets] = useState<TicketWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
+  const [viewMode, setViewMode] = useState<"list" | "cards">("list")
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const fetchTickets = async () => {
     try {
@@ -63,9 +70,6 @@ export default function TicketsPage() {
       const params = new URLSearchParams()
       if (statusFilter !== "all") {
         params.append("status", statusFilter)
-      }
-      if (priorityFilter !== "all") {
-        params.append("priority", priorityFilter)
       }
 
       const res = await fetch(`/api/tickets?${params.toString()}`)
@@ -85,7 +89,20 @@ export default function TicketsPage() {
 
   useEffect(() => {
     fetchTickets()
-  }, [statusFilter, priorityFilter])
+  }, [statusFilter])
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = (open: boolean) => {
+    setIsModalOpen(open)
+  }
+
+  const handleTicketCreated = () => {
+    // Atualizar lista de tickets após criar um novo
+    fetchTickets()
+  }
 
   const filteredTickets = tickets.filter((ticket) => {
     if (!searchQuery) return true
@@ -97,147 +114,190 @@ export default function TicketsPage() {
   })
 
   return (
-    <div className="min-h-screen relative">
-      {/* Modern Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.03),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
-      </div>
-
-      <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="border rounded-2xl bg-card/60 backdrop-blur-sm shadow-lg p-6 sm:p-8 lg:p-10"
-        >
-          {/* Header Section */}
-          <div className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <div>
-                <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Meus Chamados
-                </h1>
-                <p className="text-muted-foreground text-lg">
-                  Gerencie e acompanhe todos os seus chamados
-                </p>
+    <div className="min-h-screen bg-background">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header Section */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+                Meus Chamados
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Gerencie e acompanhe todos os seus chamados
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Toggle de Visualização */}
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className="h-8 px-3"
+                >
+                  <List className="size-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("cards")}
+                  className="h-8 px-3"
+                >
+                  <Grid3x3 className="size-4" />
+                </Button>
               </div>
-              <Button 
-                onClick={() => router.push("/tickets/new")}
-                size="lg"
-                className="shadow-lg"
+              <Button
+                onClick={handleOpenModal}
+                size="default"
               >
                 <Plus className="size-4 mr-2" />
                 Novo Chamado
               </Button>
             </div>
-
-            {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar chamados..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-11"
-                />
-              </div>
-              <div className="flex gap-3">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[160px] h-11">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os status</SelectItem>
-                    <SelectItem value="OPEN">Aberto</SelectItem>
-                    <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                    <SelectItem value="RESOLVED">Resolvido</SelectItem>
-                    <SelectItem value="CLOSED">Fechado</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="w-full sm:w-[160px] h-11">
-                    <SelectValue placeholder="Prioridade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as prioridades</SelectItem>
-                    <SelectItem value="LOW">Baixa</SelectItem>
-                    <SelectItem value="MEDIUM">Média</SelectItem>
-                    <SelectItem value="HIGH">Alta</SelectItem>
-                    <SelectItem value="URGENT">Urgente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
           </div>
 
-          {/* Tickets Grid */}
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+          {/* Search and Filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar chamados..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-10"
+              />
             </div>
-          ) : filteredTickets.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-20 border rounded-2xl bg-card/50 backdrop-blur-sm shadow-sm"
-            >
-              <div className="max-w-md mx-auto">
-                <div className="size-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                  <Filter className="size-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">
-                  {searchQuery || statusFilter !== "all" || priorityFilter !== "all"
-                    ? "Nenhum chamado encontrado"
-                    : "Nenhum chamado ainda"}
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  {searchQuery || statusFilter !== "all" || priorityFilter !== "all"
-                    ? "Tente ajustar os filtros ou a busca"
-                    : "Comece criando seu primeiro chamado"}
-                </p>
-                {(!searchQuery && statusFilter === "all" && priorityFilter === "all") && (
-                  <Button onClick={() => router.push("/tickets/new")} size="lg">
-                    <Plus className="size-4 mr-2" />
-                    Criar primeiro chamado
-                  </Button>
-                )}
-              </div>
-            </motion.div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredTickets.map((ticket, index) => (
-                <motion.div
-                  key={ticket.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.03 }}
-                >
-                  <TicketCard ticket={ticket as any} gradientIndex={index} />
-                </motion.div>
-              ))}
-            </div>
-          )}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[160px] h-10">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os status</SelectItem>
+                <SelectItem value="OPEN">Aberto</SelectItem>
+                <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                <SelectItem value="RESOLVED">Resolvido</SelectItem>
+                <SelectItem value="CLOSED">Fechado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-          {/* Footer Stats */}
-          {!loading && filteredTickets.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="mt-12 pt-8 border-t"
-            >
-              <p className="text-sm text-muted-foreground text-center">
-                Mostrando <span className="font-semibold text-foreground">{filteredTickets.length}</span> chamado
-                {filteredTickets.length !== 1 ? "s" : ""}
+        {/* Tickets Content */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="size-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredTickets.length === 0 ? (
+          <div className="text-center py-20 border border-border rounded-lg bg-card">
+            <div className="max-w-md mx-auto">
+              <div className="size-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                <Filter className="size-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">
+                {searchQuery || statusFilter !== "all"
+                  ? "Nenhum chamado encontrado"
+                  : "Nenhum chamado ainda"}
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                {searchQuery || statusFilter !== "all"
+                  ? "Tente ajustar os filtros ou a busca"
+                  : "Comece criando seu primeiro chamado"}
               </p>
-            </motion.div>
-          )}
-        </motion.div>
+              {(!searchQuery && statusFilter === "all") && (
+                <Button onClick={handleOpenModal} size="default">
+                  <Plus className="size-4 mr-2" />
+                  Criar primeiro chamado
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : viewMode === "list" ? (
+          /* Visualização em Lista */
+          <div className="space-y-3">
+            {filteredTickets.map((ticket) => (
+              <div
+                key={ticket.id}
+                onClick={() => router.push(`/tickets/${ticket.id}`)}
+                className="bg-card dark:bg-card/50 border border-border dark:border-border/50 rounded-lg p-4 sm:p-5 hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-3 mb-2">
+                      <h3 className="font-semibold text-base sm:text-lg text-foreground line-clamp-1 flex-1">
+                        {ticket.title}
+                      </h3>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-xs font-medium px-2.5 py-1 shrink-0",
+                          ticket.status === "OPEN" && "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400/80 dark:border-blue-900/30",
+                          ticket.status === "IN_PROGRESS" && "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400/80 dark:border-yellow-900/30",
+                          ticket.status === "RESOLVED" && "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400/80 dark:border-green-900/30",
+                          ticket.status === "CLOSED" && "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950/20 dark:text-gray-400/80 dark:border-gray-900/30"
+                        )}
+                      >
+                        {ticket.status === "OPEN" && "Aberto"}
+                        {ticket.status === "IN_PROGRESS" && "Em Andamento"}
+                        {ticket.status === "RESOLVED" && "Resolvido"}
+                        {ticket.status === "CLOSED" && "Fechado"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {ticket.description
+                        .replace(/<[^>]*>/g, "")
+                        .replace(/&nbsp;/g, " ")
+                        .trim()}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="size-3.5" />
+                        <span>{formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true, locale: ptBR })}</span>
+                      </div>
+                      {ticket._count.messages > 0 && (
+                        <div className="flex items-center gap-1.5">
+                          <MessageSquare className="size-3.5" />
+                          <span>{ticket._count.messages} {ticket._count.messages === 1 ? "comentário" : "comentários"}</span>
+                        </div>
+                      )}
+                      {ticket._count.attachments > 0 && (
+                        <div className="flex items-center gap-1.5">
+                          <Paperclip className="size-3.5" />
+                          <span>{ticket._count.attachments} {ticket._count.attachments === 1 ? "anexo" : "anexos"}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* Visualização em Cards */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            {filteredTickets.map((ticket) => (
+              <TicketCard key={ticket.id} ticket={ticket as any} />
+            ))}
+          </div>
+        )}
+
+        {/* Footer Stats */}
+        {!loading && filteredTickets.length > 0 && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <p className="text-sm text-muted-foreground text-center">
+              Mostrando <span className="font-semibold text-foreground">{filteredTickets.length}</span> chamado
+              {filteredTickets.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* Modal de Novo Chamado */}
+      <NewTicketModal
+        open={isModalOpen}
+        onOpenChange={handleCloseModal}
+        onSuccess={handleTicketCreated}
+      />
     </div>
   )
 }

@@ -13,11 +13,13 @@ import {
   Link as LinkIcon,
   Image as ImageIcon,
   Monitor,
+  Paperclip,
   X
 } from "lucide-react"
 import { useCallback, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { toPng } from "html-to-image"
+import { toast } from "sonner"
 
 interface RichTextEditorProps {
   content: string
@@ -33,6 +35,7 @@ export function RichTextEditor({
   placeholder = "Descreva o problema em detalhes..." 
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const attachmentInputRef = useRef<HTMLInputElement>(null)
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -76,15 +79,108 @@ export function RichTextEditor({
     },
   })
 
+  // Validações de segurança
+  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp"]
+  const ALLOWED_FILE_TYPES = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "text/plain",
+    "text/csv",
+  ]
+  const ALLOWED_EXTENSIONS = [
+    // Imagens
+    ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp",
+    // Documentos
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".csv",
+  ]
+  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
+  const validateFile = (file: File): string | null => {
+    // Validar tamanho
+    if (file.size > MAX_FILE_SIZE) {
+      return `Arquivo muito grande. Tamanho máximo: ${(MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB`
+    }
+
+    // Validar extensão
+    const extension = "." + file.name.split(".").pop()?.toLowerCase()
+    if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
+      return "Tipo de arquivo não permitido. Use apenas imagens, PDFs ou documentos."
+    }
+
+    // Validar tipo MIME
+    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type)
+    const isAllowedFile = ALLOWED_FILE_TYPES.includes(file.type)
+    
+    if (!isImage && !isAllowedFile) {
+      return "Tipo de arquivo não permitido. Use apenas imagens, PDFs ou documentos."
+    }
+
+    // Validar que extensão corresponde ao tipo MIME
+    if (isImage && !extension.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i)) {
+      return "Extensão do arquivo não corresponde ao tipo de imagem."
+    }
+
+    if (isAllowedFile && !extension.match(/\.(pdf|doc|docx|xls|xlsx|txt|csv)$/i)) {
+      return "Extensão do arquivo não corresponde ao tipo de documento."
+    }
+
+    return null
+  }
+
   const handleImageUpload = useCallback(async (file: File) => {
     if (!editor) return
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const src = e.target?.result as string
-      editor.chain().focus().setImage({ src }).run()
+    // Validar arquivo antes de processar
+    const validationError = validateFile(file)
+    if (validationError) {
+      toast.error(validationError)
+      return
     }
-    reader.readAsDataURL(file)
+
+    // Se for imagem, inserir como imagem
+    if (file.type.startsWith("image/") && ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const src = e.target?.result as string
+        editor.chain().focus().setImage({ src }).run()
+      }
+      reader.onerror = () => {
+        toast.error("Erro ao ler o arquivo de imagem.")
+      }
+      reader.readAsDataURL(file)
+    } else {
+      // Se for outro tipo de arquivo, fazer upload e criar link
+      try {
+        const formData = new FormData()
+        formData.append("file", file)
+
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
+
+        const data = await uploadRes.json()
+
+        if (!uploadRes.ok) {
+          throw new Error(data.error || "Erro ao fazer upload do arquivo")
+        }
+
+        // Inserir link no editor com atributo data-file-url
+        editor
+          .chain()
+          .focus()
+          .insertContent(
+            `<a href="${data.url}" data-file-url="${data.url}" target="_blank" rel="noopener noreferrer">📎 ${file.name}</a>`
+          )
+          .run()
+      } catch (error: any) {
+        console.error("Erro ao fazer upload:", error)
+        toast.error(error.message || "Erro ao fazer upload do arquivo. Tente novamente.")
+      }
+    }
   }, [editor])
 
   const handleScreenshot = useCallback(async () => {
@@ -244,8 +340,19 @@ export function RichTextEditor({
           variant="ghost"
           size="icon-sm"
           onClick={() => fileInputRef.current?.click()}
+          title="Inserir imagem"
         >
           <ImageIcon className="size-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => attachmentInputRef.current?.click()}
+          title="Anexar arquivo"
+        >
+          <Paperclip className="size-4" />
         </Button>
 
         <Button
@@ -274,11 +381,25 @@ export function RichTextEditor({
         )}
       </div>
 
-      {/* Hidden file input */}
+      {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) {
+            handleImageUpload(file)
+          }
+          // Reset input para permitir selecionar o mesmo arquivo novamente
+          e.target.value = ""
+        }}
+      />
+      <input
+        ref={attachmentInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,image/jpeg,image/png,image/gif,image/webp"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0]
