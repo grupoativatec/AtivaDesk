@@ -8,7 +8,6 @@ import { MessageList } from "@/components/features/tickets/shared/message-list"
 import { MessageForm } from "@/components/features/tickets/shared/message-form"
 import { AdminTicketEditModal } from "@/components/features/tickets/admin/admin-ticket-edit-modal"
 import { ArrowLeft, Loader2 } from "lucide-react"
-import { motion } from "framer-motion"
 import { toast } from "sonner"
 
 type Ticket = {
@@ -72,8 +71,9 @@ export default function AdminTicketDetailPage() {
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
-  const leftColumnRef = useRef<HTMLDivElement>(null)
-  const rightColumnRef = useRef<HTMLDivElement>(null)
+  const leftContainerRef = useRef<HTMLDivElement>(null)
+  const rightContainerRef = useRef<HTMLDivElement>(null)
+  const rightInnerContainerRef = useRef<HTMLDivElement>(null)
 
   const fetchUser = async () => {
     try {
@@ -95,7 +95,6 @@ export default function AdminTicketDetailPage() {
         cache: 'no-store',
       })
 
-      // Verificar se a resposta é JSON
       const contentType = res.headers.get("content-type")
       if (!contentType || !contentType.includes("application/json")) {
         const text = await res.text()
@@ -104,18 +103,6 @@ export default function AdminTicketDetailPage() {
       }
 
       const data = await res.json()
-
-      // Debug: verificar se os campos de timer estão presentes
-      if (data.ok && data.ticket) {
-        console.log("Ticket carregado:", {
-          id: data.ticket.id,
-          timerPaused: data.ticket.timerPaused,
-          timerPausedAt: data.ticket.timerPausedAt,
-          totalPausedMinutes: data.ticket.totalPausedMinutes,
-          inProgressAt: data.ticket.inProgressAt,
-          status: data.ticket.status,
-        })
-      }
 
       if (!res.ok) {
         if (res.status === 404) {
@@ -146,31 +133,34 @@ export default function AdminTicketDetailPage() {
     }
   }, [ticketId, currentUser])
 
-  // Sincronizar altura da coluna direita com a esquerda
+  // Sincronizar altura do container de chat com o container de detalhes
   useEffect(() => {
-    if (!leftColumnRef.current || !rightColumnRef.current) return
+    if (!leftContainerRef.current || !rightInnerContainerRef.current) return
 
     const syncHeights = () => {
-      if (leftColumnRef.current && rightColumnRef.current) {
-        const leftHeight = leftColumnRef.current.offsetHeight
-        rightColumnRef.current.style.height = `${leftHeight}px`
+      if (leftContainerRef.current && rightInnerContainerRef.current) {
+        const leftHeight = leftContainerRef.current.offsetHeight
+        // Aplicar altura exata do container de detalhes no container interno do chat
+        rightInnerContainerRef.current.style.height = `${leftHeight}px`
+        rightInnerContainerRef.current.style.maxHeight = `${leftHeight}px`
       }
     }
 
-    // Sincronizar inicialmente
+    // Sincronizar inicialmente com um pequeno delay para garantir que o layout esteja renderizado
+    const timeoutId = setTimeout(syncHeights, 100)
     syncHeights()
 
     // Observar mudanças no container da esquerda
     const resizeObserver = new ResizeObserver(syncHeights)
-    resizeObserver.observe(leftColumnRef.current)
+    resizeObserver.observe(leftContainerRef.current)
 
     return () => {
+      clearTimeout(timeoutId)
       resizeObserver.disconnect()
     }
   }, [ticket])
 
   const handleMessageSent = (newMessage: any) => {
-    // Re-fetch ticket para atualizar a lista de mensagens
     setTimeout(() => {
       fetchTicket()
     }, 500)
@@ -178,15 +168,8 @@ export default function AdminTicketDetailPage() {
 
   if (loading || !currentUser) {
     return (
-      <div className="min-h-screen relative">
-        <div className="fixed inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.03),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
-        </div>
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="size-8 animate-spin text-muted-foreground" />
-        </div>
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -196,48 +179,54 @@ export default function AdminTicketDetailPage() {
   }
 
   return (
-    <div className="min-h-screen relative">
-      {/* Modern Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.03),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
+    <div className="h-full w-full flex flex-col">
+      {/* Header */}
+      <div className="border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shrink-0">
+        <div className="px-6 py-4 max-w-7xl mx-auto w-full">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/admin/tickets")}
+          >
+            <ArrowLeft className="size-4 mr-2" />
+            Voltar
+          </Button>
+        </div>
       </div>
 
-      <div className="relative w-full max-w-[1600px] mx-auto px-0 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="space-y-4 sm:space-y-6 px-4 sm:px-0"
-        >
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      {/* Content Area */}
+      <div className="flex-1 overflow-auto bg-muted/30">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Ticket Details */}
-            <div className="lg:col-span-2" ref={leftColumnRef}>
-              <TicketDetails
-                ticket={ticket}
-                onEditClick={() => setEditModalOpen(true)}
-                onTimerToggle={(updatedTicket) => {
-                  setTicket(updatedTicket)
-                }}
-                showAdminInfo={true}
-              />
+            <div className="lg:col-span-2" ref={leftContainerRef}>
+              <div className="border rounded-lg bg-card shadow-sm min-h-[600px] p-6">
+                <TicketDetails
+                  ticket={ticket}
+                  onEditClick={() => setEditModalOpen(true)}
+                  onTimerToggle={(updatedTicket) => {
+                    setTicket(updatedTicket)
+                  }}
+                  showAdminInfo={true}
+                />
+              </div>
             </div>
 
             {/* Right Column - Comments */}
-            <div className="lg:col-span-1 flex flex-col h-full lg:sticky lg:top-4 lg:self-start" ref={rightColumnRef}>
-              {/* Messages Section - Chat Style */}
-              <div className="border rounded-xl sm:rounded-2xl bg-card/60 backdrop-blur-sm shadow-lg flex flex-col flex-1 min-h-[400px] lg:min-h-0 lg:max-h-[calc(100vh-8rem)]">
+            <div className="lg:col-span-1" ref={rightContainerRef}>
+              <div 
+                ref={rightInnerContainerRef}
+                className="border rounded-lg bg-card shadow-sm flex flex-col lg:sticky lg:top-6 overflow-hidden"
+              >
                 {/* Chat Header */}
-                <div className="p-3 sm:p-4 md:p-6 border-b border-border/50 shrink-0">
-                  <h2 className="text-base sm:text-lg md:text-xl font-semibold">
+                <div className="p-4 border-b border-border shrink-0">
+                  <h2 className="text-lg font-semibold">
                     Comentários ({ticket.messages.length})
                   </h2>
                 </div>
 
                 {/* Messages Area - Scrollable */}
-                <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 min-h-0">
+                <div className="flex-1 overflow-y-auto p-4 min-h-0 overscroll-contain">
                   <MessageList
                     messages={ticket.messages}
                     currentUserId={currentUser.id}
@@ -245,7 +234,7 @@ export default function AdminTicketDetailPage() {
                 </div>
 
                 {/* Message Form - Fixed at Bottom */}
-                <div className="p-3 sm:p-4 md:p-6 border-t border-border/50 shrink-0 bg-card/80 backdrop-blur-sm">
+                <div className="p-4 border-t border-border shrink-0 bg-background">
                   <MessageForm
                     ticketId={ticketId}
                     currentUserId={currentUser.id}
@@ -256,25 +245,25 @@ export default function AdminTicketDetailPage() {
               </div>
             </div>
           </div>
-
-          {/* Edit Modal */}
-          {ticket && (
-            <AdminTicketEditModal
-              ticket={{
-                id: ticket.id,
-                status: ticket.status,
-                priority: ticket.priority,
-                category: ticket.category,
-                unit: ticket.unit ?? null,
-                assignee: ticket.assignee,
-              }}
-              open={editModalOpen}
-              onOpenChange={setEditModalOpen}
-              onUpdate={fetchTicket}
-            />
-          )}
-        </motion.div>
+        </div>
       </div>
+
+      {/* Edit Modal */}
+      {ticket && (
+        <AdminTicketEditModal
+          ticket={{
+            id: ticket.id,
+            status: ticket.status,
+            priority: ticket.priority,
+            category: ticket.category,
+            unit: ticket.unit ?? null,
+            assignee: ticket.assignee,
+          }}
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          onUpdate={fetchTicket}
+        />
+      )}
     </div>
   )
 }

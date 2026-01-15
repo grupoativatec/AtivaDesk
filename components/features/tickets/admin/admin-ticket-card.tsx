@@ -6,16 +6,16 @@ import {
   Clock,
   MessageSquare,
   Paperclip,
-  ChevronRight,
   AlertCircle,
   CheckCircle2,
   XCircle,
   Loader2,
   User,
-  UserCheck
+  UserCheck,
+  AlertTriangle
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow, differenceInHours } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -59,7 +59,6 @@ type TicketWithRelations = {
 
 interface AdminTicketCardProps {
   ticket: TicketWithRelations
-  gradientIndex?: number
   currentUserId: string
   onAssign?: () => void
 }
@@ -67,42 +66,35 @@ interface AdminTicketCardProps {
 const STATUS_CONFIG = {
   OPEN: {
     label: "Aberto",
-    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-    icon: AlertCircle,
+    badgeColor: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
   },
   IN_PROGRESS: {
     label: "Em Andamento",
-    color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
-    icon: Loader2,
+    badgeColor: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800",
   },
   RESOLVED: {
     label: "Resolvido",
-    color: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
-    icon: CheckCircle2,
+    badgeColor: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
   },
   CLOSED: {
     label: "Fechado",
-    color: "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20",
-    icon: XCircle,
+    badgeColor: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950 dark:text-gray-300 dark:border-gray-800",
   },
 } as const
 
 const PRIORITY_CONFIG = {
   LOW: {
     label: "Baixa",
-    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
   },
   MEDIUM: {
     label: "Média",
-    color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
   },
   HIGH: {
     label: "Alta",
-    color: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
   },
   URGENT: {
     label: "Urgente",
-    color: "bg-red-500/10 text-red-600 dark:text-red-400",
+    badgeColor: "bg-red-50/80 text-red-600 border-red-200/60 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800/50",
   },
 } as const
 
@@ -123,14 +115,12 @@ const UNIT_LABELS: Record<string, string> = {
   AOL: "AOL",
 }
 
-export function AdminTicketCard({ ticket, gradientIndex = 0, currentUserId, onAssign }: AdminTicketCardProps) {
+export function AdminTicketCard({ ticket, currentUserId, onAssign }: AdminTicketCardProps) {
   const router = useRouter()
   const [isAssigning, setIsAssigning] = useState(false)
   const statusConfig = STATUS_CONFIG[ticket.status]
   const priorityConfig = PRIORITY_CONFIG[ticket.priority]
-  const StatusIcon = statusConfig.icon
 
-  const lastMessage = ticket.messages[ticket.messages.length - 1]
   const timeAgo = formatDistanceToNow(new Date(ticket.createdAt), {
     addSuffix: true,
     locale: ptBR,
@@ -139,19 +129,16 @@ export function AdminTicketCard({ ticket, gradientIndex = 0, currentUserId, onAs
   const isAssignedToMe = ticket.assignee?.id === currentUserId
   const isUnassigned = !ticket.assignee
 
-  // Gradientes diferentes para cada ticket
-  const gradients = [
-    "bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-pink-500/10",
-    "bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/10",
-    "bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-yellow-500/10",
-    "bg-gradient-to-br from-indigo-500/10 via-blue-500/5 to-cyan-500/10",
-    "bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-fuchsia-500/10",
-    "bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-indigo-500/10",
-    "bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-lime-500/10",
-    "bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-indigo-500/10",
-    "bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-red-500/10",
-  ]
-  const gradient = gradients[gradientIndex % gradients.length]
+  // Verificar se é ticket crítico (urgente + aberto há mais de 4 horas)
+  const hoursSinceCreation = differenceInHours(new Date(), new Date(ticket.createdAt))
+  const isCritical = ticket.priority === "URGENT" && ticket.status === "OPEN" && hoursSinceCreation >= 4
+
+  // Limpar descrição HTML e limitar a 1 linha
+  const cleanDescription = ticket.description
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .trim()
+    .substring(0, 100)
 
   const handleAssign = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -187,130 +174,124 @@ export function AdminTicketCard({ ticket, gradientIndex = 0, currentUserId, onAs
   return (
     <div
       className={cn(
-        "group relative border rounded-xl p-5 h-full hover:shadow-lg transition-all cursor-pointer",
-        "backdrop-blur-sm border-border/50 hover:border-border",
-        "hover:scale-[1.02] flex flex-col",
-        gradient
+        "group relative bg-card border border-border rounded-lg p-4 h-full",
+        "hover:border-border hover:shadow-md transition-all cursor-pointer",
+        "flex flex-col",
+        isCritical && "bg-red-50/30 dark:bg-red-950/10 border-red-200/50 dark:border-red-800/30"
       )}
       onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
     >
-      <div className="flex flex-col h-full">
-        <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="mb-4">
-            <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-              {ticket.title}
-            </h3>
-            <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-              {ticket.description
-                .replace(/<[^>]*>/g, "")
-                .replace(/&nbsp;/g, " ")
-                .trim()
-                .substring(0, 100)}
-              {ticket.description.replace(/<[^>]*>/g, "").length > 100 && "..."}
-            </p>
-          </div>
-
-          {/* Badges */}
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            <Badge
-              variant="outline"
-              className={cn(
-                "text-xs font-medium border px-2.5 py-0.5",
-                statusConfig.color
+      {/* Header: Título e Status */}
+      <div className="mb-3">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors flex-1">
+                {ticket.title}
+              </h3>
+              {isCritical && (
+                <AlertTriangle className="size-4 text-red-500 shrink-0" />
               )}
-            >
-              <StatusIcon className="size-3 mr-1.5" />
-              {statusConfig.label}
-            </Badge>
-
-            <Badge
-              variant="outline"
-              className={cn(
-                "text-xs font-medium px-2.5 py-0.5",
-                priorityConfig.color
-              )}
-            >
-              {priorityConfig.label}
-            </Badge>
-
-            <Badge variant="outline" className="text-xs px-2.5 py-0.5">
-              {CATEGORY_LABELS[ticket.category] || ticket.category}
-            </Badge>
-
-            {ticket.unit && (
-              <Badge variant="outline" className="text-xs px-2.5 py-0.5">
-                {UNIT_LABELS[ticket.unit] || ticket.unit}
-              </Badge>
-            )}
-          </div>
-
-          {/* User Info */}
-          <div className="mb-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5 mb-1">
-              <User className="size-3.5" />
-              <span>Criado por: <span className="font-medium text-foreground">{ticket.openedBy.name}</span></span>
             </div>
-            {ticket.assignee && (
-              <div className="flex items-center gap-1.5">
-                <UserCheck className="size-3.5" />
-                <span>Responsável: <span className="font-medium text-foreground">{ticket.assignee.name}</span></span>
+          </div>
+          {/* Status como badge destacado */}
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-xs font-semibold px-2.5 py-1 border shrink-0",
+              statusConfig.badgeColor
+            )}
+          >
+            {statusConfig.label}
+          </Badge>
+        </div>
+        
+        {/* Descrição - 1 linha apenas */}
+        <p className="text-xs text-muted-foreground line-clamp-1">
+          {cleanDescription}
+          {ticket.description.replace(/<[^>]*>/g, "").length > 100 && "..."}
+        </p>
+      </div>
+
+      {/* Badges: Prioridade Urgente (saturada reduzida) e Categoria */}
+      <div className="flex flex-wrap items-center gap-1.5 mb-3">
+        {ticket.priority === "URGENT" && (
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-xs font-medium px-2 py-0.5 border",
+              priorityConfig.badgeColor
+            )}
+          >
+            <AlertCircle className="size-3 mr-1" />
+            Urgente
+          </Badge>
+        )}
+        <Badge variant="outline" className="text-xs px-2 py-0.5 text-muted-foreground">
+          {CATEGORY_LABELS[ticket.category] || ticket.category}
+        </Badge>
+        {ticket.unit && (
+          <Badge variant="outline" className="text-xs px-2 py-0.5 text-muted-foreground">
+            {UNIT_LABELS[ticket.unit] || ticket.unit}
+          </Badge>
+        )}
+      </div>
+
+      {/* Informações secundárias - discretas */}
+      <div className="mt-auto pt-3 border-t border-border/50">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Clock className="size-3" />
+              <span>{timeAgo}</span>
+            </div>
+            {ticket._count.messages > 0 && (
+              <div className="flex items-center gap-1">
+                <MessageSquare className="size-3" />
+                <span>{ticket._count.messages}</span>
+              </div>
+            )}
+            {ticket._count.attachments > 0 && (
+              <div className="flex items-center gap-1">
+                <Paperclip className="size-3" />
+                <span>{ticket._count.attachments}</span>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Footer Info */}
-          <div className="mt-auto pt-4 border-t border-border/50">
-            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
-              <div className="flex items-center gap-1.5">
-                <Clock className="size-3.5" />
-                <span>{timeAgo}</span>
+        {/* Footer: Usuários e Ação - Estrutura fixa */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0 flex-1">
+            {ticket.assignee ? (
+              <div className="flex items-center gap-1.5 min-w-0">
+                <UserCheck className="size-3 shrink-0" />
+                <span className="truncate">{ticket.assignee.name}</span>
               </div>
-
-              {ticket._count.messages > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <MessageSquare className="size-3.5" />
-                  <span>{ticket._count.messages}</span>
-                </div>
-              )}
-
-              {ticket._count.attachments > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Paperclip className="size-3.5" />
-                  <span>{ticket._count.attachments}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Assign Button */}
-            <div className="flex items-center justify-between mt-3">
-              <Button
-                size="sm"
-                variant={isAssignedToMe ? "default" : "outline"}
-                onClick={handleAssign}
-                disabled={isAssigning}
-                className="text-xs"
-              >
-                {isAssigning ? (
-                  <>
-                    <Loader2 className="size-3 mr-1.5 animate-spin" />
-                    Assumindo...
-                  </>
-                ) : isAssignedToMe ? (
-                  <>
-                    <UserCheck className="size-3 mr-1.5" />
-                    Meu ticket
-                  </>
-                ) : (
-                  <>
-                    <UserCheck className="size-3 mr-1.5" />
-                    Assumir ticket
-                  </>
-                )}
-              </Button>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </div>
+            ) : (
+              <div className="flex items-center gap-1.5 min-w-0">
+                <User className="size-3 shrink-0" />
+                <span className="truncate">{ticket.openedBy.name}</span>
+              </div>
+            )}
           </div>
+          
+          {/* Botão com tamanho fixo para manter layout consistente */}
+          <Button
+            size="sm"
+            variant={isAssignedToMe ? "default" : "outline"}
+            onClick={handleAssign}
+            disabled={isAssigning}
+            className="text-xs h-7 px-3 shrink-0 min-w-[70px]"
+          >
+            {isAssigning ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : isAssignedToMe ? (
+              "Meu"
+            ) : (
+              "Assumir"
+            )}
+          </Button>
         </div>
       </div>
     </div>

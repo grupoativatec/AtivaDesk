@@ -241,7 +241,7 @@ export function TicketDetails({ ticket, onEditClick, onTimerToggle, showAdminInf
   }
 
   return (
-    <div className="border rounded-xl sm:rounded-2xl bg-card/60 backdrop-blur-sm shadow-lg p-4 sm:p-6 md:p-8 lg:p-10 w-full">
+    <div className="w-full h-full">
       {/* Header */}
       <div className="mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -263,55 +263,55 @@ export function TicketDetails({ ticket, onEditClick, onTimerToggle, showAdminInf
       </div>
 
       {/* Info Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-border/50">
-        <div className="flex flex-col text-sm">
-          <span className="text-muted-foreground text-xs mb-1">Status</span>
-          <span className="font-medium">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 sm:gap-4 md:gap-5 lg:gap-6 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-border/50">
+        <div className="flex flex-col text-sm min-w-0">
+          <span className="text-muted-foreground text-xs mb-1.5">Status</span>
+          <span className="font-medium break-words">
             {statusConfig.label}
           </span>
         </div>
 
-        <div className="flex flex-col text-sm">
-          <span className="text-muted-foreground text-xs mb-1">Prioridade</span>
-          <span className="font-medium">
+        <div className="flex flex-col text-sm min-w-0">
+          <span className="text-muted-foreground text-xs mb-1.5">Prioridade</span>
+          <span className="font-medium break-words">
             {priorityConfig.label}
           </span>
         </div>
 
-        <div className="flex flex-col text-sm">
-          <span className="text-muted-foreground text-xs mb-1">Categoria</span>
-          <span className="font-medium">
+        <div className="flex flex-col text-sm min-w-0">
+          <span className="text-muted-foreground text-xs mb-1.5">Categoria</span>
+          <span className="font-medium break-words">
             {CATEGORY_LABELS[ticket.category] || ticket.category}
           </span>
         </div>
 
         {ticket.unit && (
-          <div className="flex flex-col text-sm">
-            <span className="text-muted-foreground text-xs mb-1">Unidade</span>
-            <span className="font-medium">
+          <div className="flex flex-col text-sm min-w-0">
+            <span className="text-muted-foreground text-xs mb-1.5">Unidade</span>
+            <span className="font-medium break-words">
               {UNIT_LABELS[ticket.unit] || ticket.unit}
             </span>
           </div>
         )}
 
-        <div className="flex flex-col text-sm">
-          <span className="text-muted-foreground text-xs mb-1">Criado</span>
-          <span className="font-medium">{format(createdDate, "dd/MM/yyyy", { locale: ptBR })}</span>
+        <div className="flex flex-col text-sm min-w-0">
+          <span className="text-muted-foreground text-xs mb-1.5">Criado</span>
+          <span className="font-medium break-words">{format(createdDate, "dd/MM/yyyy", { locale: ptBR })}</span>
         </div>
 
         {showAdminInfo && ticket.assignee && (
-          <div className="flex flex-col text-sm">
-            <span className="text-muted-foreground text-xs mb-1">Responsável</span>
-            <span className="font-medium">{ticket.assignee.name}</span>
+          <div className="flex flex-col text-sm min-w-0">
+            <span className="text-muted-foreground text-xs mb-1.5">Responsável</span>
+            <span className="font-medium break-words truncate">{ticket.assignee.name}</span>
           </div>
         )}
 
         {showAdminInfo && elapsedTime && (
-          <div className="flex flex-col text-sm">
-            <span className="text-muted-foreground text-xs mb-1">Tempo dedicado</span>
-            <div className="flex items-center gap-2 flex-nowrap">
+          <div className="flex flex-col text-sm min-w-0">
+            <span className="text-muted-foreground text-xs mb-1.5">Tempo dedicado</span>
+            <div className="flex items-center gap-2 flex-wrap">
               <span className={cn(
-                "font-medium flex items-center gap-1 whitespace-nowrap",
+                "font-medium flex items-center gap-1",
                 ticket.status === "IN_PROGRESS" && !isPaused && "text-primary"
               )}>
                 <Clock className={cn(
@@ -326,7 +326,7 @@ export function TicketDetails({ ticket, onEditClick, onTimerToggle, showAdminInf
                   size="sm"
                   onClick={handleTimerToggle}
                   disabled={isToggling}
-                  className="h-6 w-6 p-0 shrink-0 flex-shrink-0"
+                  className="h-6 w-6 p-0 shrink-0"
                   title={isPaused ? "Retomar timer" : "Pausar timer"}
                 >
                   {isPaused ? (
@@ -337,7 +337,6 @@ export function TicketDetails({ ticket, onEditClick, onTimerToggle, showAdminInf
                 </Button>
               )}
             </div>
-
           </div>
         )}
       </div>

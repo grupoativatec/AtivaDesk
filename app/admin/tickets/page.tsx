@@ -11,11 +11,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Loader2, Filter, Search, RefreshCw, X } from "lucide-react"
-import { motion } from "framer-motion"
+import { Loader2, Filter, Search, RefreshCw, ChevronDown } from "lucide-react"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { cn } from "@/lib/utils"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT"
@@ -148,286 +154,203 @@ export default function AdminTicketsPage() {
     fetchTickets()
   }
 
+  const hasActiveFilters =
+    statusFilter !== "all" ||
+    priorityFilter !== "all" ||
+    categoryFilter !== "all" ||
+    unitFilter !== "all" ||
+    assigneeFilter !== "all" ||
+    searchQuery !== ""
+
   if (!currentUser) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen relative">
-      {/* Modern Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.03),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
-      </div>
-
-      <div className="relative w-full max-w-8xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="border-x-0 sm:border-x rounded-none sm:rounded-xl md:rounded-2xl bg-card/60 backdrop-blur-sm shadow-lg p-4 sm:p-6 md:p-8 lg:p-10"
-        >
-          {/* Header Section */}
-          <div className="mb-6 sm:mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Gerenciar Tickets
-                </h1>
-                <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
-                  Visualize e gerencie todos os tickets do sistema
-                </p>
-              </div>
-              <Button
-                onClick={fetchTickets}
-                variant="outline"
-                size="default"
-                className="shadow-lg w-full sm:w-auto"
-                disabled={loading}
-              >
-                <RefreshCw className={`size-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Atualizar</span>
-                <span className="sm:hidden">Atualizar</span>
-              </Button>
+    <div className="h-full w-full max-w-7xl mx-auto flex flex-col">
+      {/* Header */}
+      <div className="border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground mb-1">
+                Gerenciar Tickets
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {tickets.length} {tickets.length === 1 ? "ticket" : "tickets"}
+                {hasActiveFilters && " encontrados"}
+              </p>
             </div>
-
-            {/* Search and Filters */}
-            <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:gap-4">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar tickets..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10 sm:h-11 text-sm sm:text-base"
-                  />
-                </div>
-                {/* Mobile Filter Button */}
-                <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-                  <SheetTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      className="sm:hidden shrink-0"
-                    >
-                      <Filter className="size-4 mr-2" />
-                      Filtros
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
-                    <SheetHeader>
-                      <SheetTitle>Filtros</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6 space-y-4">
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="h-11 text-base">
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos os status</SelectItem>
-                          <SelectItem value="OPEN">Aberto</SelectItem>
-                          <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                          <SelectItem value="RESOLVED">Resolvido</SelectItem>
-                          <SelectItem value="CLOSED">Fechado</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                        <SelectTrigger className="h-11 text-base">
-                          <SelectValue placeholder="Prioridade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todas as prioridades</SelectItem>
-                          <SelectItem value="LOW">Baixa</SelectItem>
-                          <SelectItem value="MEDIUM">Média</SelectItem>
-                          <SelectItem value="HIGH">Alta</SelectItem>
-                          <SelectItem value="URGENT">Urgente</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="h-11 text-base">
-                          <SelectValue placeholder="Categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todas as categorias</SelectItem>
-                          <SelectItem value="HARDWARE">Hardware</SelectItem>
-                          <SelectItem value="SOFTWARE">Software</SelectItem>
-                          <SelectItem value="NETWORK">Rede</SelectItem>
-                          <SelectItem value="EMAIL">E-mail</SelectItem>
-                          <SelectItem value="ACCESS">Acesso</SelectItem>
-                          <SelectItem value="OTHER">Outro</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Select value={unitFilter} onValueChange={setUnitFilter}>
-                        <SelectTrigger className="h-11 text-base">
-                          <SelectValue placeholder="Unidade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todas as unidades</SelectItem>
-                          <SelectItem value="ITJ">ITJ</SelectItem>
-                          <SelectItem value="SFS">SFS</SelectItem>
-                          <SelectItem value="FOZ">FOZ</SelectItem>
-                          <SelectItem value="DIO">DIO</SelectItem>
-                          <SelectItem value="AOL">AOL</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                        <SelectTrigger className="h-11 text-base">
-                          <SelectValue placeholder="Atribuição" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos</SelectItem>
-                          <SelectItem value="unassigned">Não atribuídos</SelectItem>
-                          <SelectItem value={currentUser.id}>Meus tickets</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
-              {/* Desktop Filters */}
-              <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os status</SelectItem>
-                    <SelectItem value="OPEN">Aberto</SelectItem>
-                    <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                    <SelectItem value="RESOLVED">Resolvido</SelectItem>
-                    <SelectItem value="CLOSED">Fechado</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
-                    <SelectValue placeholder="Prioridade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as prioridades</SelectItem>
-                    <SelectItem value="LOW">Baixa</SelectItem>
-                    <SelectItem value="MEDIUM">Média</SelectItem>
-                    <SelectItem value="HIGH">Alta</SelectItem>
-                    <SelectItem value="URGENT">Urgente</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
-                    <SelectValue placeholder="Categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as categorias</SelectItem>
-                    <SelectItem value="HARDWARE">Hardware</SelectItem>
-                    <SelectItem value="SOFTWARE">Software</SelectItem>
-                    <SelectItem value="NETWORK">Rede</SelectItem>
-                    <SelectItem value="EMAIL">E-mail</SelectItem>
-                    <SelectItem value="ACCESS">Acesso</SelectItem>
-                    <SelectItem value="OTHER">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={unitFilter} onValueChange={setUnitFilter}>
-                  <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
-                    <SelectValue placeholder="Unidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as unidades</SelectItem>
-                    <SelectItem value="ITJ">ITJ</SelectItem>
-                    <SelectItem value="SFS">SFS</SelectItem>
-                    <SelectItem value="FOZ">FOZ</SelectItem>
-                    <SelectItem value="DIO">DIO</SelectItem>
-                    <SelectItem value="AOL">AOL</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                  <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
-                    <SelectValue placeholder="Atribuição" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="unassigned">Não atribuídos</SelectItem>
-                    <SelectItem value={currentUser.id}>Meus tickets</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </form>
+            <Button
+              onClick={fetchTickets}
+              variant="outline"
+              size="sm"
+              disabled={loading}
+              className="shrink-0"
+            >
+              <RefreshCw className={cn("size-4 mr-2", loading && "animate-spin")} />
+              Atualizar
+            </Button>
           </div>
 
-          {/* Tickets Grid */}
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar tickets por título ou descrição..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-9"
+              />
+            </div>
+          </form>
+
+          {/* Filters - Modal */}
+          <div className="flex items-center gap-3">
+            <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9"
+                >
+                  <Filter className="size-4 mr-2" />
+                  Filtros
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[500px] max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Filtros</DialogTitle>
+                </DialogHeader>
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Status</label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os status</SelectItem>
+                        <SelectItem value="OPEN">Aberto</SelectItem>
+                        <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                        <SelectItem value="RESOLVED">Resolvido</SelectItem>
+                        <SelectItem value="CLOSED">Fechado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Prioridade</label>
+                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Prioridade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="LOW">Baixa</SelectItem>
+                        <SelectItem value="MEDIUM">Média</SelectItem>
+                        <SelectItem value="HIGH">Alta</SelectItem>
+                        <SelectItem value="URGENT">Urgente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Categoria</label>
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="HARDWARE">Hardware</SelectItem>
+                        <SelectItem value="SOFTWARE">Software</SelectItem>
+                        <SelectItem value="NETWORK">Rede</SelectItem>
+                        <SelectItem value="EMAIL">E-mail</SelectItem>
+                        <SelectItem value="ACCESS">Acesso</SelectItem>
+                        <SelectItem value="OTHER">Outro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Unidade</label>
+                    <Select value={unitFilter} onValueChange={setUnitFilter}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Unidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="ITJ">ITJ</SelectItem>
+                        <SelectItem value="SFS">SFS</SelectItem>
+                        <SelectItem value="FOZ">FOZ</SelectItem>
+                        <SelectItem value="DIO">DIO</SelectItem>
+                        <SelectItem value="AOL">AOL</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Atribuição</label>
+                    <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Atribuição" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="unassigned">Não atribuídos</SelectItem>
+                        {currentUser && (
+                          <SelectItem value={currentUser.id}>Meus tickets</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-auto bg-muted/30 rounded-lg">
+        <div className="p-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12 sm:py-20">
-              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
           ) : tickets.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-12 sm:py-20 border rounded-xl sm:rounded-2xl bg-card/50 backdrop-blur-sm shadow-sm"
-            >
-              <div className="max-w-md mx-auto px-4">
-                <div className="size-12 sm:size-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                  <Filter className="size-6 sm:size-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-base sm:text-lg font-semibold mb-2">
-                  {searchQuery || statusFilter !== "all" || priorityFilter !== "all" || categoryFilter !== "all" || unitFilter !== "all" || assigneeFilter !== "all"
-                    ? "Nenhum ticket encontrado"
-                    : "Nenhum ticket ainda"}
-                </h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-6">
-                  {searchQuery || statusFilter !== "all" || priorityFilter !== "all" || categoryFilter !== "all" || unitFilter !== "all" || assigneeFilter !== "all"
-                    ? "Tente ajustar os filtros ou a busca"
-                    : "Aguardando tickets serem criados"}
-                </p>
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                <Filter className="size-6 text-muted-foreground" />
               </div>
-            </motion.div>
+              <h3 className="text-base font-medium mb-1">
+                {hasActiveFilters ? "Nenhum ticket encontrado" : "Nenhum ticket ainda"}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {hasActiveFilters
+                  ? "Tente ajustar os filtros ou a busca"
+                  : "Aguardando tickets serem criados"}
+              </p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {tickets.map((ticket, index) => (
-                <motion.div
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tickets.map((ticket) => (
+                <AdminTicketCard
                   key={ticket.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.03 }}
-                >
-                  <AdminTicketCard
-                    ticket={ticket}
-                    gradientIndex={index}
-                    currentUserId={currentUser.id}
-                    onAssign={handleAssign}
-                  />
-                </motion.div>
+                  ticket={ticket}
+                  currentUserId={currentUser.id}
+                  onAssign={handleAssign}
+                />
               ))}
             </div>
           )}
-
-          {/* Footer Stats */}
-          {!loading && tickets.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t"
-            >
-              <p className="text-xs sm:text-sm text-muted-foreground text-center">
-                Mostrando <span className="font-semibold text-foreground">{tickets.length}</span> ticket
-                {tickets.length !== 1 ? "s" : ""}
-              </p>
-            </motion.div>
-          )}
-        </motion.div>
+        </div>
       </div>
     </div>
   )

@@ -1,5 +1,4 @@
 'use client'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Sidebar,
   SidebarContent,
@@ -12,24 +11,45 @@ import NavMain from "./nav-main"
 import { data } from "@/lib/constants"
 import RecentOpen from "./recent-open"
 import { TiAiAvatarIcon } from "@/components/shared/logo/TiAiAvatarIcon"
+import { Separator } from "@/components/ui/separator"
+import SidebarFooterContent from "./sidebar-footer"
 
 
 const AppSidebar = () => {
   return (
-    <Sidebar collapsible="offcanvas" className="max-w-[212px] bg-background-90">
-      <SidebarHeader className="pt-6 px-3 pb-0">
-        <SidebarMenuButton size={"lg"} className="data-[state=open]:text-sidebar-accent-foreground">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground">
-            <TiAiAvatarIcon className="h-full w-full" />
+    <Sidebar collapsible="offcanvas" className="border-r border-border/50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+      <SidebarHeader className="px-4 py-6 border-b border-border/50">
+        <SidebarMenuButton
+          size={"lg"}
+          className="
+            h-auto 
+            p-0 
+            hover:bg-transparent 
+            data-[state=open]:bg-transparent
+            group
+          "
+        >
+          <div className="flex items-center gap-3 w-full">
+            <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all group-hover:bg-primary/15">
+              <TiAiAvatarIcon className="h-6 w-6" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-xl font-bold tracking-tight">AtivaDesk</span>
+              <span className="text-xs text-muted-foreground font-normal">Sistema</span>
+            </div>
           </div>
-          <span className="truncate  text-3xl font-semibold">TI</span>
         </SidebarMenuButton>
       </SidebarHeader>
-      <SidebarContent className="px-3 mt-10 gap-y-6">
+
+      <SidebarContent className="px-3 py-4 gap-6">
         <NavMain items={data.navMain} />
+        <Separator className="my-2" />
         <RecentOpen />
       </SidebarContent>
-      <SidebarFooter />
+
+      <SidebarFooter className="border-t border-border/50">
+        <SidebarFooterContent />
+      </SidebarFooter>
     </Sidebar>
   )
 }

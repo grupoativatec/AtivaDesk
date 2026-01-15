@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
 import Link from 'next/link'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 type Ticket = {
     id: string
@@ -50,72 +51,91 @@ const RecentOpen = () => {
         return () => clearInterval(interval)
     }, [])
 
-    const getStatusColor = (status: string) => {
+    const getStatusConfig = (status: string) => {
         switch (status) {
             case 'OPEN':
-                return 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
+                return {
+                    dot: 'bg-blue-500',
+                    bg: 'bg-blue-500/10',
+                    text: 'text-blue-700 dark:text-blue-400'
+                }
             case 'IN_PROGRESS':
-                return 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                return {
+                    dot: 'bg-yellow-500',
+                    bg: 'bg-yellow-500/10',
+                    text: 'text-yellow-700 dark:text-yellow-400'
+                }
             case 'RESOLVED':
-                return 'bg-green-500/20 text-green-600 dark:text-green-400'
+                return {
+                    dot: 'bg-green-500',
+                    bg: 'bg-green-500/10',
+                    text: 'text-green-700 dark:text-green-400'
+                }
             case 'CLOSED':
-                return 'bg-gray-500/20 text-gray-600 dark:text-gray-400'
+                return {
+                    dot: 'bg-gray-500',
+                    bg: 'bg-gray-500/10',
+                    text: 'text-gray-700 dark:text-gray-400'
+                }
             default:
-                return 'bg-muted/40'
+                return {
+                    dot: 'bg-muted',
+                    bg: 'bg-muted/40',
+                    text: 'text-muted-foreground'
+                }
         }
     }
 
     return (
         <SidebarGroup className="p-0">
-            <SidebarGroupLabel>Chamados Recentes</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+                Chamados Recentes
+            </SidebarGroupLabel>
 
-            <SidebarMenu className="gap-1">
+            <SidebarMenu className="gap-1.5">
                 {loading ? (
                     Array.from({ length: 3 }).map((_, index) => (
                         <SidebarMenuItem key={index}>
-                            <Skeleton className="h-10 w-full rounded-md" />
+                            <Skeleton className="h-9 w-full rounded-md" />
                         </SidebarMenuItem>
                     ))
                 ) : tickets.length > 0 ? (
-                    tickets.map((ticket) => (
-                        <SidebarMenuItem key={ticket.id}>
-                            <SidebarMenuButton
-                                asChild
-                                tooltip={ticket.title}
-                                className="
-                                    h-auto
-                                    rounded-md
-                                    bg-muted/40
-                                    px-3
-                                    py-2
-                                    text-xs
-                                    justify-start
-                                    transition-colors
-                                    hover:bg-muted
-                                    data-[active=true]:bg-muted
-                                    flex flex-col items-start gap-1
-                                "
-                            >
-                                <Link href={ticket.url} onClick={handleLinkClick} className="w-full">
-                                    <span className="truncate w-full text-left">
-                                        {ticket.title}
-                                    </span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))
+                    tickets.map((ticket) => {
+                        const statusConfig = getStatusConfig(ticket.status)
+                        
+                        return (
+                            <SidebarMenuItem key={ticket.id}>
+                                <SidebarMenuButton
+                                    asChild
+                                    tooltip={ticket.title}
+                                    className={cn(
+                                        "h-auto rounded-md px-3 py-2.5",
+                                        "bg-muted/40 hover:bg-muted",
+                                        "transition-all duration-200",
+                                        "group"
+                                    )}
+                                >
+                                    <Link href={ticket.url} onClick={handleLinkClick} className="w-full">
+                                        <div className="flex items-start gap-2.5 w-full">
+                                            <div className={cn(
+                                                "size-2 rounded-full mt-1.5 shrink-0",
+                                                statusConfig.dot
+                                            )} />
+                                            <span className={cn(
+                                                "text-xs leading-snug line-clamp-2 flex-1 text-left",
+                                                "group-hover:text-foreground transition-colors"
+                                            )}>
+                                                {ticket.title}
+                                            </span>
+                                        </div>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        )
+                    })
                 ) : (
                     <SidebarMenuItem>
-                        <div
-                            className="
-                                rounded-md
-                                bg-muted/30
-                                px-3
-                                py-2
-                                text-xs
-                                text-muted-foreground
-                            "
-                        >
+                        <div className="rounded-md bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground text-center">
                             Nenhum chamado atribuído
                         </div>
                     </SidebarMenuItem>
@@ -124,6 +144,5 @@ const RecentOpen = () => {
         </SidebarGroup>
     )
 }
-
 
 export default RecentOpen;
