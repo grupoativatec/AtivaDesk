@@ -1,16 +1,11 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Clock,
   MessageSquare,
   Paperclip,
   AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  User,
   UserCheck,
   AlertTriangle
 } from "lucide-react"
@@ -18,8 +13,6 @@ import { useRouter } from "next/navigation"
 import { formatDistanceToNow, differenceInHours } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
-import { toast } from "sonner"
 
 type TicketWithRelations = {
   id: string
@@ -117,7 +110,6 @@ const UNIT_LABELS: Record<string, string> = {
 
 export function AdminTicketCard({ ticket, currentUserId, onAssign }: AdminTicketCardProps) {
   const router = useRouter()
-  const [isAssigning, setIsAssigning] = useState(false)
   const statusConfig = STATUS_CONFIG[ticket.status]
   const priorityConfig = PRIORITY_CONFIG[ticket.priority]
 
@@ -125,9 +117,6 @@ export function AdminTicketCard({ ticket, currentUserId, onAssign }: AdminTicket
     addSuffix: true,
     locale: ptBR,
   })
-
-  const isAssignedToMe = ticket.assignee?.id === currentUserId
-  const isUnassigned = !ticket.assignee
 
   // Verificar se é ticket crítico (urgente + aberto há mais de 4 horas)
   const hoursSinceCreation = differenceInHours(new Date(), new Date(ticket.createdAt))
@@ -139,37 +128,6 @@ export function AdminTicketCard({ ticket, currentUserId, onAssign }: AdminTicket
     .replace(/&nbsp;/g, " ")
     .trim()
     .substring(0, 100)
-
-  const handleAssign = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-
-    if (isAssignedToMe) {
-      router.push(`/admin/tickets/${ticket.id}`)
-      return
-    }
-
-    try {
-      setIsAssigning(true)
-      const res = await fetch(`/api/admin/tickets/${ticket.id}/assign`, {
-        method: "POST",
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || "Erro ao assumir ticket")
-      }
-
-      toast.success("Ticket assumido com sucesso!")
-      if (onAssign) {
-        onAssign()
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao assumir ticket")
-    } finally {
-      setIsAssigning(false)
-    }
-  }
 
   return (
     <div
@@ -205,7 +163,7 @@ export function AdminTicketCard({ ticket, currentUserId, onAssign }: AdminTicket
             {statusConfig.label}
           </Badge>
         </div>
-        
+
         {/* Descrição - 1 linha apenas */}
         <p className="text-xs text-muted-foreground line-clamp-1">
           {cleanDescription}
@@ -260,38 +218,12 @@ export function AdminTicketCard({ ticket, currentUserId, onAssign }: AdminTicket
           </div>
         </div>
 
-        {/* Footer: Usuários e Ação - Estrutura fixa */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0 flex-1">
-            {ticket.assignee ? (
-              <div className="flex items-center gap-1.5 min-w-0">
-                <UserCheck className="size-3 shrink-0" />
-                <span className="truncate">{ticket.assignee.name}</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 min-w-0">
-                <User className="size-3 shrink-0" />
-                <span className="truncate">{ticket.openedBy.name}</span>
-              </div>
-            )}
-          </div>
-          
-          {/* Botão com tamanho fixo para manter layout consistente */}
-          <Button
-            size="sm"
-            variant={isAssignedToMe ? "default" : "outline"}
-            onClick={handleAssign}
-            disabled={isAssigning}
-            className="text-xs h-7 px-3 shrink-0 min-w-[70px]"
-          >
-            {isAssigning ? (
-              <Loader2 className="size-3 animate-spin" />
-            ) : isAssignedToMe ? (
-              "Meu"
-            ) : (
-              "Assumir"
-            )}
-          </Button>
+        {/* Footer: Responsável */}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">
+          <UserCheck className="size-3 shrink-0" />
+          <span className="truncate">
+            {ticket.assignee ? ticket.assignee.name : "Responsável não definido"}
+          </span>
         </div>
       </div>
     </div>

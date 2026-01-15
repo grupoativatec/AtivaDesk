@@ -23,11 +23,10 @@ export async function POST(
 
     const { id: ticketId } = await params
 
-    // Verificar se o ticket pertence ao usuário
-    const ticket = await prisma.ticket.findFirst({
+    // Verificar se o ticket existe
+    const ticket = await prisma.ticket.findUnique({
       where: {
         id: ticketId,
-        openedById: user.id,
       },
     })
 
@@ -35,6 +34,15 @@ export async function POST(
       return NextResponse.json(
         { error: "Ticket não encontrado" },
         { status: 404 }
+      )
+    }
+
+    // Verificar permissão: Admins podem enviar para qualquer ticket
+    // Usuários normais só podem enviar para seus próprios tickets
+    if (user.role !== "ADMIN" && ticket.openedById !== user.id) {
+      return NextResponse.json(
+        { error: "Você não tem permissão para enviar mensagens neste ticket" },
+        { status: 403 }
       )
     }
 

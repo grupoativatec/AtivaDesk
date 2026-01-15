@@ -42,22 +42,6 @@ export function MessageForm({
     const messageContent = content
     setLoading(true)
 
-    // Criar mensagem otimista
-    const optimisticMessage = {
-      id: `temp-${Date.now()}`,
-      content: messageContent,
-      createdAt: new Date(),
-      author: {
-        id: currentUserId,
-        name: currentUserName,
-        email: "",
-      },
-    }
-
-    // Adicionar mensagem otimista imediatamente
-    onMessageSent(optimisticMessage)
-    setContent("")
-
     try {
       const res = await fetch(`/api/tickets/${ticketId}/messages`, {
         method: "POST",
@@ -79,15 +63,16 @@ export function MessageForm({
         throw new Error(data.error || "Erro ao enviar mensagem")
       }
 
-      // Substituir mensagem otimista pela real
+      // Limpar o campo de conteúdo imediatamente após sucesso
+      setContent("")
+
+      // Adicionar mensagem real em tempo real
       if (data.message) {
         onMessageSent(data.message)
+        toast.success("Mensagem enviada com sucesso!")
       }
-      toast.success("Mensagem enviada com sucesso!")
     } catch (error: any) {
       toast.error(error.message || "Erro ao enviar mensagem. Tente novamente.")
-      // Em caso de erro, recarregar para remover a mensagem otimista
-      onMessageSent(optimisticMessage) // Isso vai forçar um reload
     } finally {
       setLoading(false)
     }

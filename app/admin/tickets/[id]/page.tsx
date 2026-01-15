@@ -74,6 +74,7 @@ export default function AdminTicketDetailPage() {
   const leftContainerRef = useRef<HTMLDivElement>(null)
   const rightContainerRef = useRef<HTMLDivElement>(null)
   const rightInnerContainerRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   const fetchUser = async () => {
     try {
@@ -161,10 +162,37 @@ export default function AdminTicketDetailPage() {
   }, [ticket])
 
   const handleMessageSent = (newMessage: any) => {
-    setTimeout(() => {
-      fetchTicket()
-    }, 500)
+    // Atualizar mensagens em tempo real sem recarregar a página
+    if (ticket && newMessage) {
+      // Verificar se a mensagem já existe (para evitar duplicatas)
+      const messageExists = ticket.messages.some(m => m.id === newMessage.id)
+      
+      if (!messageExists) {
+        // Adicionar nova mensagem à lista em tempo real
+        setTicket({
+          ...ticket,
+          messages: [...ticket.messages, newMessage],
+        })
+      }
+    }
   }
+
+  // Scroll automático para a última mensagem quando novas mensagens são adicionadas
+  useEffect(() => {
+    if (messagesContainerRef.current && ticket?.messages.length) {
+      // Pequeno delay para garantir que o DOM foi atualizado
+      const timeoutId = setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTo({
+            top: messagesContainerRef.current.scrollHeight,
+            behavior: 'smooth'
+          })
+        }
+      }, 150)
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [ticket?.messages])
 
   if (loading || !currentUser) {
     return (
@@ -226,7 +254,10 @@ export default function AdminTicketDetailPage() {
                 </div>
 
                 {/* Messages Area - Scrollable */}
-                <div className="flex-1 overflow-y-auto p-4 min-h-0 overscroll-contain">
+                <div 
+                  ref={messagesContainerRef}
+                  className="flex-1 overflow-y-auto p-4 min-h-0 overscroll-contain"
+                >
                   <MessageList
                     messages={ticket.messages}
                     currentUserId={currentUser.id}
