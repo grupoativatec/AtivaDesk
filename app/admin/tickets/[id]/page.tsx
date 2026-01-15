@@ -89,22 +89,22 @@ type User = {
 const STATUS_CONFIG = {
   OPEN: {
     label: "Aberto",
-    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
+    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400/80 dark:border-blue-900/30",
     icon: AlertCircle,
   },
   IN_PROGRESS: {
     label: "Em Andamento",
-    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800",
+    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400/80 dark:border-yellow-900/30",
     icon: Loader2,
   },
   RESOLVED: {
     label: "Resolvido",
-    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
+    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400/80 dark:border-green-900/30",
     icon: CheckCircle2,
   },
   CLOSED: {
     label: "Fechado",
-    color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950 dark:text-gray-300 dark:border-gray-800",
+    color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950/20 dark:text-gray-400/80 dark:border-gray-900/30",
     icon: CheckCircle2,
   },
 } as const
@@ -112,22 +112,22 @@ const STATUS_CONFIG = {
 const PRIORITY_CONFIG = {
   LOW: {
     label: "Baixa",
-    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
+    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400/80 dark:border-green-900/30",
     icon: CheckCircle2,
   },
   MEDIUM: {
     label: "Média",
-    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800",
+    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400/80 dark:border-yellow-900/30",
     icon: Clock,
   },
   HIGH: {
     label: "Alta",
-    color: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
+    color: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/20 dark:text-orange-400/80 dark:border-orange-900/30",
     icon: AlertTriangle,
   },
   URGENT: {
     label: "Crítica",
-    color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+    color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400/80 dark:border-red-900/30",
     icon: AlertTriangle,
   },
 } as const
@@ -136,32 +136,32 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: any; color: string 
   HARDWARE: {
     label: "Hardware",
     icon: Monitor,
-    color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800",
+    color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400/80 dark:border-blue-900/30",
   },
   SOFTWARE: {
     label: "Software",
     icon: Code,
-    color: "bg-green-50 text-green-600 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800",
+    color: "bg-green-50 text-green-600 border-green-200 dark:bg-green-950/20 dark:text-green-400/80 dark:border-green-900/30",
   },
   NETWORK: {
     label: "Rede",
     icon: Network,
-    color: "bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-800",
+    color: "bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-950/20 dark:text-purple-400/80 dark:border-purple-900/30",
   },
   EMAIL: {
     label: "E-mail",
     icon: Mail,
-    color: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800",
+    color: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950/20 dark:text-orange-400/80 dark:border-orange-900/30",
   },
   ACCESS: {
     label: "Acesso",
     icon: Lock,
-    color: "bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-400 dark:border-indigo-800",
+    color: "bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-950/20 dark:text-indigo-400/80 dark:border-indigo-900/30",
   },
   OTHER: {
     label: "Outro",
     icon: FileText,
-    color: "bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-950 dark:text-gray-400 dark:border-gray-800",
+    color: "bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-950/20 dark:text-gray-400/80 dark:border-gray-900/30",
   },
 }
 
@@ -471,7 +471,7 @@ export default function AdminTicketDetailPage() {
   return (
     <div className="h-full w-full flex flex-col bg-background">
       {/* Conteúdo Principal */}
-      <div className="flex-1 overflow-auto bg-muted/20">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-6 py-0 sm:py-6 lg:py-8">
           {/* Container único com background comum */}
           <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-sm">
@@ -479,7 +479,7 @@ export default function AdminTicketDetailPage() {
               {/* Coluna Esquerda - Informações do Ticket */}
               <div className="lg:col-span-2">
                 {/* Seção Principal - Informações do Ticket */}
-                <div className="p-5 sm:p-6 lg:p-8 border-b-2 border-border bg-gradient-to-br from-muted/40 to-muted/20">
+                <div className="p-5 sm:p-6 lg:p-8 border-b border-border/50 dark:border-border/30 bg-muted/20 dark:bg-muted/10">
                   {/* Header: Botão Voltar e ID */}
                   <div className="flex items-center gap-2 sm:gap-3 mb-5">
                     <Button
@@ -606,10 +606,10 @@ export default function AdminTicketDetailPage() {
                 </div>
 
                 {/* Seção de Descrição */}
-                <div className="p-5 sm:p-6 lg:p-8 border-b-2 border-border bg-card/50">
-                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
-                    <div className="size-10 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center shadow-sm">
-                      <FileText className="size-5 text-blue-600 dark:text-blue-400" />
+                <div className="p-5 sm:p-6 lg:p-8 border-b border-border/50 dark:border-border/30">
+                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30 dark:border-border/20">
+                    <div className="size-10 rounded-lg bg-blue-100 dark:bg-blue-950/20 flex items-center justify-center">
+                      <FileText className="size-5 text-blue-600 dark:text-blue-400/80" />
                     </div>
                     <h2 className="text-lg sm:text-xl font-bold text-foreground">
                       Descrição
@@ -663,11 +663,11 @@ export default function AdminTicketDetailPage() {
                 )}
 
                 {/* Seção de Comentários */}
-                <div className="flex flex-col bg-card/50">
-                  <div className="p-5 sm:p-6 lg:p-8 border-b-2 border-border">
-                    <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
-                      <div className="size-10 rounded-xl bg-green-100 dark:bg-green-950/50 flex items-center justify-center shadow-sm">
-                        <MessageSquare className="size-5 text-green-600 dark:text-green-400" />
+                <div className="flex flex-col">
+                  <div className="p-5 sm:p-6 lg:p-8 border-b border-border/50 dark:border-border/30">
+                    <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30 dark:border-border/20">
+                      <div className="size-10 rounded-lg bg-green-100 dark:bg-green-950/20 flex items-center justify-center">
+                        <MessageSquare className="size-5 text-green-600 dark:text-green-400/80" />
                       </div>
                       <h2 className="text-lg sm:text-xl font-bold text-foreground">
                         Comentários ({ticket.messages.length})
@@ -685,7 +685,7 @@ export default function AdminTicketDetailPage() {
                     />
                   </div>
 
-                  <div className="p-5 sm:p-6 lg:p-8 border-t-2 border-border bg-muted/30">
+                  <div className="p-5 sm:p-6 lg:p-8 border-t border-border/50 dark:border-border/30 bg-muted/20 dark:bg-muted/10">
                     <MessageForm
                       ticketId={ticketId}
                       currentUserId={currentUser.id}
@@ -697,12 +697,12 @@ export default function AdminTicketDetailPage() {
               </div>
 
               {/* Coluna Direita - Ações, Responsável e Solicitante */}
-              <div className="lg:col-span-1 lg:border-l-2 border-border bg-gradient-to-b from-muted/20 to-muted/10">
+              <div className="lg:col-span-1 lg:border-l border-border/50 dark:border-border/30 bg-muted/10 dark:bg-muted/5">
                 {/* Seção de Ações */}
-                <div className="p-5 sm:p-6 lg:p-8 border-b-2 lg:border-b-0 lg:border-r-2 border-border bg-card/50">
-                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
-                    <div className="size-10 rounded-xl bg-orange-100 dark:bg-orange-950/50 flex items-center justify-center shadow-sm">
-                      <Settings className="size-5 text-orange-600 dark:text-orange-400" />
+                <div className="p-5 sm:p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-border/50 dark:border-border/30">
+                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30 dark:border-border/20">
+                    <div className="size-10 rounded-lg bg-orange-100 dark:bg-orange-950/20 flex items-center justify-center">
+                      <Settings className="size-5 text-orange-600 dark:text-orange-400/80" />
                     </div>
                     <h2 className="text-lg sm:text-xl font-bold text-foreground">
                       Ações
@@ -783,10 +783,10 @@ export default function AdminTicketDetailPage() {
 
                 {/* Seção do Responsável (se atribuído) */}
                 {ticket.assignee && (
-                  <div className="p-5 sm:p-6 lg:p-8 border-b-2 lg:border-b-0 lg:border-r-2 border-border bg-card/50">
-                    <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
-                      <div className="size-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/50 flex items-center justify-center shadow-sm">
-                        <UserCheck className="size-5 text-indigo-600 dark:text-indigo-400" />
+                  <div className="p-5 sm:p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-border/50 dark:border-border/30">
+                    <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30 dark:border-border/20">
+                      <div className="size-10 rounded-lg bg-indigo-100 dark:bg-indigo-950/20 flex items-center justify-center">
+                        <UserCheck className="size-5 text-indigo-600 dark:text-indigo-400/80" />
                       </div>
                       <h2 className="text-lg sm:text-xl font-bold text-foreground">
                         Responsável
@@ -811,10 +811,10 @@ export default function AdminTicketDetailPage() {
                 )}
 
                 {/* Seção do Solicitante */}
-                <div className="p-5 sm:p-6 lg:p-8 border-b-2 lg:border-b-0 lg:border-r-2 border-border bg-card/50">
-                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
-                    <div className="size-10 rounded-xl bg-cyan-100 dark:bg-cyan-950/50 flex items-center justify-center shadow-sm">
-                      <User className="size-5 text-cyan-600 dark:text-cyan-400" />
+                <div className="p-5 sm:p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-border/50 dark:border-border/30">
+                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30 dark:border-border/20">
+                    <div className="size-10 rounded-lg bg-cyan-100 dark:bg-cyan-950/20 flex items-center justify-center">
+                      <User className="size-5 text-cyan-600 dark:text-cyan-400/80" />
                     </div>
                     <h2 className="text-lg sm:text-xl font-bold text-foreground">
                       Solicitante
@@ -838,10 +838,10 @@ export default function AdminTicketDetailPage() {
                 </div>
 
                 {/* Seção de Timeline */}
-                <div className="p-5 sm:p-6 lg:p-8 lg:border-r-2 border-border bg-card/50">
-                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
-                    <div className="size-10 rounded-xl bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center shadow-sm">
-                      <Clock className="size-5 text-amber-600 dark:text-amber-400" />
+                <div className="p-5 sm:p-6 lg:p-8 lg:border-r border-border/50 dark:border-border/30">
+                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30 dark:border-border/20">
+                    <div className="size-10 rounded-lg bg-amber-100 dark:bg-amber-950/20 flex items-center justify-center">
+                      <Clock className="size-5 text-amber-600 dark:text-amber-400/80" />
                     </div>
                     <h2 className="text-lg sm:text-xl font-bold text-foreground">
                       Atividades Recentes

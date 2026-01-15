@@ -88,43 +88,43 @@ type SortDirection = "asc" | "desc"
 const STATUS_CONFIG = {
   OPEN: {
     label: "Aberto",
-    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
+    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400/80 dark:border-blue-900/30",
     icon: AlertCircle,
   },
   IN_PROGRESS: {
     label: "Em Andamento",
-    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800",
+    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400/80 dark:border-yellow-900/30",
     icon: Loader2,
   },
   RESOLVED: {
     label: "Resolvido",
-    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
+    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400/80 dark:border-green-900/30",
   },
   CLOSED: {
     label: "Fechado",
-    color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950 dark:text-gray-300 dark:border-gray-800",
+    color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950/20 dark:text-gray-400/80 dark:border-gray-900/30",
   },
 } as const
 
 const PRIORITY_CONFIG = {
   LOW: {
     label: "Baixa",
-    color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800",
+    color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400/80 dark:border-blue-900/30",
     order: 1,
   },
   MEDIUM: {
     label: "Média",
-    color: "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-800",
+    color: "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400/80 dark:border-yellow-900/30",
     order: 2,
   },
   HIGH: {
     label: "Alta",
-    color: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800",
+    color: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950/20 dark:text-orange-400/80 dark:border-orange-900/30",
     order: 3,
   },
   URGENT: {
     label: "Crítica",
-    color: "bg-red-50 text-red-600 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800",
+    color: "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/20 dark:text-red-400/80 dark:border-red-900/30",
     order: 4,
   },
 } as const
@@ -335,7 +335,7 @@ export default function AdminTicketsPage() {
   return (
     <div className="w-full flex flex-col">
       {/* Header com Estatísticas */}
-      <div className="border-b border-border bg-card shadow-sm shrink-0">
+      <div className="border-b border-border dark:border-border/50 bg-card dark:bg-card/50 shadow-sm dark:shadow-none shrink-0">
         <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
             <div className="flex-1 min-w-0">
@@ -483,7 +483,7 @@ export default function AdminTicketsPage() {
       </div>
 
       {/* Content Area */}
-      <div className="w-full bg-muted/20">
+      <div className="w-full bg-muted/20 dark:bg-background">
         <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
           {loading ? (
             <div className="flex items-center justify-center py-20">
@@ -507,10 +507,10 @@ export default function AdminTicketsPage() {
             <>
               {/* Tabela Desktop */}
               <div className="hidden lg:block">
-                <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-card dark:bg-card/50 border border-border dark:border-border/50 rounded-lg overflow-hidden shadow-sm dark:shadow-none">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-muted/50 border-b border-border">
+                      <thead className="bg-muted/50 dark:bg-muted/20 border-b border-border dark:border-border/50">
                         <tr>
                           <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             <button
@@ -577,7 +577,7 @@ export default function AdminTicketsPage() {
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border">
+                      <tbody className="divide-y divide-border dark:divide-border/30">
                         {filteredTickets.map((ticket) => {
                           const statusConfig = STATUS_CONFIG[ticket.status]
                           const priorityConfig = PRIORITY_CONFIG[ticket.priority]
@@ -666,7 +666,7 @@ export default function AdminTicketsPage() {
                   return (
                     <div
                       key={ticket.id}
-                      className="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                      className="bg-card dark:bg-card/50 border border-border dark:border-border/50 rounded-lg p-4 shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer"
                       onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
                     >
                       <div className="flex items-start justify-between mb-3">
