@@ -473,239 +473,243 @@ export default function AdminTicketDetailPage() {
       {/* Conteúdo Principal */}
       <div className="flex-1 overflow-auto bg-muted/20">
         <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-6 py-0 sm:py-6 lg:py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 sm:gap-4 lg:gap-6">
-            {/* Coluna Esquerda - Informações do Ticket */}
-            <div className="lg:col-span-2 space-y-0 sm:space-y-4 lg:space-y-6">
-              {/* Card Principal - Informações do Ticket */}
-              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6">
-                {/* Header: Botão Voltar e ID */}
-                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.push("/admin/tickets")}
-                    className="text-muted-foreground hover:text-foreground shrink-0 -ml-2 sm:ml-0"
-                  >
-                    <ArrowLeft className="size-4" />
-                  </Button>
-                  <span className="text-sm sm:text-base font-bold text-blue-600 dark:text-blue-400">
-                    #{ticketNumber}
-                  </span>
-                </div>
-
-                {/* Badges: Categoria, Prioridade e Status - Separados do título */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 mb-4 sm:mb-4">
-                  {/* Categoria */}
-                  <Badge
-                    variant="outline"
-                    className={cn("text-xs font-medium px-2.5 py-1.5 w-fit", categoryConfig.color)}
-                  >
-                    <CategoryIcon className="size-3.5 mr-1.5 shrink-0" />
-                    {categoryConfig.label}
-                  </Badge>
-
-                  {/* Prioridade e Status - lado a lado no mobile */}
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="outline"
-                      className={cn("text-xs font-medium px-2.5 py-1.5", priorityConfig.color)}
+          {/* Container único com background comum */}
+          <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-3">
+              {/* Coluna Esquerda - Informações do Ticket */}
+              <div className="lg:col-span-2">
+                {/* Seção Principal - Informações do Ticket */}
+                <div className="p-5 sm:p-6 lg:p-8 border-b-2 border-border bg-gradient-to-br from-muted/40 to-muted/20">
+                  {/* Header: Botão Voltar e ID */}
+                  <div className="flex items-center gap-2 sm:gap-3 mb-5">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => router.push("/admin/tickets")}
+                      className="text-muted-foreground hover:text-foreground shrink-0 -ml-2 sm:ml-0"
                     >
-                      <PriorityIcon className="size-3.5 mr-1.5 shrink-0" />
-                      {priorityConfig.label}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className={cn("text-xs font-medium px-2.5 py-1.5", statusConfig.color)}
-                    >
-                      <StatusIcon className="size-3.5 mr-1.5 shrink-0" />
-                      {statusConfig.label}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Título */}
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground mb-3 sm:mb-4">
-                  {ticket.title}
-                </h1>
-
-                <div className="flex flex-col gap-2 sm:gap-3">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                    <Calendar className="size-3.5 sm:size-4 shrink-0" />
-                    <span className="break-words">Aberto em {dateFormatted}</span>
+                      <ArrowLeft className="size-4" />
+                    </Button>
+                    <span className="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400">
+                      #{ticketNumber}
+                    </span>
                   </div>
 
-                  {/* Timer - Mostrar para tickets em andamento, resolvidos ou fechados */}
-                  {ticket.status === "IN_PROGRESS" && (
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      {!ticket.inProgressAt ? (
-                        // Timer não iniciado - mostrar botão para iniciar
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleTimerStart}
-                          disabled={isToggling}
-                          className="h-8 px-3 shrink-0 w-full sm:w-auto"
-                          title="Iniciar timer"
-                        >
-                          {isToggling ? (
-                            <>
-                              <Loader2 className="size-3.5 mr-2 animate-spin" />
-                              Iniciando...
-                            </>
-                          ) : (
-                            <>
-                              <Play className="size-3.5 mr-2" />
-                              Iniciar Timer
-                            </>
-                          )}
-                        </Button>
-                      ) : (
-                        // Timer iniciado - mostrar tempo e botão de pausar/retomar
-                        <>
-                          <div className={cn(
-                            "flex items-center gap-2 text-xs sm:text-sm font-medium",
-                            !isPaused && "text-primary"
-                          )}>
-                            <Clock className={cn(
-                              "size-3.5 sm:size-4 shrink-0",
-                              !isPaused && "animate-pulse"
-                            )} />
-                            <span>Tempo dedicado: {elapsedTime || "0s"}</span>
-                          </div>
+                  {/* Badges: Categoria, Prioridade e Status - Separados do título */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 mb-4 sm:mb-4">
+                    {/* Categoria */}
+                    <Badge
+                      variant="outline"
+                      className={cn("text-xs font-medium px-2.5 py-1.5 w-fit", categoryConfig.color)}
+                    >
+                      <CategoryIcon className="size-3.5 mr-1.5 shrink-0" />
+                      {categoryConfig.label}
+                    </Badge>
+
+                    {/* Prioridade e Status - lado a lado no mobile */}
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className={cn("text-xs font-medium px-2.5 py-1.5", priorityConfig.color)}
+                      >
+                        <PriorityIcon className="size-3.5 mr-1.5 shrink-0" />
+                        {priorityConfig.label}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className={cn("text-xs font-medium px-2.5 py-1.5", statusConfig.color)}
+                      >
+                        <StatusIcon className="size-3.5 mr-1.5 shrink-0" />
+                        {statusConfig.label}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Título */}
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground mb-3 sm:mb-4">
+                    {ticket.title}
+                  </h1>
+
+                  <div className="flex flex-col gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <Calendar className="size-3.5 sm:size-4 shrink-0" />
+                      <span className="wrap-break-word">Aberto em {dateFormatted}</span>
+                    </div>
+
+                    {/* Timer - Mostrar para tickets em andamento, resolvidos ou fechados */}
+                    {ticket.status === "IN_PROGRESS" && (
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        {!ticket.inProgressAt ? (
+                          // Timer não iniciado - mostrar botão para iniciar
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={handleTimerToggle}
+                            onClick={handleTimerStart}
                             disabled={isToggling}
                             className="h-8 px-3 shrink-0 w-full sm:w-auto"
-                            title={isPaused ? "Retomar timer" : "Pausar timer"}
+                            title="Iniciar timer"
                           >
                             {isToggling ? (
-                              <Loader2 className="size-3.5 animate-spin" />
-                            ) : isPaused ? (
-                              <Play className="size-3.5" />
+                              <>
+                                <Loader2 className="size-3.5 mr-2 animate-spin" />
+                                Iniciando...
+                              </>
                             ) : (
-                              <Pause className="size-3.5" />
+                              <>
+                                <Play className="size-3.5 mr-2" />
+                                Iniciar Timer
+                              </>
                             )}
                           </Button>
-                        </>
-                      )}
-                    </div>
-                  )}
+                        ) : (
+                          // Timer iniciado - mostrar tempo e botão de pausar/retomar
+                          <>
+                            <div className={cn(
+                              "flex items-center gap-2 text-xs sm:text-sm font-medium",
+                              !isPaused && "text-primary"
+                            )}>
+                              <Clock className={cn(
+                                "size-3.5 sm:size-4 shrink-0",
+                                !isPaused && "animate-pulse"
+                              )} />
+                              <span>Tempo dedicado: {elapsedTime || "0s"}</span>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleTimerToggle}
+                              disabled={isToggling}
+                              className="h-8 px-3 shrink-0 w-full sm:w-auto"
+                              title={isPaused ? "Retomar timer" : "Pausar timer"}
+                            >
+                              {isToggling ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                              ) : isPaused ? (
+                                <Play className="size-3.5" />
+                              ) : (
+                                <Pause className="size-3.5" />
+                              )}
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    )}
 
-                  {/* Timer para tickets resolvidos ou fechados */}
-                  {(ticket.status === "RESOLVED" || ticket.status === "CLOSED") && elapsedTime && (
-                    <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
-                      <Clock className="size-3.5 sm:size-4 shrink-0" />
-                      <span>Tempo dedicado: {elapsedTime}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Card de Descrição */}
-              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
-                  Descrição
-                </h2>
-                <div
-                  className="text-sm text-muted-foreground leading-relaxed [&_p]:my-2 [&_p]:leading-relaxed [&_ul]:my-2 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:space-y-1 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:space-y-1 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_a]:hover:text-primary/80"
-                  dangerouslySetInnerHTML={{ __html: ticket.description }}
-                />
-              </div>
-
-              {/* Card de Anexos (se houver) */}
-              {ticket.attachments.length > 0 && (
-                <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6">
-                  <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
-                    <FileText className="size-4 sm:size-5" />
-                    Anexos ({ticket.attachments.length})
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                    {ticket.attachments.map((attachment) => (
-                      <a
-                        key={attachment.id}
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 border border-border rounded-lg hover:bg-muted/50 transition-colors"
-                      >
-                        <FileText className="size-4 sm:size-5 text-muted-foreground shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs sm:text-sm font-medium text-foreground truncate">
-                            {attachment.filename}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {attachment.size > 0
-                              ? `${(attachment.size / 1024).toFixed(1)} KB`
-                              : "—"}
-                          </div>
-                        </div>
-                      </a>
-                    ))}
+                    {/* Timer para tickets resolvidos ou fechados */}
+                    {(ticket.status === "RESOLVED" || ticket.status === "CLOSED") && elapsedTime && (
+                      <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
+                        <Clock className="size-3.5 sm:size-4 shrink-0" />
+                        <span>Tempo dedicado: {elapsedTime}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
 
-              {/* Card de Comentários */}
-              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm flex flex-col">
-                <div className="p-4 sm:p-6 border-b border-border">
-                  <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
-                    <MessageSquare className="size-4 sm:size-5" />
-                    Comentários ({ticket.messages.length})
-                  </h2>
+                {/* Seção de Descrição */}
+                <div className="p-5 sm:p-6 lg:p-8 border-b-2 border-border bg-card/50">
+                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
+                    <div className="size-10 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center shadow-sm">
+                      <FileText className="size-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                      Descrição
+                    </h2>
+                  </div>
+                  <div className="pl-0 sm:pl-12">
+                    <div
+                      className="text-sm sm:text-base text-foreground/90 leading-relaxed [&_p]:my-3 [&_p]:leading-relaxed [&_ul]:my-3 [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:space-y-2 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:space-y-2 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_a]:hover:text-primary/80"
+                      dangerouslySetInnerHTML={{ __html: ticket.description }}
+                    />
+                  </div>
                 </div>
 
-                <div
-                  ref={messagesContainerRef}
-                  className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-[200px] sm:min-h-[300px] max-h-[400px] sm:max-h-[500px]"
-                >
-                  <MessageList
-                    messages={ticket.messages}
-                    currentUserId={currentUser.id}
-                  />
-                </div>
+                {/* Seção de Anexos (se houver) */}
+                {ticket.attachments.length > 0 && (
+                  <div className="p-4 sm:p-6 lg:p-8 border-b border-border/50">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <FileText className="size-4 text-primary" />
+                      </div>
+                      <h2 className="text-base sm:text-lg font-semibold text-foreground">
+                        Anexos ({ticket.attachments.length})
+                      </h2>
+                    </div>
+                    <div className="pl-0 sm:pl-10">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                        {ticket.attachments.map((attachment) => (
+                          <a
+                            key={attachment.id}
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                          >
+                            <FileText className="size-4 sm:size-5 text-muted-foreground shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs sm:text-sm font-medium text-foreground truncate">
+                                {attachment.filename}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {attachment.size > 0
+                                  ? `${(attachment.size / 1024).toFixed(1)} KB`
+                                  : "—"}
+                              </div>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                <div className="p-4 sm:p-6 border-t border-border bg-muted/30">
-                  <MessageForm
-                    ticketId={ticketId}
-                    currentUserId={currentUser.id}
-                    currentUserName={currentUser.name}
-                    onMessageSent={handleMessageSent}
-                  />
+                {/* Seção de Comentários */}
+                <div className="flex flex-col bg-card/50">
+                  <div className="p-5 sm:p-6 lg:p-8 border-b-2 border-border">
+                    <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
+                      <div className="size-10 rounded-xl bg-green-100 dark:bg-green-950/50 flex items-center justify-center shadow-sm">
+                        <MessageSquare className="size-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                        Comentários ({ticket.messages.length})
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div
+                    ref={messagesContainerRef}
+                    className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-8 pl-5 sm:pl-16 min-h-[200px] sm:min-h-[300px] max-h-[400px] sm:max-h-[500px] bg-muted/5"
+                  >
+                    <MessageList
+                      messages={ticket.messages}
+                      currentUserId={currentUser.id}
+                    />
+                  </div>
+
+                  <div className="p-5 sm:p-6 lg:p-8 border-t-2 border-border bg-muted/30">
+                    <MessageForm
+                      ticketId={ticketId}
+                      currentUserId={currentUser.id}
+                      currentUserName={currentUser.name}
+                      onMessageSent={handleMessageSent}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Coluna Direita - Ações, Responsável e Solicitante */}
-            <div className="lg:col-span-1 space-y-0 sm:space-y-4 lg:space-y-6 border-t sm:border-t-0 lg:border-t-0 border-border sm:border-0 bg-card sm:bg-transparent">
-              {/* Card de Ações - Primeiro */}
-              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
-                  Ações
-                </h2>
-                <div className="space-y-2 sm:space-y-3">
-                  {isUnassigned ? (
-                    <Button
-                      onClick={handleAssign}
-                      disabled={isAssigning}
-                      className="w-full"
-                      size="default"
-                    >
-                      {isAssigning ? (
-                        <>
-                          <Loader2 className="size-4 mr-2 animate-spin" />
-                          Assumindo...
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck className="size-4 mr-2" />
-                          Assumir Chamado
-                        </>
-                      )}
-                    </Button>
-                  ) : (
-                    !isAssignedToMe && (
+              {/* Coluna Direita - Ações, Responsável e Solicitante */}
+              <div className="lg:col-span-1 lg:border-l-2 border-border bg-gradient-to-b from-muted/20 to-muted/10">
+                {/* Seção de Ações */}
+                <div className="p-5 sm:p-6 lg:p-8 border-b-2 lg:border-b-0 lg:border-r-2 border-border bg-card/50">
+                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
+                    <div className="size-10 rounded-xl bg-orange-100 dark:bg-orange-950/50 flex items-center justify-center shadow-sm">
+                      <Settings className="size-5 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                      Ações
+                    </h2>
+                  </div>
+                  <div className="space-y-2 sm:space-y-3">
+                    {isUnassigned ? (
                       <Button
                         onClick={handleAssign}
                         disabled={isAssigning}
@@ -724,87 +728,129 @@ export default function AdminTicketDetailPage() {
                           </>
                         )}
                       </Button>
-                    )
-                  )}
+                    ) : (
+                      !isAssignedToMe && (
+                        <Button
+                          onClick={handleAssign}
+                          disabled={isAssigning}
+                          className="w-full"
+                          size="default"
+                        >
+                          {isAssigning ? (
+                            <>
+                              <Loader2 className="size-4 mr-2 animate-spin" />
+                              Assumindo...
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="size-4 mr-2" />
+                              Assumir Chamado
+                            </>
+                          )}
+                        </Button>
+                      )
+                    )}
 
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    size="default"
-                    onClick={() => {
-                      // Scroll para área de comentários
-                      messagesContainerRef.current?.scrollIntoView({ behavior: 'smooth' })
-                      // Focar no input de mensagem após um pequeno delay
-                      setTimeout(() => {
-                        const messageInput = document.querySelector('textarea, [contenteditable="true"]') as HTMLElement
-                        messageInput?.focus()
-                      }, 500)
-                    }}
-                  >
-                    <MessageSquare className="size-4 mr-2" />
-                    Responder
-                  </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      size="default"
+                      onClick={() => {
+                        // Scroll para área de comentários
+                        messagesContainerRef.current?.scrollIntoView({ behavior: 'smooth' })
+                        // Focar no input de mensagem após um pequeno delay
+                        setTimeout(() => {
+                          const messageInput = document.querySelector('textarea, [contenteditable="true"]') as HTMLElement
+                          messageInput?.focus()
+                        }, 500)
+                      }}
+                    >
+                      <MessageSquare className="size-4 mr-2" />
+                      Responder
+                    </Button>
 
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    size="default"
-                    onClick={() => setEditModalOpen(true)}
-                  >
-                    <Settings className="size-4 mr-2" />
-                    Alterar Status
-                  </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      size="default"
+                      onClick={() => setEditModalOpen(true)}
+                    >
+                      <Settings className="size-4 mr-2" />
+                      Alterar Status
+                    </Button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Card do Responsável (se atribuído) - Segundo */}
-              {ticket.assignee && (
-                <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6 border-t sm:border-t border-border">
-                  <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
-                    Responsável
-                  </h2>
-                  <div className="flex items-start gap-3">
-                    <div className="size-8 sm:size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <UserCheck className="size-4 sm:size-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm sm:text-base font-semibold text-foreground mb-1">
-                        {ticket.assignee.name}
+                {/* Seção do Responsável (se atribuído) */}
+                {ticket.assignee && (
+                  <div className="p-5 sm:p-6 lg:p-8 border-b-2 lg:border-b-0 lg:border-r-2 border-border bg-card/50">
+                    <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
+                      <div className="size-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/50 flex items-center justify-center shadow-sm">
+                        <UserCheck className="size-5 text-indigo-600 dark:text-indigo-400" />
                       </div>
-                      <div className="text-xs sm:text-sm text-muted-foreground truncate">
-                        {ticket.assignee.email}
+                      <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                        Responsável
+                      </h2>
+                    </div>
+                    <div className="pl-0 sm:pl-12">
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        <div className="size-10 rounded-full bg-indigo-100 dark:bg-indigo-950/50 flex items-center justify-center shrink-0">
+                          <UserCheck className="size-5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm sm:text-base font-semibold text-foreground mb-1">
+                            {ticket.assignee.name}
+                          </div>
+                          <div className="text-xs sm:text-sm text-muted-foreground truncate">
+                            {ticket.assignee.email}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Seção do Solicitante */}
+                <div className="p-5 sm:p-6 lg:p-8 border-b-2 lg:border-b-0 lg:border-r-2 border-border bg-card/50">
+                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
+                    <div className="size-10 rounded-xl bg-cyan-100 dark:bg-cyan-950/50 flex items-center justify-center shadow-sm">
+                      <User className="size-5 text-cyan-600 dark:text-cyan-400" />
+                    </div>
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                      Solicitante
+                    </h2>
+                  </div>
+                  <div className="pl-0 sm:pl-12">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <div className="size-10 rounded-full bg-cyan-100 dark:bg-cyan-950/50 flex items-center justify-center shrink-0">
+                        <User className="size-5 text-cyan-600 dark:text-cyan-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm sm:text-base font-semibold text-foreground mb-1">
+                          {ticket.openedBy.name}
+                        </div>
+                        <div className="text-xs sm:text-sm text-muted-foreground truncate">
+                          {ticket.openedBy.email}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* Card do Solicitante - Terceiro */}
-              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6 border-t sm:border-t border-border">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
-                  Solicitante
-                </h2>
-                <div className="flex items-start gap-3">
-                  <div className="size-8 sm:size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <User className="size-4 sm:size-5 text-primary" />
+                {/* Seção de Timeline */}
+                <div className="p-5 sm:p-6 lg:p-8 lg:border-r-2 border-border bg-card/50">
+                  <div className="flex items-center gap-3 mb-5 pb-3 border-b border-border/30">
+                    <div className="size-10 rounded-xl bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center shadow-sm">
+                      <Clock className="size-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                      Atividades Recentes
+                    </h2>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm sm:text-base font-semibold text-foreground mb-1">
-                      {ticket.openedBy.name}
-                    </div>
-                    <div className="text-xs sm:text-sm text-muted-foreground truncate">
-                      {ticket.openedBy.email}
-                    </div>
+                  <div className="pl-0 sm:pl-12">
+                    <TicketTimeline ticket={ticket} />
                   </div>
                 </div>
-              </div>
-
-              {/* Card de Timeline */}
-              <div className="bg-card border-0 sm:border border-border rounded-none sm:rounded-xl shadow-none sm:shadow-sm p-4 sm:p-6 border-t sm:border-t border-border">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">
-                  Atividades Recentes
-                </h2>
-                <TicketTimeline ticket={ticket} />
               </div>
             </div>
           </div>
@@ -812,7 +858,7 @@ export default function AdminTicketDetailPage() {
       </div>
 
       {/* Edit Modal */}
-      {ticket && (
+      {ticket ? (
         <AdminTicketEditModal
           ticket={{
             id: ticket.id,
@@ -826,7 +872,7 @@ export default function AdminTicketDetailPage() {
           onOpenChange={setEditModalOpen}
           onUpdate={fetchTicket}
         />
-      )}
+      ) : null}
     </div>
   )
 }
