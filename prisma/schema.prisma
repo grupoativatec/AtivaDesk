@@ -50,6 +50,49 @@ enum TicketUnit {
   AOL
 }
 
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+enum TaskUnit {
+  ITJ
+  SFS
+  FOZ
+  DIO
+  AOL
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+
+enum TimeEntryType {
+  DEV
+  TEST
+  MEETING
+  REWORK
+}
+
+enum TaskActivityType {
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_STATUS_CHANGED
+  TASK_ASSIGNEES_CHANGED
+  TIME_ENTRY_ADDED
+  TIME_ENTRY_DELETED
+}
+
 enum NotificationType {
   NEW_TICKET
   NEW_MESSAGE
@@ -76,6 +119,11 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  createdTasks Task[] @relation("TaskCreatedBy")
+  taskAssignees TaskAssignee[]
+  timeEntries TimeEntry[]
+  taskActivity TaskActivityEvent[]
 
   // Relacionamentos
   openedTickets   Ticket[]        @relation("OpenedTickets")
@@ -184,4 +232,103 @@ model Notification {
   @@index([userId, createdAt])
   @@index([ticketId])
   @@index([status])
+}
+
+
+
+model Project {
+  id        String        @id @default(uuid())
+  name      String
+  code      String?       @unique
+  status    ProjectStatus @default(ACTIVE)
+
+  // opcional: se quiser projeto “por unidade”
+  unit      TaskUnit?
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  tasks     Task[]
+
+  @@index([status])
+  @@index([unit])
+}
+
+model Task {
+  id            String        @id @default(uuid())
+  title         String
+  description   String?       // para sua tab "Resumo"
+  acceptance    String?       // critérios de aceite (futuro)
+  unit          TaskUnit
+  status        TaskStatus    @default(BACKLOG)
+  priority      TaskPriority  @default(MEDIUM)
+
+  estimatedHours Int          @default(0) // inteiro no DB; se quiser 0.5h, use Decimal
+  // loggedHours NÃO precisa persistir; calcule via TimeEntry (ou mantenha materializado depois)
+
+  projectId     String
+  project       Project       @relation(fields: [projectId], references: [id])
+
+  createdById   String?
+  createdBy     User?         @relation("TaskCreatedBy", fields: [createdById], references: [id])
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  completedAt   DateTime?
+
+  assignees     TaskAssignee[]
+  timeEntries   TimeEntry[]
+  activity      TaskActivityEvent[]
+
+  @@index([projectId])
+  @@index([status])
+  @@index([priority])
+  @@index([unit])
+  @@index([updatedAt])
+}
+
+model TaskAssignee {
+  taskId String
+  userId String
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, userId])
+  @@index([userId])
+}
+
+model TimeEntry {
+  id        String       @id @default(uuid())
+  taskId    String
+  userId    String
+
+  date      DateTime     // armazene como DateTime (no front você manda YYYY-MM-DD)
+  hours     Decimal      @db.Decimal(5,2) // suporta 0.5, 1.5, etc.
+  type      TimeEntryType
+  note      String?
+
+  createdAt DateTime     @default(now())
+
+  task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, date])
+  @@index([userId, date])
+}
+
+model TaskActivityEvent {
+  id        String           @id @default(uuid())
+  taskId    String
+  type      TaskActivityType
+  actorId   String
+  message   String
+  meta      Json?
+  createdAt DateTime         @default(now())
+
+  task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  actor     User @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+  @@index([actorId])
 }

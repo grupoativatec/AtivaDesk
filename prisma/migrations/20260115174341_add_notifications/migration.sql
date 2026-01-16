@@ -1,11 +1,19 @@
--- CreateEnum
-CREATE TYPE "NotificationType" AS ENUM ('NEW_TICKET', 'NEW_MESSAGE', 'TICKET_ASSIGNED', 'TICKET_STATUS_CHANGED', 'TICKET_PRIORITY_CHANGED');
+-- CreateEnum (IF NOT EXISTS não é suportado diretamente, então verificamos antes)
+DO $$ BEGIN
+    CREATE TYPE "NotificationType" AS ENUM ('NEW_TICKET', 'NEW_MESSAGE', 'TICKET_ASSIGNED', 'TICKET_STATUS_CHANGED', 'TICKET_PRIORITY_CHANGED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
--- CreateEnum
-CREATE TYPE "NotificationStatus" AS ENUM ('UNREAD', 'READ');
+-- CreateEnum (IF NOT EXISTS não é suportado diretamente, então verificamos antes)
+DO $$ BEGIN
+    CREATE TYPE "NotificationStatus" AS ENUM ('UNREAD', 'READ');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
--- CreateTable
-CREATE TABLE "Notification" (
+-- CreateTable (IF NOT EXISTS)
+CREATE TABLE IF NOT EXISTS "Notification" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "ticketId" TEXT,
