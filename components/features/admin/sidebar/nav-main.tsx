@@ -39,19 +39,19 @@ const NavMain = ({ items }: {
                                 tooltip={item.title} 
                                 isActive={isActive}
                                 className={cn(
-                                    "h-10 rounded-md transition-all duration-200",
-                                    "hover:bg-accent hover:text-accent-foreground",
+                                    "h-9 rounded-md transition-all duration-200 px-2.5",
+                                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                     isActive 
-                                        ? "bg-accent text-accent-foreground font-semibold shadow-sm" 
-                                        : "text-muted-foreground hover:text-foreground"
+                                        ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold" 
+                                        : "text-sidebar-foreground/70 hover:text-sidebar-foreground"
                                 )}
                             >
                                 <Link href={item.url} onClick={handleLinkClick} className="flex items-center gap-3 w-full">
                                     <item.icon className={cn(
-                                        "size-5 shrink-0 transition-colors",
-                                        isActive ? "text-primary" : "text-muted-foreground"
+                                        "size-4 shrink-0 transition-colors",
+                                        isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"
                                     )} />
-                                    <span className="text-sm">{item.title}</span>
+                                    <span className="text-sm font-medium">{item.title}</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

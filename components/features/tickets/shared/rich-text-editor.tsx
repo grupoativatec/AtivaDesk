@@ -60,23 +60,23 @@ export function RichTextEditor({
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
-    editorProps: {
-      attributes: {
-        class: cn(
-          "min-h-[200px] p-4 focus:outline-none",
-          "[&_p]:my-2 [&_p]:leading-relaxed",
-          "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:space-y-1",
-          "[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:space-y-1",
-          "[&_li]:my-1",
-          "[&_strong]:font-semibold [&_em]:italic",
-          "[&_a]:text-primary [&_a]:underline [&_a]:hover:text-primary/80",
-          "[&_img]:max-w-full [&_img]:rounded-md [&_img]:my-4 [&_img]:border [&_img]:border-border",
-          "[&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-4",
-          "[&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3",
-          "[&_h3]:text-lg [&_h3]:font-semibold [&_h3]:my-2"
-        ),
+      editorProps: {
+        attributes: {
+          class: cn(
+            "min-h-[80px] max-h-[200px] p-3 focus:outline-none overflow-y-auto",
+            "[&_p]:my-1 [&_p]:leading-relaxed",
+            "[&_ul]:my-1 [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:space-y-1",
+            "[&_ol]:my-1 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:space-y-1",
+            "[&_li]:my-0.5",
+            "[&_strong]:font-semibold [&_em]:italic",
+            "[&_a]:text-primary [&_a]:underline [&_a]:hover:text-primary/80",
+            "[&_img]:max-w-full [&_img]:max-h-[200px] [&_img]:object-contain [&_img]:rounded-md [&_img]:my-2 [&_img]:border [&_img]:border-border",
+            "[&_h1]:text-xl [&_h1]:font-bold [&_h1]:my-2",
+            "[&_h2]:text-lg [&_h2]:font-bold [&_h2]:my-2",
+            "[&_h3]:text-base [&_h3]:font-semibold [&_h3]:my-1"
+          ),
+        },
       },
-    },
   })
 
   // Validações de segurança
@@ -370,12 +370,11 @@ export function RichTextEditor({
       <div className="relative">
         <EditorContent 
           editor={editor} 
-          className="min-h-[200px] max-h-[400px] overflow-y-auto"
         />
 
         {/* Placeholder */}
         {editor.isEmpty && (
-          <div className="absolute top-4 left-4 pointer-events-none text-muted-foreground text-sm">
+          <div className="absolute top-3 left-3 pointer-events-none text-muted-foreground text-sm">
             {placeholder}
           </div>
         )}

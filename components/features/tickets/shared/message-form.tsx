@@ -79,8 +79,8 @@ export function MessageForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-3">
-      <div className="max-h-[120px] overflow-y-auto border rounded-lg">
+    <form onSubmit={handleSubmit} className="space-y-1.5 sm:space-y-2">
+      <div className="border rounded-lg">
         <RichTextEditor
           content={content}
           onChange={setContent}
@@ -88,17 +88,16 @@ export function MessageForm({
         />
       </div>
       <div className="flex justify-end">
-        <Button type="submit" disabled={loading || !content.trim()} size="sm" className="text-xs sm:text-sm">
+        <Button type="submit" disabled={loading || !content.trim()} size="sm" className="h-7 sm:h-8 text-xs px-2 sm:px-3">
           {loading ? (
             <>
-              <Loader2 className="size-3 sm:size-4 mr-1.5 sm:mr-2 animate-spin" />
+              <Loader2 className="size-3 sm:size-4 mr-1 sm:mr-1.5 animate-spin" />
               <span className="hidden sm:inline">Enviando...</span>
             </>
           ) : (
             <>
-              <Send className="size-3 sm:size-4 mr-1.5 sm:mr-2" />
-              <span className="hidden sm:inline">Enviar</span>
-              <span className="sm:hidden">Enviar</span>
+              <Send className="size-3 sm:size-4 mr-1 sm:mr-1.5" />
+              <span>Enviar</span>
             </>
           )}
         </Button>

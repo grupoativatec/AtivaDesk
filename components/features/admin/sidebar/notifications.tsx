@@ -202,13 +202,13 @@ export function Notifications() {
       <Button
         variant="ghost"
         size="icon"
-        className="relative h-9 w-9 rounded-md"
+        className="relative h-8 w-8 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="h-4 w-4" />
         {unreadCount > 0 && (
           <Badge
             variant="destructive"
-            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center p-0 text-[10px] font-bold"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </Badge>
@@ -223,13 +223,13 @@ export function Notifications() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-9 w-9 rounded-md"
+          className="relative h-8 w-8 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center p-0 text-[10px] font-bold"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>

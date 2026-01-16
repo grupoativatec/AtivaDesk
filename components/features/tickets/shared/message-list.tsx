@@ -25,10 +25,10 @@ interface MessageListProps {
 export function MessageList({ messages, currentUserId }: MessageListProps) {
   if (messages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[200px]">
+      <div className="flex items-center justify-center py-8 sm:py-12">
         <div className="text-center">
-          <div className="size-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
-            <span className="text-xl">💬</span>
+          <div className="size-10 sm:size-12 mx-auto mb-2 sm:mb-3 rounded-full bg-muted flex items-center justify-center">
+            <span className="text-lg sm:text-xl">💬</span>
           </div>
           <p className="text-muted-foreground text-sm sm:text-base">
             Nenhum comentário ainda
@@ -42,7 +42,7 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
   }
 
   return (
-    <div className="space-y-2 sm:space-y-3">
+    <div className="space-y-2">
       {messages.map((message, index) => {
         const isCurrentUser = message.author.id === currentUserId
         const messageDate = new Date(message.createdAt)
@@ -59,16 +59,16 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.2, delay: index * 0.02 }}
             className={cn(
-              "flex gap-3 group",
+              "flex gap-2 sm:gap-3 group",
               isCurrentUser ? "flex-row-reverse" : "flex-row"
             )}
           >
             {/* Avatar */}
-            <div className={cn("shrink-0", isCurrentUser ? "ml-2" : "mr-2")}>
+            <div className={cn("shrink-0", isCurrentUser ? "ml-1 sm:ml-2" : "mr-1 sm:mr-2")}>
               {showAvatar ? (
-                <Avatar className="size-8 border-2 border-border">
+                <Avatar className="size-6 sm:size-8 border border-border sm:border-2">
                   <AvatarFallback className={cn(
-                    "text-xs font-semibold",
+                    "text-[10px] sm:text-xs font-semibold",
                     isCurrentUser 
                       ? "bg-primary/10 text-primary" 
                       : "bg-muted text-muted-foreground"
@@ -82,41 +82,42 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
                   </AvatarFallback>
                 </Avatar>
               ) : (
-                <div className="size-8" />
+                <div className="size-6 sm:size-8" />
               )}
             </div>
 
             {/* Message Bubble */}
             <div className={cn(
-              "flex flex-col max-w-[85%] sm:max-w-[75%]",
+              "flex flex-col max-w-[80%] sm:max-w-[75%]",
               isCurrentUser ? "items-end" : "items-start"
             )}>
               {showAvatar && (
                 <span className={cn(
-                  "text-xs font-medium mb-1 px-1",
+                  "text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 px-1",
                   isCurrentUser ? "text-right" : "text-left"
                 )}>
-                  {isCurrentUser ? "Você" : message.author.name}
+                  {isCurrentUser ? "Você" : message.author.name.split(' ')[0]}
                 </span>
               )}
               
               <div
                 className={cn(
-                  "rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm",
+                  "rounded-xl sm:rounded-2xl px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 shadow-sm",
                   isCurrentUser
-                    ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-muted text-foreground rounded-bl-sm"
+                    ? "bg-primary text-primary-foreground rounded-br-sm dark:bg-primary/80"
+                    : "bg-muted text-foreground rounded-bl-sm dark:bg-muted/60"
                 )}
               >
                 <div
                   className={cn(
                     "text-xs sm:text-sm leading-relaxed",
                     "[&_p]:my-0.5 [&_p]:leading-relaxed",
-                    "[&_ul]:my-0.5 [&_ul]:list-disc [&_ul]:ml-3 [&_ul]:space-y-0.5",
-                    "[&_ol]:my-0.5 [&_ol]:list-decimal [&_ol]:ml-3 [&_ol]:space-y-0.5",
+                    "[&_ul]:my-0.5 [&_ul]:list-disc [&_ul]:ml-2 sm:[&_ul]:ml-3 [&_ul]:space-y-0.5",
+                    "[&_ol]:my-0.5 [&_ol]:list-decimal [&_ol]:ml-2 sm:[&_ol]:ml-3 [&_ol]:space-y-0.5",
                     "[&_strong]:font-semibold [&_em]:italic",
                     "[&_a]:underline [&_a]:opacity-90",
-                    "[&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-1.5 [&_img]:border [&_img]:border-border/50",
+                    "[&_img]:max-w-full [&_img]:max-h-[200px] sm:[&_img]:max-h-[300px] [&_img]:object-contain [&_img]:rounded-lg [&_img]:my-1 [&_img]:border [&_img]:border-border/50 [&_img]:cursor-pointer [&_img]:hover:opacity-90",
+                    "[&_video]:max-w-full [&_video]:max-h-[200px] sm:[&_video]:max-h-[300px] [&_video]:rounded-lg [&_video]:my-1 [&_video]:border [&_video]:border-border/50",
                     isCurrentUser && "[&_a]:text-primary-foreground/90"
                   )}
                   dangerouslySetInnerHTML={{ __html: message.content }}
@@ -124,7 +125,7 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
               </div>
 
               <span className={cn(
-                "text-[10px] sm:text-xs text-muted-foreground mt-0.5 px-1",
+                "text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground mt-0.5 px-1",
                 isCurrentUser ? "text-right" : "text-left"
               )}>
                 {format(messageDate, "HH:mm", { locale: ptBR })}

@@ -18,8 +18,8 @@ import { Notifications } from "./notifications"
 
 const AppSidebar = () => {
   return (
-    <Sidebar collapsible="offcanvas" className="border-r border-border/50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <SidebarHeader className="px-4 py-6 border-b border-border/50">
+    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
+      <SidebarHeader className="px-3 py-5 border-b border-sidebar-border">
         <div className="flex items-center justify-between gap-2">
           <SidebarMenuButton
             size={"lg"}
@@ -32,13 +32,9 @@ const AppSidebar = () => {
               flex-1
             "
           >
-            <div className="flex items-center gap-3 w-full">
-              <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all group-hover:bg-primary/15">
-                <TiAiAvatarIcon className="h-6 w-6" />
-              </div>
+            <div className="flex items-center gap-2.5 w-full">
               <div className="flex flex-col items-start">
-                <span className="text-xl font-bold tracking-tight">AtivaDesk</span>
-                <span className="text-xs text-muted-foreground font-normal">Sistema</span>
+                <span className="text-base font-bold tracking-tight text-sidebar-foreground">AtivaDesk</span>
               </div>
             </div>
           </SidebarMenuButton>
@@ -46,13 +42,13 @@ const AppSidebar = () => {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4 gap-6">
+      <SidebarContent className="px-2.5 py-3 gap-5">
         <NavMain items={data.navMain} />
-        <Separator className="my-2" />
+        <Separator className="my-2 opacity-20" />
         <RecentOpen />
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/50">
+      <SidebarFooter className="border-t border-sidebar-border">
         <SidebarFooterContent />
       </SidebarFooter>
     </Sidebar>

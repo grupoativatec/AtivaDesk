@@ -82,20 +82,20 @@ const SidebarFooterContent = () => {
   }
 
   return (
-    <div className="px-3 py-3">
+    <div className="px-2.5 py-2.5">
       {/* User Card with Integrated Actions */}
       <div className="group relative">
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-          <Avatar className="size-9 shrink-0 ring-2 ring-background">
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-sidebar-accent/30 hover:bg-sidebar-accent transition-colors">
+          <Avatar className="size-8 shrink-0 ring-2 ring-sidebar-border">
+            <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary font-semibold text-xs">
               {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-start min-w-0 flex-1">
-            <span className="text-sm font-medium truncate w-full">
-              {user.name}
+            <span className="text-xs font-medium truncate w-full text-sidebar-foreground">
+              {user.name.split(' ')[0]}
             </span>
-            <span className="text-xs text-muted-foreground truncate w-full">
+            <span className="text-[10px] text-sidebar-foreground/60 truncate w-full">
               {user.email}
             </span>
           </div>
@@ -108,13 +108,13 @@ const SidebarFooterContent = () => {
                 toggleTheme()
               }}
               disabled={!mounted}
-              className="h-7 w-7"
+              className="h-6 w-6 text-sidebar-foreground/70 hover:text-sidebar-foreground"
               title={mounted && theme === "dark" ? "Modo claro" : "Modo escuro"}
             >
               {mounted && theme === "dark" ? (
-                <Sun className="size-3.5" />
+                <Sun className="size-3" />
               ) : (
-                <Moon className="size-3.5" />
+                <Moon className="size-3" />
               )}
             </Button>
             <Button
@@ -125,10 +125,10 @@ const SidebarFooterContent = () => {
                 handleLogout()
               }}
               disabled={loggingOut}
-              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+              className="h-6 w-6 text-sidebar-foreground/70 hover:text-destructive"
               title="Sair"
             >
-              <LogOut className={cn("size-3.5", loggingOut && "animate-pulse")} />
+              <LogOut className={cn("size-3", loggingOut && "animate-pulse")} />
             </Button>
           </div>
         </div>

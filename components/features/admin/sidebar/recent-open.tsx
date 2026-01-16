@@ -55,48 +55,48 @@ const RecentOpen = () => {
         switch (status) {
             case 'OPEN':
                 return {
-                    dot: 'bg-blue-500',
+                    dot: 'bg-blue-400',
                     bg: 'bg-blue-500/10',
-                    text: 'text-blue-700 dark:text-blue-400'
+                    text: 'text-blue-400'
                 }
             case 'IN_PROGRESS':
                 return {
-                    dot: 'bg-yellow-500',
+                    dot: 'bg-yellow-400',
                     bg: 'bg-yellow-500/10',
-                    text: 'text-yellow-700 dark:text-yellow-400'
+                    text: 'text-yellow-400'
                 }
             case 'RESOLVED':
                 return {
-                    dot: 'bg-green-500',
+                    dot: 'bg-green-400',
                     bg: 'bg-green-500/10',
-                    text: 'text-green-700 dark:text-green-400'
+                    text: 'text-green-400'
                 }
             case 'CLOSED':
                 return {
-                    dot: 'bg-gray-500',
+                    dot: 'bg-gray-400',
                     bg: 'bg-gray-500/10',
-                    text: 'text-gray-700 dark:text-gray-400'
+                    text: 'text-gray-400'
                 }
             default:
                 return {
-                    dot: 'bg-muted',
-                    bg: 'bg-muted/40',
-                    text: 'text-muted-foreground'
+                    dot: 'bg-sidebar-foreground/40',
+                    bg: 'bg-sidebar-accent/40',
+                    text: 'text-sidebar-foreground/60'
                 }
         }
     }
 
     return (
         <SidebarGroup className="p-0">
-            <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+            <SidebarGroupLabel className="text-[10px] font-semibold text-sidebar-foreground/60 uppercase tracking-wider px-2 mb-2">
                 Chamados Recentes
             </SidebarGroupLabel>
 
-            <SidebarMenu className="gap-1.5">
+            <SidebarMenu className="gap-1">
                 {loading ? (
                     Array.from({ length: 3 }).map((_, index) => (
                         <SidebarMenuItem key={index}>
-                            <Skeleton className="h-9 w-full rounded-md" />
+                            <Skeleton className="h-8 w-full rounded-md bg-sidebar-accent/30" />
                         </SidebarMenuItem>
                     ))
                 ) : tickets.length > 0 ? (
@@ -109,21 +109,21 @@ const RecentOpen = () => {
                                     asChild
                                     tooltip={ticket.title}
                                     className={cn(
-                                        "h-auto rounded-md px-3 py-2.5",
-                                        "bg-muted/40 hover:bg-muted",
+                                        "h-auto rounded-md px-2.5 py-2",
+                                        "bg-sidebar-accent/30 hover:bg-sidebar-accent",
                                         "transition-all duration-200",
                                         "group"
                                     )}
                                 >
                                     <Link href={ticket.url} onClick={handleLinkClick} className="w-full">
-                                        <div className="flex items-start gap-2.5 w-full">
+                                        <div className="flex items-start gap-2 w-full">
                                             <div className={cn(
-                                                "size-2 rounded-full mt-1.5 shrink-0",
+                                                "size-1.5 rounded-full mt-1.5 shrink-0",
                                                 statusConfig.dot
                                             )} />
                                             <span className={cn(
                                                 "text-xs leading-snug line-clamp-2 flex-1 text-left",
-                                                "group-hover:text-foreground transition-colors"
+                                                "text-sidebar-foreground/80 group-hover:text-sidebar-foreground transition-colors"
                                             )}>
                                                 {ticket.title}
                                             </span>
@@ -135,7 +135,7 @@ const RecentOpen = () => {
                     })
                 ) : (
                     <SidebarMenuItem>
-                        <div className="rounded-md bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground text-center">
+                        <div className="rounded-md bg-sidebar-accent/20 px-2.5 py-2 text-xs text-sidebar-foreground/60 text-center">
                             Nenhum chamado atribuído
                         </div>
                     </SidebarMenuItem>

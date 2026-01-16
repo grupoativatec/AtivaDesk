@@ -65,6 +65,7 @@ type TicketTimelineProps = {
       createdAt: string | Date
     }>
   }
+  limit?: number
 }
 
 const STATUS_LABELS = {
@@ -74,7 +75,8 @@ const STATUS_LABELS = {
   CLOSED: "Fechado",
 }
 
-export function TicketTimeline({ ticket }: TicketTimelineProps) {
+// Função auxiliar para gerar todos os eventos
+export function generateTimelineEvents(ticket: TicketTimelineProps['ticket']): TimelineEvent[] {
   const events: TimelineEvent[] = []
 
   // Evento: Criação do ticket
@@ -145,12 +147,8 @@ export function TicketTimeline({ ticket }: TicketTimelineProps) {
     })
   }
 
-  // Eventos: Anexos (apenas os 3 mais recentes)
-  const recentAttachments = ticket.attachments
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 3)
-
-  recentAttachments.forEach((attachment) => {
+  // Eventos: Todos os anexos
+  ticket.attachments.forEach((attachment) => {
     events.push({
       id: `attachment-${attachment.id}`,
       type: "attachment",
@@ -162,24 +160,20 @@ export function TicketTimeline({ ticket }: TicketTimelineProps) {
     })
   })
 
-  // Eventos: Mensagens (apenas as 5 mais recentes)
-  const recentMessages = ticket.messages
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5)
-
-  recentMessages.forEach((message) => {
+  // Eventos: Todas as mensagens
+  ticket.messages.forEach((message) => {
     const cleanContent = message.content
       .replace(/<[^>]*>/g, "")
       .replace(/&nbsp;/g, " ")
       .trim()
-      .substring(0, 60)
+      .substring(0, 100)
 
     events.push({
       id: `message-${message.id}`,
       type: "message",
       timestamp: new Date(message.createdAt),
       title: "Comentário adicionado",
-      description: cleanContent + (message.content.length > 60 ? "..." : ""),
+      description: cleanContent + (message.content.length > 100 ? "..." : ""),
       user: message.author,
       icon: MessageSquare,
       iconColor: "text-indigo-600 dark:text-indigo-400",
@@ -189,8 +183,14 @@ export function TicketTimeline({ ticket }: TicketTimelineProps) {
   // Ordenar eventos por timestamp (mais recente primeiro)
   events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 
-  // Limitar a 10 eventos mais recentes
-  const displayEvents = events.slice(0, 10)
+  return events
+}
+
+export function TicketTimeline({ ticket, limit }: TicketTimelineProps) {
+  const allEvents = generateTimelineEvents(ticket)
+  
+  // Limitar eventos se limit for especificado
+  const displayEvents = limit ? allEvents.slice(0, limit) : allEvents
 
   if (displayEvents.length === 0) {
     return null
