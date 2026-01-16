@@ -50,6 +50,19 @@ enum TicketUnit {
   AOL
 }
 
+enum NotificationType {
+  NEW_TICKET
+  NEW_MESSAGE
+  TICKET_ASSIGNED
+  TICKET_STATUS_CHANGED
+  TICKET_PRIORITY_CHANGED
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
@@ -68,6 +81,7 @@ model User {
   openedTickets   Ticket[]        @relation("OpenedTickets")
   assignedTickets Ticket[]        @relation("AssignedTickets")
   messages        TicketMessage[]
+  notifications   Notification[]
 }
 
 model Ticket {
@@ -105,6 +119,9 @@ model Ticket {
   
   // Anexos
   attachments TicketAttachment[]
+  
+  // Notificações
+  notifications Notification[]
 
   @@index([status])
   @@index([priority])
@@ -143,4 +160,28 @@ model TicketAttachment {
   ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@index([ticketId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           // Usuário que receberá a notificação
+  ticketId  String?          // Ticket relacionado (opcional para flexibilidade futura)
+  
+  type      NotificationType
+  status    NotificationStatus @default(UNREAD)
+  
+  title     String           // Título da notificação
+  message   String           // Mensagem descritiva
+  metadata  Json?            // Dados adicionais (ex: nome do autor, prioridade, etc)
+  
+  createdAt DateTime         @default(now())
+  readAt    DateTime?        // Quando foi marcada como lida
+  
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticket    Ticket?          @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([ticketId])
+  @@index([status])
 }

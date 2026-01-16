@@ -88,43 +88,43 @@ type SortDirection = "asc" | "desc"
 const STATUS_CONFIG = {
   OPEN: {
     label: "Aberto",
-    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400/80 dark:border-blue-900/30",
+    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/10 dark:text-blue-500/60 dark:border-blue-900/20",
     icon: AlertCircle,
   },
   IN_PROGRESS: {
     label: "Em Andamento",
-    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400/80 dark:border-yellow-900/30",
+    color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/10 dark:text-yellow-500/60 dark:border-yellow-900/20",
     icon: Loader2,
   },
   RESOLVED: {
     label: "Resolvido",
-    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400/80 dark:border-green-900/30",
+    color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/10 dark:text-green-500/60 dark:border-green-900/20",
   },
   CLOSED: {
     label: "Fechado",
-    color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950/20 dark:text-gray-400/80 dark:border-gray-900/30",
+    color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950/10 dark:text-gray-400/60 dark:border-gray-900/20",
   },
 } as const
 
 const PRIORITY_CONFIG = {
   LOW: {
     label: "Baixa",
-    color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400/80 dark:border-blue-900/30",
+    color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/10 dark:text-blue-500/60 dark:border-blue-900/20",
     order: 1,
   },
   MEDIUM: {
     label: "Média",
-    color: "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400/80 dark:border-yellow-900/30",
+    color: "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950/10 dark:text-yellow-500/60 dark:border-yellow-900/20",
     order: 2,
   },
   HIGH: {
     label: "Alta",
-    color: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950/20 dark:text-orange-400/80 dark:border-orange-900/30",
+    color: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950/10 dark:text-orange-500/60 dark:border-orange-900/20",
     order: 3,
   },
   URGENT: {
     label: "Crítica",
-    color: "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/20 dark:text-red-400/80 dark:border-red-900/30",
+    color: "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/10 dark:text-red-500/60 dark:border-red-900/20",
     order: 4,
   },
 } as const
@@ -335,7 +335,7 @@ export default function AdminTicketsPage() {
   return (
     <div className="w-full flex flex-col">
       {/* Header com Estatísticas */}
-      <div className="border-b border-border dark:border-border/50 bg-card dark:bg-card/50 shadow-sm dark:shadow-none shrink-0">
+      <div className="border-b border-border dark:border-border/30 bg-card dark:bg-card/30 shadow-sm dark:shadow-none shrink-0">
         <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
             <div className="flex-1 min-w-0">
@@ -381,17 +381,17 @@ export default function AdminTicketsPage() {
 
           {/* Estatísticas Rápidas - Compactas */}
           <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4">
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-2 sm:p-2.5">
-              <div className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 font-medium mb-0.5">Abertos</div>
-              <div className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-300">{stats.open}</div>
+            <div className="bg-muted border border-border rounded-lg p-2 sm:p-2.5">
+              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium mb-0.5">Abertos</div>
+              <div className="text-lg sm:text-xl font-bold text-foreground">{stats.open}</div>
             </div>
-            <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-2 sm:p-2.5">
-              <div className="text-[10px] sm:text-xs text-yellow-600 dark:text-yellow-400 font-medium mb-0.5">Em Andamento</div>
-              <div className="text-lg sm:text-xl font-bold text-yellow-700 dark:text-yellow-300">{stats.inProgress}</div>
+            <div className="bg-muted border border-border rounded-lg p-2 sm:p-2.5">
+              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium mb-0.5">Em Andamento</div>
+              <div className="text-lg sm:text-xl font-bold text-foreground">{stats.inProgress}</div>
             </div>
-            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-2 sm:p-2.5">
-              <div className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 font-medium mb-0.5">Críticos</div>
-              <div className="text-lg sm:text-xl font-bold text-red-700 dark:text-red-300">{stats.urgent}</div>
+            <div className="bg-muted border border-border rounded-lg p-2 sm:p-2.5">
+              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium mb-0.5">Críticos</div>
+              <div className="text-lg sm:text-xl font-bold text-foreground">{stats.urgent}</div>
             </div>
             <div className="bg-muted border border-border rounded-lg p-2 sm:p-2.5">
               <div className="text-[10px] sm:text-xs text-muted-foreground font-medium mb-0.5">Total</div>
@@ -483,7 +483,7 @@ export default function AdminTicketsPage() {
       </div>
 
       {/* Content Area */}
-      <div className="w-full bg-muted/20 dark:bg-background">
+      <div className="w-full bg-muted/20 dark:bg-background/50">
         <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
           {loading ? (
             <div className="flex items-center justify-center py-20">
@@ -507,10 +507,10 @@ export default function AdminTicketsPage() {
             <>
               {/* Tabela Desktop */}
               <div className="hidden lg:block">
-                <div className="bg-card dark:bg-card/50 border border-border dark:border-border/50 rounded-lg overflow-hidden shadow-sm dark:shadow-none">
+                <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg overflow-hidden shadow-sm dark:shadow-none">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-muted/50 dark:bg-muted/20 border-b border-border dark:border-border/50">
+                      <thead className="bg-muted/50 dark:bg-muted/10 border-b border-border dark:border-border/30">
                         <tr>
                           <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             <button
@@ -577,7 +577,7 @@ export default function AdminTicketsPage() {
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border dark:divide-border/30">
+                      <tbody className="divide-y divide-border dark:divide-border/20">
                         {filteredTickets.map((ticket) => {
                           const statusConfig = STATUS_CONFIG[ticket.status]
                           const priorityConfig = PRIORITY_CONFIG[ticket.priority]
@@ -587,7 +587,7 @@ export default function AdminTicketsPage() {
                           return (
                             <tr
                               key={ticket.id}
-                              className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                              className="hover:bg-muted/30 dark:hover:bg-muted/10 transition-colors cursor-pointer group"
                               onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
                             >
                               <td className="p-4">
@@ -666,7 +666,7 @@ export default function AdminTicketsPage() {
                   return (
                     <div
                       key={ticket.id}
-                      className="bg-card dark:bg-card/50 border border-border dark:border-border/50 rounded-lg p-4 shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer"
+                      className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-4 shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer"
                       onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
                     >
                       <div className="flex items-start justify-between mb-3">

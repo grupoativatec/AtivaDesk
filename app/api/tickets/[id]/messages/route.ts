@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth/get-current-user"
+import { notifyNewMessage } from "@/lib/notifications"
 
 const createMessageSchema = z.object({
   content: z.string().min(1, "Mensagem não pode estar vazia"),
@@ -84,6 +85,25 @@ export async function POST(
         },
       },
     })
+
+    // Criar notificação para admins (em background, não bloqueia a resposta)
+    // Buscar informações do ticket para a notificação
+    const ticketForNotification = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      select: { title: true },
+    })
+
+    if (ticketForNotification) {
+      notifyNewMessage(
+        ticketId,
+        ticketForNotification.title,
+        user.id,
+        message.author.name,
+        user.role === "ADMIN"
+      ).catch((err) => {
+        console.error("Erro ao criar notificação de nova mensagem:", err)
+      })
+    }
 
     return NextResponse.json({
       ok: true,
