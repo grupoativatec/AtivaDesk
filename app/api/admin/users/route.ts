@@ -23,14 +23,16 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url)
     const role = searchParams.get("role") // Opcional: filtrar por role
+    const all = searchParams.get("all") === "true" // Buscar todos os usuários
 
     const where: any = {}
     if (role) {
       where.role = role
-    } else {
-      // Por padrão, apenas admins
+    } else if (!all) {
+      // Por padrão, apenas admins (se não especificar all=true)
       where.role = "ADMIN"
     }
+    // Se all=true e não tem role, não adiciona filtro (retorna todos)
 
     // Buscar usuários
     const users = await prisma.user.findMany({

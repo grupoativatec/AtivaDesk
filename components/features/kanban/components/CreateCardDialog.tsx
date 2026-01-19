@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -28,6 +28,8 @@ import { KanbanStatus } from "../types/kanban.types"
 import { nanoid } from "nanoid"
 import { KanbanTagsInput } from "./KanbanTagsInput"
 import { User } from "lucide-react"
+import { listUsers } from "@/lib/api/users"
+import { toast } from "sonner"
 
 interface CreateCardDialogProps {
   open: boolean
@@ -47,17 +49,31 @@ export function CreateCardDialog({
   const board = useKanbanStore((state) => state.boards[boardId])
   const addCard = useKanbanStore((state) => state.addCard)
   const [isLoading, setIsLoading] = useState(false)
+  const [availableUsers, setAvailableUsers] = useState<Array<{ id: string; name: string; email: string }>>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [selectedColumnId, setSelectedColumnId] = useState(
     defaultColumnId || board?.columns[0]?.id || ""
   )
 
-  // Mock de usuários disponíveis (será substituído por dados reais)
-  const availableUsers = [
-    { id: "user-1", name: "João Silva", email: "joao@example.com", avatar: undefined },
-    { id: "user-2", name: "Maria Santos", email: "maria@example.com", avatar: undefined },
-    { id: "user-3", name: "Pedro Costa", email: "pedro@example.com", avatar: undefined },
-    { id: "user-4", name: "Ana Oliveira", email: "ana@example.com", avatar: undefined },
-  ]
+  // Carregar usuários quando o dialog abrir
+  useEffect(() => {
+    if (open) {
+      loadUsers()
+    }
+  }, [open])
+
+  const loadUsers = async () => {
+    try {
+      setIsLoadingUsers(true)
+      const users = await listUsers("ADMIN") // Buscar apenas admins
+      setAvailableUsers(users)
+    } catch (error) {
+      console.error("Erro ao carregar usuários:", error)
+      toast.error("Erro ao carregar usuários")
+    } finally {
+      setIsLoadingUsers(false)
+    }
+  }
 
   const {
     register,
@@ -109,7 +125,7 @@ export function CreateCardDialog({
         projectName: data.projectId ? board?.projectName : undefined,
         assigneeId: data.assigneeId,
         assigneeName: selectedUser?.name,
-        assigneeAvatar: selectedUser?.avatar,
+        assigneeAvatar: undefined,
         tags: data.tags && data.tags.length > 0 ? data.tags : undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -238,9 +254,10 @@ export function CreateCardDialog({
                   setValue("assigneeName", user?.name)
                 }
               }}
+              disabled={isLoadingUsers}
             >
               <SelectTrigger id="assignee">
-                <SelectValue placeholder="Selecione um responsável" />
+                <SelectValue placeholder={isLoadingUsers ? "Carregando usuários..." : "Selecione um responsável"} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum</SelectItem>

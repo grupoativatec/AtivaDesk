@@ -24,12 +24,17 @@ export interface UsersListResponse {
 }
 
 /**
- * Lista usuários (por padrão apenas admins)
+ * Lista usuários
+ * @param role - Filtrar por role específico
+ * @param all - Se true, retorna todos os usuários (USER, AGENT, ADMIN). Se false ou undefined, retorna apenas admins por padrão
  */
-export async function listUsers(role?: "USER" | "AGENT" | "ADMIN"): Promise<User[]> {
+export async function listUsers(role?: "USER" | "AGENT" | "ADMIN", all?: boolean): Promise<User[]> {
   const params = new URLSearchParams()
   if (role) {
     params.append("role", role)
+  }
+  if (all) {
+    params.append("all", "true")
   }
 
   const queryString = params.toString()

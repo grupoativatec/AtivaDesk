@@ -4,11 +4,19 @@ import { useState, useRef, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { X, Calendar, Save, User } from "lucide-react"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Calendar, X, Save, User as UserIcon } from "lucide-react"
 import { useKanbanStore } from "../store/useKanbanStore"
 import { KanbanCard as KanbanCardType } from "../types/kanban.types"
 import { cn } from "@/lib/utils"
-import { KanbanTagsInput } from "./KanbanTagsInput"
+import { listUsers } from "@/lib/api/users"
+import { toast } from "sonner"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { TaskPriorityBadge } from "@/components/features/admin/tasks/TaskPriorityBadge"
 
 interface KanbanCardEditProps {
   boardId: string
@@ -22,23 +30,23 @@ export function KanbanCardEdit({ boardId, card, onCancel }: KanbanCardEditProps)
   const [dueDate, setDueDate] = useState(
     card.dueDate ? new Date(card.dueDate).toISOString().split("T")[0] : ""
   )
-  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH" | undefined>(
+  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH" | "URGENT" | undefined>(
     card.priority
   )
   const [assigneeId, setAssigneeId] = useState<string | undefined>(card.assigneeId)
-  const [tags, setTags] = useState<string[]>(card.tags || [])
+  const [availableUsers, setAvailableUsers] = useState<Array<{ id: string; name: string; email: string }>>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isAssigneePopoverOpen, setIsAssigneePopoverOpen] = useState(false)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const updateCard = useKanbanStore((state) => state.updateCard)
 
-  // Mock de usuários disponíveis (será substituído por dados reais)
-  const availableUsers = [
-    { id: "user-1", name: "João Silva", email: "joao@example.com", avatar: undefined },
-    { id: "user-2", name: "Maria Santos", email: "maria@example.com", avatar: undefined },
-    { id: "user-3", name: "Pedro Costa", email: "pedro@example.com", avatar: undefined },
-    { id: "user-4", name: "Ana Oliveira", email: "ana@example.com", avatar: undefined },
-  ]
+  // Carregar usuários ao montar
+  useEffect(() => {
+    loadUsers()
+  }, [])
 
+  // Focar no input de título ao montar
   useEffect(() => {
     if (titleInputRef.current) {
       titleInputRef.current.focus()
@@ -46,8 +54,24 @@ export function KanbanCardEdit({ boardId, card, onCancel }: KanbanCardEditProps)
     }
   }, [])
 
+  const loadUsers = async () => {
+    try {
+      setIsLoadingUsers(true)
+      const users = await listUsers("ADMIN") // Buscar apenas admins
+      setAvailableUsers(users)
+    } catch (error) {
+      console.error("Erro ao carregar usuários:", error)
+      toast.error("Erro ao carregar usuários")
+    } finally {
+      setIsLoadingUsers(false)
+    }
+  }
+
   const handleSave = async () => {
-    if (!title.trim()) return
+    if (!title.trim()) {
+      toast.error("Título é obrigatório")
+      return
+    }
 
     setIsLoading(true)
 
@@ -61,17 +85,17 @@ export function KanbanCardEdit({ boardId, card, onCancel }: KanbanCardEditProps)
         dueDate: dueDate || undefined,
         assigneeId,
         assigneeName: selectedUser?.name,
-        assigneeAvatar: selectedUser?.avatar,
-        tags: tags.length > 0 ? tags : undefined,
+        assigneeAvatar: undefined,
+        tags: card.tags, // Manter tags existentes por enquanto
       })
 
       setIsLoading(false)
       onCancel()
+      toast.success("Card atualizado com sucesso")
     } catch (error) {
-      // Erro já foi tratado no store (rollback automático)
       setIsLoading(false)
-      // Em produção, pode mostrar uma notificação de erro aqui
       console.error("Erro ao atualizar card:", error)
+      toast.error("Erro ao atualizar card")
     }
   }
 
@@ -84,129 +108,259 @@ export function KanbanCardEdit({ boardId, card, onCancel }: KanbanCardEditProps)
     }
   }
 
-  const priorityColors = {
-    HIGH: "border-red-500/50 bg-red-500/5",
-    MEDIUM: "border-yellow-500/50 bg-yellow-500/5",
-    LOW: "border-blue-500/50 bg-blue-500/5",
+  const selectedUser = availableUsers.find((u) => u.id === assigneeId)
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
   }
 
+  // Renderiza como um card inline, igual ao card original
   return (
     <div
       className={cn(
-        "rounded-lg border-2 border-primary/50 bg-background p-3 shadow-sm transition-all",
-        priority && priorityColors[priority]
+        "group relative cursor-pointer rounded-lg border border-border/60 bg-card p-3 shadow-sm transition-all duration-200",
+        "hover:shadow-md hover:border-border",
+        priority && priority === "URGENT" && "border-red-500/50",
+        priority && priority === "HIGH" && "border-orange-500/50",
+        priority && priority === "MEDIUM" && "border-yellow-500/50",
+        priority && priority === "LOW" && "border-blue-500/50"
       )}
       onKeyDown={handleKeyDown}
     >
-      {/* Header com título editável */}
-      <Input
-        ref={titleInputRef}
-        placeholder="Título do card..."
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        disabled={isLoading}
-        className="mb-2 font-semibold border-none p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 text-sm"
-      />
+      {/* Barra de prioridade no topo (estilo Trello) */}
+      {priority && (
+        <div
+          className={cn(
+            "absolute top-0 left-0 right-0 h-1 rounded-t-lg",
+            priority === "URGENT" && "bg-red-500",
+            priority === "HIGH" && "bg-orange-500",
+            priority === "MEDIUM" && "bg-yellow-500",
+            priority === "LOW" && "bg-blue-500"
+          )}
+        />
+      )}
 
-      {/* Descrição editável */}
-      <Textarea
-        placeholder="Adicione uma descrição..."
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        disabled={isLoading}
-        className="mb-2 min-h-[60px] resize-none border-none p-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 text-xs"
-        rows={2}
-      />
-
-      {/* Campos adicionais */}
-      <div className="space-y-2 mb-2">
-        {/* Prazo */}
-        <div className="flex items-center gap-2">
-          <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
-          <Input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            disabled={isLoading}
-            className="h-7 text-xs border bg-muted/50 focus-visible:ring-1 focus-visible:ring-primary/20"
-          />
-        </div>
-
-        {/* Prioridade */}
-        <div className="flex items-center gap-2">
-          <select
-            value={priority || ""}
-            onChange={(e) =>
-              setPriority(
-                e.target.value === "" ? undefined : (e.target.value as "LOW" | "MEDIUM" | "HIGH")
-              )
-            }
-            disabled={isLoading}
-            className="text-xs bg-muted/50 border rounded px-2 py-1 outline-none cursor-pointer text-muted-foreground hover:text-foreground focus:ring-1 focus:ring-primary/20"
-          >
-            <option value="">Sem prioridade</option>
-            <option value="HIGH">🔴 Alta</option>
-            <option value="MEDIUM">🟡 Média</option>
-            <option value="LOW">🔵 Baixa</option>
-          </select>
-        </div>
-
-        {/* Responsável */}
-        <div className="flex items-center gap-2">
-          <User className="h-3 w-3 text-muted-foreground shrink-0" />
-          <select
-            value={assigneeId || ""}
-            onChange={(e) => setAssigneeId(e.target.value === "" ? undefined : e.target.value)}
-            disabled={isLoading}
-            className="flex-1 text-xs bg-muted/50 border rounded px-2 py-1 outline-none cursor-pointer text-muted-foreground hover:text-foreground focus:ring-1 focus:ring-primary/20"
-          >
-            <option value="">Sem responsável</option>
-            {availableUsers.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Tags */}
-        <div className="flex items-start gap-2">
-          <KanbanTagsInput
-            tags={tags}
-            onChange={setTags}
-            placeholder="Adicionar tags..."
-            disabled={isLoading}
-          />
-        </div>
-      </div>
-
-      {/* Ações */}
-      <div className="flex items-center justify-between pt-2 border-t">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onCancel}
+      {/* Conteúdo do card */}
+      <div className={cn("space-y-2.5", priority && "pt-1")}>
+        {/* Título */}
+        <Input
+          ref={titleInputRef}
+          placeholder="Título do card..."
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           disabled={isLoading}
-          className="h-7 text-xs"
-        >
-          <X className="h-3 w-3 mr-1" />
-          Cancelar
-        </Button>
-        <Button
-          size="sm"
-          onClick={handleSave}
-          disabled={!title.trim() || isLoading}
-          className="h-7 text-xs"
-        >
-          <Save className="h-3 w-3 mr-1" />
-          {isLoading ? "Salvando..." : "Salvar"}
-        </Button>
-      </div>
+          className={cn(
+            "h-auto p-0 border-none bg-transparent text-sm font-semibold leading-snug",
+            "focus-visible:ring-0 focus-visible:ring-offset-0",
+            "placeholder:text-muted-foreground/60"
+          )}
+        />
 
-      {/* Dica de atalho */}
-      <p className="text-xs text-muted-foreground mt-2 text-center">
-        Ctrl/Cmd + Enter para salvar • Esc para cancelar
-      </p>
+        {/* Descrição */}
+        <Textarea
+          placeholder="Adicione uma descrição..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          disabled={isLoading}
+          className={cn(
+            "min-h-[40px] resize-none border-none bg-transparent p-0 text-xs",
+            "focus-visible:ring-0 focus-visible:ring-offset-0",
+            "placeholder:text-muted-foreground/50 leading-relaxed"
+          )}
+          rows={2}
+        />
+
+        {/* Footer com metadados inline */}
+        <div className="flex items-center justify-between pt-1 gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {/* Data de vencimento */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-6 px-2 text-[10px] font-medium",
+                    dueDate && "text-foreground"
+                  )}
+                  disabled={isLoading}
+                >
+                  <Calendar className="h-3 w-3 mr-1" />
+                  {dueDate
+                    ? new Date(dueDate).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "short",
+                      })
+                    : "Prazo"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="border-0"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Prioridade */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-[10px]"
+                  disabled={isLoading}
+                >
+                  {priority ? (
+                    <TaskPriorityBadge priority={priority} />
+                  ) : (
+                    "Prioridade"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-1" align="start">
+                <div className="space-y-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                    onClick={() => setPriority(undefined)}
+                  >
+                    Sem prioridade
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                    onClick={() => setPriority("LOW")}
+                  >
+                    Baixa
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                    onClick={() => setPriority("MEDIUM")}
+                  >
+                    Média
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                    onClick={() => setPriority("HIGH")}
+                  >
+                    Alta
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                    onClick={() => setPriority("URGENT")}
+                  >
+                    Urgente
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Avatar do assignee */}
+          <Popover open={isAssigneePopoverOpen} onOpenChange={setIsAssigneePopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 shrink-0"
+                disabled={isLoading || isLoadingUsers}
+              >
+                {selectedUser ? (
+                  <Avatar className="h-6 w-6 border-2 border-background shadow-sm">
+                    <AvatarFallback className="text-[10px] font-semibold bg-primary/10 text-primary">
+                      {getInitials(selectedUser.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="h-6 w-6 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                    <UserIcon className="h-3 w-3 text-muted-foreground" />
+                  </div>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-1" align="end">
+              <div className="space-y-1 max-h-[300px] overflow-y-auto">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs"
+                  onClick={() => {
+                    setAssigneeId(undefined)
+                    setIsAssigneePopoverOpen(false)
+                  }}
+                >
+                  Sem responsável
+                </Button>
+                {isLoadingUsers ? (
+                  <div className="px-2 py-1 text-xs text-muted-foreground">
+                    Carregando...
+                  </div>
+                ) : (
+                  availableUsers.map((user) => (
+                    <Button
+                      key={user.id}
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs"
+                      onClick={() => {
+                        setAssigneeId(user.id)
+                        setIsAssigneePopoverOpen(false)
+                      }}
+                    >
+                      <Avatar className="h-5 w-5 mr-2">
+                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                          {getInitials(user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {user.name}
+                    </Button>
+                  ))
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Ações */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="h-7 text-xs"
+          >
+            <X className="h-3 w-3 mr-1" />
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={!title.trim() || isLoading}
+            className="h-7 text-xs px-3"
+          >
+            <Save className="h-3 w-3 mr-1" />
+            {isLoading ? "Salvando..." : "Salvar"}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
