@@ -146,7 +146,7 @@ export function TaskListShell({ loading: externalLoading }: TaskListShellProps) 
     const projects = useMemo(() => {
         const projectMap = new Map<string, { id: string; name: string }>()
         tasks.forEach((task) => {
-            if (!projectMap.has(task.project.id)) {
+            if (task.project && !projectMap.has(task.project.id)) {
                 projectMap.set(task.project.id, task.project)
             }
         })

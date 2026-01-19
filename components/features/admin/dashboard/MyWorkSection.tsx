@@ -214,7 +214,7 @@ export function MyWorkSection({ tickets, tasks, loading }: MyWorkSectionProps) {
                         {task.title}
                       </h4>
                       <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                        {task.project.name}
+                        {task.project?.name || "Sem projeto"}
                       </p>
                     </div>
                     <TaskPriorityBadge priority={task.priority as any} />

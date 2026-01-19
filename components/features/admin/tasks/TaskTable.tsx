@@ -90,7 +90,7 @@ export function TaskTable({ tasks, onTaskClick }: TaskTableProps) {
                             {task.title}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {task.project.name}
+                            {task.project?.name || "Sem projeto"}
                           </span>
                         </div>
                       </td>
@@ -199,7 +199,7 @@ export function TaskTable({ tasks, onTaskClick }: TaskTableProps) {
                     {task.title}
                   </h3>
                   <p className="text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2 line-clamp-1">
-                    {task.project.name} • {task.unit}
+                    {task.project?.name || "Sem projeto"} • {task.unit}
                   </p>
                 </div>
                 <div className="flex flex-col gap-1 shrink-0 ml-2">

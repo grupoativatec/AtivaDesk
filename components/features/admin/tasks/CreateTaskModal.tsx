@@ -34,7 +34,7 @@ import { listAdmins } from "@/lib/api/users"
 
 const createTaskSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
-  projectId: z.string().min(1, "Projeto é obrigatório"),
+  projectId: z.string().optional(),
   unit: z.nativeEnum(TaskUnit),
   priority: z.nativeEnum(TaskPriority),
   status: z.nativeEnum(TaskStatus).default(TaskStatus.BACKLOG),
@@ -79,7 +79,7 @@ export function CreateTaskModal({
   } = useForm<CreateTaskFormData>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
-      projectId: defaultProjectId || "",
+      projectId: defaultProjectId || undefined,
       status: TaskStatus.BACKLOG,
       priority: TaskPriority.MEDIUM,
       unit: TaskUnit.ITJ,
@@ -145,7 +145,7 @@ export function CreateTaskModal({
     try {
       const response = await createTask({
         title: data.title,
-        projectId: data.projectId,
+        projectId: data.projectId || undefined,
         unit: data.unit,
         priority: data.priority,
         status: data.status,
@@ -205,18 +205,17 @@ export function CreateTaskModal({
 
           {/* Projeto */}
           <div className="space-y-2">
-            <Label htmlFor="projectId">
-              Projeto <span className="text-destructive">*</span>
-            </Label>
+            <Label htmlFor="projectId">Projeto</Label>
             <Select
-              value={selectedProjectId}
-              onValueChange={(value) => setValue("projectId", value)}
+              value={selectedProjectId || "none"}
+              onValueChange={(value) => setValue("projectId", value === "none" ? undefined : value)}
               disabled={isSubmitting}
             >
               <SelectTrigger id="projectId">
-                <SelectValue placeholder="Selecione um projeto" />
+                <SelectValue placeholder="Selecione um projeto (opcional)" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">Nenhum</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}

@@ -4,7 +4,7 @@ import { TaskListItem } from "./task.types"
 import { TaskStatusBadge } from "./TaskStatusBadge"
 import { TaskPriorityBadge } from "./TaskPriorityBadge"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Edit, Save, X, Loader2 } from "lucide-react"
+import { ArrowLeft, Edit, Save, X, Loader2, Trash2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 interface TaskDetailsHeaderProps {
@@ -15,6 +15,8 @@ interface TaskDetailsHeaderProps {
     onEdit?: () => void
     onCancel?: () => void
     onSave?: () => void
+    onDelete?: () => void
+    isDeleting?: boolean
 }
 
 export function TaskDetailsHeader({
@@ -25,6 +27,8 @@ export function TaskDetailsHeader({
     onEdit,
     onCancel,
     onSave,
+    onDelete,
+    isDeleting = false,
 }: TaskDetailsHeaderProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -68,7 +72,7 @@ export function TaskDetailsHeader({
                                         variant="ghost"
                                         size="sm"
                                         onClick={onCancel}
-                                        disabled={isSaving}
+                                        disabled={isSaving || isDeleting}
                                         className="h-8 w-8 p-0"
                                     >
                                         <X className="size-4" />
@@ -76,7 +80,7 @@ export function TaskDetailsHeader({
                                     <Button
                                         size="sm"
                                         onClick={onSave}
-                                        disabled={isSaving || !hasUnsavedChanges}
+                                        disabled={isSaving || !hasUnsavedChanges || isDeleting}
                                         className="h-8 px-3"
                                     >
                                         {isSaving ? (
@@ -87,14 +91,32 @@ export function TaskDetailsHeader({
                                     </Button>
                                 </>
                             ) : (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={onEdit}
-                                    className="h-8 w-8 p-0"
-                                >
-                                    <Edit className="size-4" />
-                                </Button>
+                                <>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={onEdit}
+                                        disabled={isDeleting}
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <Edit className="size-4" />
+                                    </Button>
+                                    {onDelete && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={onDelete}
+                                            disabled={isDeleting}
+                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        >
+                                            {isDeleting ? (
+                                                <Loader2 className="size-4 animate-spin" />
+                                            ) : (
+                                                <Trash2 className="size-4" />
+                                            )}
+                                        </Button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
@@ -138,7 +160,7 @@ export function TaskDetailsHeader({
                                         variant="outline"
                                         size="sm"
                                         onClick={onCancel}
-                                        disabled={isSaving}
+                                        disabled={isSaving || isDeleting}
                                         className="text-xs"
                                     >
                                         <X className="size-3.5 mr-1.5" />
@@ -147,7 +169,7 @@ export function TaskDetailsHeader({
                                     <Button
                                         size="sm"
                                         onClick={onSave}
-                                        disabled={isSaving || !hasUnsavedChanges}
+                                        disabled={isSaving || !hasUnsavedChanges || isDeleting}
                                         className="text-xs"
                                     >
                                         {isSaving ? (
@@ -164,15 +186,39 @@ export function TaskDetailsHeader({
                                     </Button>
                                 </>
                             ) : (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={onEdit}
-                                    className="text-xs"
-                                >
-                                    <Edit className="size-3.5 mr-1.5" />
-                                    Editar
-                                </Button>
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={onEdit}
+                                        disabled={isDeleting}
+                                        className="text-xs"
+                                    >
+                                        <Edit className="size-3.5 mr-1.5" />
+                                        Editar
+                                    </Button>
+                                    {onDelete && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={onDelete}
+                                            disabled={isDeleting}
+                                            className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        >
+                                            {isDeleting ? (
+                                                <>
+                                                    <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+                                                    Excluindo...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Trash2 className="size-3.5 mr-1.5" />
+                                                    Excluir
+                                                </>
+                                            )}
+                                        </Button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>

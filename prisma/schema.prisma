@@ -296,8 +296,8 @@ model Task {
   estimatedHours Int @default(0) // inteiro no DB; se quiser 0.5h, use Decimal
   // loggedHours NÃO precisa persistir; calcule via TimeEntry (ou mantenha materializado depois)
 
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id])
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   createdById String?
   createdBy   User?   @relation("TaskCreatedBy", fields: [createdById], references: [id])

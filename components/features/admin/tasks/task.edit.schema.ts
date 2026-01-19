@@ -6,9 +6,9 @@ import { TaskStatus, TaskPriority, TaskUnit } from "./task.types"
  */
 export const taskEditSchema = z.object({
   project: z.object({
-    id: z.string().min(1, "Projeto é obrigatório"),
+    id: z.string().min(1),
     name: z.string().min(1),
-  }),
+  }).nullable().optional(),
   unit: z.nativeEnum(TaskUnit, {
     required_error: "Unidade é obrigatória",
   }),

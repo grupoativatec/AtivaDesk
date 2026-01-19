@@ -55,7 +55,7 @@ export default function KanbanListPage() {
             <FolderKanban className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">Kanban Boards</h1>
           </div>
-          <Button 
+          <Button
             onClick={() => setIsCreateDialogOpen(true)}
             size="sm"
             className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm shrink-0"
@@ -90,7 +90,7 @@ export default function KanbanListPage() {
               <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 px-4">
                 Crie seu primeiro board para começar a organizar suas tarefas
               </p>
-              <Button 
+              <Button
                 onClick={() => setIsCreateDialogOpen(true)}
                 size="sm"
                 className="h-8 sm:h-9"

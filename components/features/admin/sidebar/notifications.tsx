@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Bell, Check, CheckCheck, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -35,6 +35,9 @@ export function Notifications() {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const previousUnreadCountRef = useRef<number | null>(null)
+  const previousNotificationIdsRef = useRef<Set<string>>(new Set())
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // Garantir que o componente só renderize no cliente para evitar hydration mismatch
   useEffect(() => {
@@ -49,7 +52,30 @@ export function Notifications() {
       if (res.ok) {
         const data = await res.json()
         if (data.ok) {
-          setNotifications(data.notifications || [])
+          const newNotifications = data.notifications || []
+          const previousIds = previousNotificationIdsRef.current
+          const newIds = new Set(newNotifications.map((n: Notification) => n.id))
+          
+          // Verificar se há novas notificações (IDs que não existiam antes)
+          // Só toca se já havia notificações anteriores (não é a primeira carga)
+          const hasNewNotifications = Array.from(newIds).some(id => !previousIds.has(id))
+          
+          if (hasNewNotifications && previousIds.size > 0) {
+            // Reproduzir som de notificação
+            try {
+              if (audioRef.current) {
+                audioRef.current.currentTime = 0
+                audioRef.current.play().catch((err) => {
+                  console.error('Erro ao reproduzir som de notificação:', err)
+                })
+              }
+            } catch (error) {
+              console.error('Erro ao reproduzir som:', error)
+            }
+          }
+          
+          previousNotificationIdsRef.current = newIds
+          setNotifications(newNotifications)
         }
       }
     } catch (error) {
@@ -66,7 +92,27 @@ export function Notifications() {
       if (res.ok) {
         const data = await res.json()
         if (data.ok) {
-          setUnreadCount(data.count || 0)
+          const newCount = data.count || 0
+          const previousCount = previousUnreadCountRef.current
+          
+          // Se o contador aumentou, significa que chegou uma nova notificação
+          // Só toca se já havia um contador anterior (não é a primeira carga)
+          if (newCount > previousCount && previousCount !== null) {
+            // Reproduzir som de notificação
+            try {
+              if (audioRef.current) {
+                audioRef.current.currentTime = 0
+                audioRef.current.play().catch((err) => {
+                  console.error('Erro ao reproduzir som de notificação:', err)
+                })
+              }
+            } catch (error) {
+              console.error('Erro ao reproduzir som:', error)
+            }
+          }
+          
+          previousUnreadCountRef.current = newCount
+          setUnreadCount(newCount)
         }
       }
     } catch (error) {
@@ -137,6 +183,21 @@ export function Notifications() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Inicializar referência de áudio
+  useEffect(() => {
+    if (mounted && typeof window !== 'undefined') {
+      audioRef.current = new Audio('/audio/new-notification.mp3')
+      audioRef.current.volume = 0.5 // Volume em 50%
+    }
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [mounted])
 
   // Carregar contagem inicial
   useEffect(() => {

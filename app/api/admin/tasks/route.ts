@@ -18,7 +18,7 @@ import {
  */
 const createTaskSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
-  projectId: z.string().min(1, "ID do projeto é obrigatório"),
+  projectId: z.string().optional(),
   unit: z.nativeEnum(TaskUnit),
   priority: z.nativeEnum(TaskPriority),
   status: z.nativeEnum(TaskStatus).default(TaskStatus.BACKLOG),
@@ -79,7 +79,11 @@ export async function GET(req: Request) {
     if (q) {
       where.OR = [
         { title: { contains: q, mode: "insensitive" } },
-        { project: { name: { contains: q, mode: "insensitive" } } },
+        ...(q ? [{
+          project: {
+            name: { contains: q, mode: "insensitive" },
+          },
+        }] : []),
         {
           assignees: {
             some: {
@@ -144,10 +148,10 @@ export async function GET(req: Request) {
         title: task.title,
         description: task.description || null,
         acceptance: task.acceptance || null,
-        project: {
+        project: task.project ? {
           id: task.project.id,
           name: task.project.name,
-        },
+        } : null,
         unit: task.unit,
         status: task.status,
         priority: task.priority,
@@ -219,21 +223,24 @@ export async function POST(req: Request) {
       description,
     } = parsed.data;
 
-    // Verificar se o projeto existe e buscar criador
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: {
-        id: true,
-        name: true,
-        createdById: true,
-      },
-    });
+    // Verificar se o projeto existe (se fornecido) e buscar criador
+    let project = null;
+    if (projectId) {
+      project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: {
+          id: true,
+          name: true,
+          createdById: true,
+        },
+      });
 
-    if (!project) {
-      return NextResponse.json(
-        { error: "Projeto não encontrado" },
-        { status: 404 }
-      );
+      if (!project) {
+        return NextResponse.json(
+          { error: "Projeto não encontrado" },
+          { status: 404 }
+        );
+      }
     }
 
     // Verificar se status é DONE e bloquear criação direta como DONE
@@ -313,7 +320,7 @@ export async function POST(req: Request) {
           message: `${user.name} criou a tarefa "${title}"`,
           meta: {
             title,
-            projectId,
+            projectId: projectId || null,
             unit,
             priority,
             status,
@@ -326,99 +333,103 @@ export async function POST(req: Request) {
 
     // Sincronizar com Kanban: se o projeto tem um board vinculado, adiciona a tarefa automaticamente
     try {
-      const kanbanBoards = await prisma.kanbanBoard.findMany({
-        where: {
-          projectId: projectId,
-        },
-        include: {
-          columns: {
-            orderBy: { order: "asc" },
+      if (projectId) {
+        const kanbanBoards = await prisma.kanbanBoard.findMany({
+          where: {
+            projectId: projectId,
           },
-        },
-      })
-
-      // Para cada board vinculado ao projeto, adiciona a tarefa
-      for (const board of kanbanBoards) {
-        if (board.columns.length > 0) {
-          const firstColumn = board.columns[0]
-          const { mapTaskStatusToKanbanStatus } = await import("@/lib/kanban/task-mapper")
-          
-          // Encontra a coluna correspondente ao status da tarefa
-          const kanbanStatus = mapTaskStatusToKanbanStatus(task.status)
-          const targetColumn = board.columns.find((col) => col.status === kanbanStatus) || firstColumn
-
-          // Verifica se já existe um card para essa tarefa neste board
-          const existingCard = await prisma.kanbanCard.findFirst({
-            where: {
-              boardId: board.id,
-              taskId: task.id,
+          include: {
+            columns: {
+              orderBy: { order: "asc" },
             },
-          })
+          },
+        });
 
-          if (!existingCard) {
-            // Calcula a ordem
-            const lastCard = await prisma.kanbanCard.findFirst({
-              where: { columnId: targetColumn.id },
-              orderBy: { order: "desc" },
-              select: { order: true },
-            })
+        // Para cada board vinculado ao projeto, adiciona a tarefa
+        for (const board of kanbanBoards) {
+          if (board.columns.length > 0) {
+            const firstColumn = board.columns[0];
+            const { mapTaskStatusToKanbanStatus } = await import("@/lib/kanban/task-mapper");
+            
+            // Encontra a coluna correspondente ao status da tarefa
+            const kanbanStatus = mapTaskStatusToKanbanStatus(task.status);
+            const targetColumn = board.columns.find((col) => col.status === kanbanStatus) || firstColumn;
 
-            const order = lastCard ? lastCard.order + 1 : 0
-
-            // Pega o primeiro assignee (se houver)
-            const firstAssignee = task.assignees[0]?.user
-
-            // Cria o card
-            await prisma.kanbanCard.create({
-              data: {
+            // Verifica se já existe um card para essa tarefa neste board
+            const existingCard = await prisma.kanbanCard.findFirst({
+              where: {
                 boardId: board.id,
-                columnId: targetColumn.id,
                 taskId: task.id,
-                title: task.title,
-                description: task.description,
-                priority: task.priority,
-                dueDate: null,
-                tags: [],
-                assigneeId: firstAssignee?.id,
-                order,
               },
-            })
+            });
+
+            if (!existingCard) {
+              // Calcula a ordem
+              const lastCard = await prisma.kanbanCard.findFirst({
+                where: { columnId: targetColumn.id },
+                orderBy: { order: "desc" },
+                select: { order: true },
+              });
+
+              const order = lastCard ? lastCard.order + 1 : 0;
+
+              // Pega o primeiro assignee (se houver)
+              const firstAssignee = task.assignees[0]?.user;
+
+              // Cria o card
+              await prisma.kanbanCard.create({
+                data: {
+                  boardId: board.id,
+                  columnId: targetColumn.id,
+                  taskId: task.id,
+                  title: task.title,
+                  description: task.description,
+                  priority: task.priority,
+                  dueDate: null,
+                  tags: [],
+                  assigneeId: firstAssignee?.id,
+                  order,
+                },
+              });
+            }
           }
         }
       }
     } catch (kanbanError) {
       // Log do erro mas não falha a criação da tarefa
-      console.error("Erro ao sincronizar tarefa com Kanban:", kanbanError)
+      console.error("Erro ao sincronizar tarefa com Kanban:", kanbanError);
     }
 
     // Criar notificações (fora da transação para não bloquear)
-    const notificationPromises: Promise<any>[] = []
+    const notificationPromises: Promise<any>[] = [];
 
-    // Sempre notificar o criador da tarefa sobre a criação
-    notificationPromises.push(
-      notifyTaskCreated(
-        task.id,
-        task.title,
-        project.id,
-        project.name,
-        user.id,
-        user.name,
-        project.createdById
-      )
-    )
-
-    // Notificar criador do projeto sobre nova tarefa (apenas se diferente do criador da tarefa)
-    if (project.createdById && project.createdById !== user.id) {
+    // Notificar o criador da tarefa sobre a criação (apenas se houver projeto)
+    if (project) {
       notificationPromises.push(
-        notifyProjectTaskAdded(
-          project.id,
-          project.name,
+        notifyTaskCreated(
           task.id,
           task.title,
-          project.createdById,
-          user.id
+          project.id,
+          project.name,
+          user.id,
+          user.name,
+          project.createdById
         )
-      )
+      );
+
+      // Notificar criador do projeto sobre nova tarefa (apenas se diferente do criador da tarefa)
+      if (project.createdById && project.createdById !== user.id) {
+        notificationPromises.push(
+          notifyProjectTaskAdded(
+            project.id,
+            project.name,
+            task.id,
+            task.title,
+            project.createdById,
+            user.id
+          )
+        );
+      }
     }
 
     // Notificar assignees (apenas se não forem o criador da tarefa)
@@ -428,19 +439,19 @@ export async function POST(req: Request) {
           notifyTaskAssigned(
             task.id,
             task.title,
-            project.id,
-            project.name,
+            project?.id || null,
+            project?.name || null,
             assignee.user.id
           )
-        )
+        );
       }
     }
 
     if (notificationPromises.length > 0) {
       Promise.all(notificationPromises).catch((err) => {
         // Ignorar erros de notificação para não quebrar o fluxo principal
-        console.error("Erro ao criar notificações:", err)
-      })
+        console.error("Erro ao criar notificações:", err);
+      });
     }
 
     // Calcular loggedHours (soma dos timeEntries)
@@ -453,10 +464,10 @@ export async function POST(req: Request) {
     const taskListItem = {
       id: task.id,
       title: task.title,
-      project: {
+      project: task.project ? {
         id: task.project.id,
         name: task.project.name,
-      },
+      } : null,
       unit: task.unit,
       status: task.status,
       priority: task.priority,

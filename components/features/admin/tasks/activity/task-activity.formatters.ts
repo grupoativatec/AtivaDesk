@@ -111,11 +111,13 @@ export function createTaskUpdateDiff(
 ): TaskUpdateDiff[] {
   const changes: TaskUpdateDiff[] = [];
 
-  if (oldTask.project.id !== newTask.project.id) {
+  const oldProjectId = oldTask.project?.id || null
+  const newProjectId = newTask.project?.id || null
+  if (oldProjectId !== newProjectId) {
     changes.push({
       field: "Projeto",
-      from: oldTask.project.name,
-      to: newTask.project.name,
+      from: oldTask.project?.name || "Sem projeto",
+      to: newTask.project?.name || "Sem projeto",
     });
   }
 

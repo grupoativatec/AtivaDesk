@@ -114,8 +114,8 @@ export function TaskDetailsSidebar({
 
     const handleProjectChange = (projectId: string) => {
         const project = projects.find((p) => p.id === projectId)
-        if (project && onDraftChange) {
-            onDraftChange({ project })
+        if (onDraftChange) {
+            onDraftChange({ project: project || null })
         }
     }
 
@@ -163,19 +163,28 @@ export function TaskDetailsSidebar({
                         isEditing={isEditing}
                         displayContent={
                             <p className="text-sm text-foreground font-medium">
-                                {displayTask.project.name}
+                                {displayTask.project?.name || "Sem projeto"}
                             </p>
                         }
                         editContent={
                             <Select
-                                value={displayTask.project.id}
-                                onValueChange={handleProjectChange}
+                                value={displayTask.project?.id || "none"}
+                                onValueChange={(value) => {
+                                    if (value === "none") {
+                                        if (onDraftChange) {
+                                            onDraftChange({ project: null })
+                                        }
+                                    } else {
+                                        handleProjectChange(value)
+                                    }
+                                }}
                                 disabled={isLoadingData}
                             >
                                 <SelectTrigger className="w-full">
-                                    <SelectValue placeholder={isLoadingData ? "Carregando..." : "Selecione um projeto"} />
+                                    <SelectValue placeholder={isLoadingData ? "Carregando..." : "Selecione um projeto (opcional)"} />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value="none">Sem projeto</SelectItem>
                                     {projects.map((project) => (
                                         <SelectItem key={project.id} value={project.id}>
                                             {project.name}

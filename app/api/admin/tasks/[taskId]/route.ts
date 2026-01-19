@@ -13,7 +13,7 @@ import {
  * Schema de validação para atualização de tarefa
  */
 const updateTaskSchema = z.object({
-  projectId: z.string().min(1).optional(),
+  projectId: z.string().min(1).nullable().optional(),
   unit: z.nativeEnum(TaskUnit).optional(),
   status: z.nativeEnum(TaskStatus).optional(),
   priority: z.nativeEnum(TaskPriority).optional(),
@@ -97,10 +97,10 @@ export async function GET(
       title: task.title,
       description: task.description || null,
       acceptance: task.acceptance || null,
-      project: {
+      project: task.project ? {
         id: task.project.id,
         name: task.project.name,
-      },
+      } : null,
       unit: task.unit,
       status: task.status,
       priority: task.priority,
@@ -233,7 +233,7 @@ export async function PATCH(
     const taskUpdateData: any = {}
 
     if (updateData.projectId !== undefined) {
-      taskUpdateData.projectId = updateData.projectId
+      taskUpdateData.projectId = updateData.projectId || null
     }
     if (updateData.unit !== undefined) {
       taskUpdateData.unit = updateData.unit
@@ -361,17 +361,24 @@ export async function PATCH(
 
       // Projeto mudou
       if (updateData.projectId !== undefined && updateData.projectId !== currentTask.projectId) {
-        const newProject = await tx.project.findUnique({
-          where: { id: updateData.projectId },
-          select: { name: true },
-        })
+        const currentProjectName = currentTask.project?.name || "Sem projeto"
+        let newProjectName = "Sem projeto"
+        
+        if (updateData.projectId) {
+          const newProject = await tx.project.findUnique({
+            where: { id: updateData.projectId },
+            select: { name: true },
+          })
+          newProjectName = newProject?.name || "Desconhecido"
+        }
+        
         activityEvents.push({
           type: "TASK_UPDATED",
-          message: `${user.name} alterou o projeto de "${currentTask.project.name}" para "${newProject?.name || "Desconhecido"}"`,
+          message: `${user.name} alterou o projeto de "${currentProjectName}" para "${newProjectName}"`,
           meta: {
             field: "project",
-            from: currentTask.project.name,
-            to: newProject?.name,
+            from: currentTask.project?.id || null,
+            to: updateData.projectId || null,
           },
         })
       }
@@ -456,19 +463,21 @@ export async function PATCH(
         BLOCKED: "Bloqueada",
         DONE: "Concluída",
       }
-      notificationPromises.push(
-        notifyTaskStatusChanged(
-          updatedTask.id,
-          updatedTask.title,
-          updatedTask.project.id,
-          updatedTask.project.name,
-          statusLabels[currentTask.status],
-          statusLabels[updateData.status],
-          currentTask.createdBy?.id || null,
-          currentTask.project.createdById || null,
-          user.id
+      if (updatedTask.project) {
+        notificationPromises.push(
+          notifyTaskStatusChanged(
+            updatedTask.id,
+            updatedTask.title,
+            updatedTask.project.id,
+            updatedTask.project.name,
+            statusLabels[currentTask.status],
+            statusLabels[updateData.status],
+            currentTask.createdBy?.id || null,
+            currentTask.project?.createdById || null,
+            user.id
+          )
         )
-      )
+      }
     }
 
     // Notificar atualização geral (se não foi apenas mudança de status)
@@ -478,17 +487,19 @@ export async function PATCH(
       (updateData.estimatedHours !== undefined && updateData.estimatedHours !== currentTask.estimatedHours) ||
       (updateData.projectId !== undefined && updateData.projectId !== currentTask.projectId)
     ) {
-      notificationPromises.push(
-        notifyTaskUpdated(
-          updatedTask.id,
-          updatedTask.title,
-          updatedTask.project.id,
-          updatedTask.project.name,
-          currentTask.createdBy?.id || null,
-          currentTask.project.createdById || null,
-          user.id
+      if (updatedTask.project) {
+        notificationPromises.push(
+          notifyTaskUpdated(
+            updatedTask.id,
+            updatedTask.title,
+            updatedTask.project.id,
+            updatedTask.project.name,
+            currentTask.createdBy?.id || null,
+            currentTask.project?.createdById || null,
+            user.id
+          )
         )
-      )
+      }
     }
 
     // Notificar novos assignees
@@ -498,15 +509,17 @@ export async function PATCH(
       const newAssignees = newAssigneeIds.filter((id) => !currentAssigneeIds.includes(id))
 
       for (const assigneeId of newAssignees) {
-        notificationPromises.push(
-          notifyTaskAssigned(
-            updatedTask.id,
-            updatedTask.title,
-            updatedTask.project.id,
-            updatedTask.project.name,
-            assigneeId
+        if (updatedTask.project) {
+          notificationPromises.push(
+            notifyTaskAssigned(
+              updatedTask.id,
+              updatedTask.title,
+              updatedTask.project.id,
+              updatedTask.project.name,
+              assigneeId
+            )
           )
-        )
+        }
       }
     }
 
@@ -579,10 +592,10 @@ export async function PATCH(
       title: updatedTask.title,
       description: updatedTask.description || null,
       acceptance: updatedTask.acceptance || null,
-      project: {
+      project: updatedTask.project ? {
         id: updatedTask.project.id,
         name: updatedTask.project.name,
-      },
+      } : null,
       unit: updatedTask.unit,
       status: updatedTask.status,
       priority: updatedTask.priority,
@@ -600,6 +613,81 @@ export async function PATCH(
     console.error("Erro ao atualizar tarefa:", error)
     return NextResponse.json(
       { error: "Erro interno ao atualizar tarefa" },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * DELETE /api/admin/tasks/:taskId
+ * Exclui uma tarefa
+ */
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ taskId: string }> }
+) {
+  try {
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Não autenticado" },
+        { status: 401 }
+      )
+    }
+
+    // Apenas admins podem excluir tarefas
+    if (user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Acesso negado. Apenas administradores podem excluir tarefas." },
+        { status: 403 }
+      )
+    }
+
+    const { taskId } = await params
+
+    // Buscar tarefa para verificar se existe
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      select: {
+        id: true,
+        title: true,
+        project: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    })
+
+    if (!task) {
+      return NextResponse.json(
+        { error: "Tarefa não encontrada" },
+        { status: 404 }
+      )
+    }
+
+    // Excluir tarefa em uma transação
+    // O Prisma vai excluir automaticamente os relacionamentos (assignees, timeEntries, activity, etc)
+    // devido ao onDelete: Cascade no schema
+    await prisma.$transaction(async (tx) => {
+      // Excluir cards do Kanban vinculados a esta tarefa
+      await tx.kanbanCard.deleteMany({
+        where: { taskId },
+      })
+
+      // Excluir a tarefa (isso vai excluir automaticamente assignees, timeEntries, activity, etc)
+      await tx.task.delete({
+        where: { id: taskId },
+      })
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error("Erro ao excluir tarefa:", error)
+    return NextResponse.json(
+      { error: "Erro interno ao excluir tarefa" },
       { status: 500 }
     )
   }

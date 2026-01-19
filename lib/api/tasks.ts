@@ -69,7 +69,7 @@ export async function getTaskById(taskId: string): Promise<TaskListItem> {
  */
 export interface CreateTaskRequest {
   title: string
-  projectId: string
+  projectId?: string
   unit: TaskUnit
   priority: TaskPriority
   status?: TaskStatus
@@ -102,4 +102,11 @@ export async function updateTask(
   data: UpdateTaskRequest
 ): Promise<UpdateTaskResponse> {
   return api.patch<UpdateTaskResponse>(`/api/admin/tasks/${taskId}`, data)
+}
+
+/**
+ * Exclui uma tarefa
+ */
+export async function deleteTask(taskId: string): Promise<void> {
+  return api.delete<void>(`/api/admin/tasks/${taskId}`)
 }
