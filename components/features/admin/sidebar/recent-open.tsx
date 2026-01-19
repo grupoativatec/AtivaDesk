@@ -89,7 +89,7 @@ const RecentOpen = () => {
     return (
         <SidebarGroup className="p-0">
             <SidebarGroupLabel className="text-[10px] font-semibold text-sidebar-foreground/60 uppercase tracking-wider px-2 mb-2">
-                Chamados Recentes
+                Seus Chamados
             </SidebarGroupLabel>
 
             <SidebarMenu className="gap-1">
@@ -102,7 +102,7 @@ const RecentOpen = () => {
                 ) : tickets.length > 0 ? (
                     tickets.map((ticket) => {
                         const statusConfig = getStatusConfig(ticket.status)
-                        
+
                         return (
                             <SidebarMenuItem key={ticket.id}>
                                 <SidebarMenuButton

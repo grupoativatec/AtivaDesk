@@ -9,12 +9,15 @@ import {
   CalendarX,
   CheckSquare,
   FolderOpen,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 
-interface MetricsCardsProps {
+interface DashboardMetricsCardsProps {
   metrics: {
     ticketsOpen: number
     ticketsInProgress: number
@@ -26,13 +29,17 @@ interface MetricsCardsProps {
   loading?: boolean
 }
 
-export function MetricsCards({ metrics, loading }: MetricsCardsProps) {
+export function DashboardMetricsCards({ metrics, loading }: DashboardMetricsCardsProps) {
   const router = useRouter()
 
   const statCards = [
     {
       label: "Tickets Abertos",
       value: metrics.ticketsOpen,
+      trend: "+12.5%",
+      trendUp: true,
+      description: "Tendência de alta este mês",
+      subDescription: "Chamados nos últimos 6 meses",
       icon: Ticket,
       color: "bg-amber-500/10 text-amber-600 dark:text-amber-500",
       hoverColor: "hover:bg-amber-500/5",
@@ -41,6 +48,10 @@ export function MetricsCards({ metrics, loading }: MetricsCardsProps) {
     {
       label: "Tickets em Andamento",
       value: metrics.ticketsInProgress,
+      trend: "-5.2%",
+      trendUp: false,
+      description: "Queda neste período",
+      subDescription: "Requer atenção",
       icon: Clock,
       color: "bg-orange-500/10 text-orange-600 dark:text-orange-500",
       hoverColor: "hover:bg-orange-500/5",
@@ -49,6 +60,10 @@ export function MetricsCards({ metrics, loading }: MetricsCardsProps) {
     {
       label: "Tickets Urgentes",
       value: metrics.ticketsUrgent,
+      trend: "+8.3%",
+      trendUp: true,
+      description: "Aumento de urgências",
+      subDescription: "Prioridade máxima",
       icon: AlertTriangle,
       color: "bg-red-500/10 text-red-600 dark:text-red-500",
       hoverColor: "hover:bg-red-500/5",
@@ -56,40 +71,29 @@ export function MetricsCards({ metrics, loading }: MetricsCardsProps) {
       highlight: true,
     },
     {
-      label: "Tickets Vencidos",
-      value: metrics.ticketsOverdue,
-      icon: CalendarX,
-      color: "bg-purple-500/10 text-purple-600 dark:text-purple-500",
-      hoverColor: "hover:bg-purple-500/5",
-      route: "/admin/tickets",
-    },
-    {
       label: "Tarefas Abertas",
       value: metrics.tasksOpen,
+      trend: "+15.0%",
+      trendUp: true,
+      description: "Crescimento constante",
+      subDescription: "Atinge as projeções",
       icon: CheckSquare,
       color: "bg-blue-500/10 text-blue-600 dark:text-blue-500",
       hoverColor: "hover:bg-blue-500/5",
       route: "/admin/tarefas",
     },
-    {
-      label: "Projetos Ativos",
-      value: metrics.projectsActive,
-      icon: FolderOpen,
-      color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500",
-      hoverColor: "hover:bg-emerald-500/5",
-      route: "/admin/projetos?status=ACTIVE",
-    },
   ]
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {[...Array(6)].map((_, i) => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
           <Card key={i} className="border-0 shadow-sm">
-            <CardContent className="p-6">
-              <Skeleton className="h-10 w-10 rounded-lg mb-4" />
-              <Skeleton className="h-8 w-16 mb-2" />
-              <Skeleton className="h-4 w-24" />
+            <CardContent className="p-4 sm:p-6">
+              <Skeleton className="h-8 w-8 rounded-lg mb-4" />
+              <Skeleton className="h-8 w-20 mb-2" />
+              <Skeleton className="h-4 w-32 mb-1" />
+              <Skeleton className="h-3 w-24" />
             </CardContent>
           </Card>
         ))}
@@ -98,9 +102,10 @@ export function MetricsCards({ metrics, loading }: MetricsCardsProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {statCards.map((stat, index) => {
         const Icon = stat.icon
+        const TrendIcon = stat.trendUp ? TrendingUp : TrendingDown
         
         return (
           <motion.div
@@ -118,22 +123,35 @@ export function MetricsCards({ metrics, loading }: MetricsCardsProps) {
               )}
               onClick={() => router.push(stat.route)}
             >
-              <CardContent className="p-3 sm:p-4 md:p-6">
-                <div className="flex items-start justify-between mb-2 sm:mb-3 md:mb-4">
-                  <div className={cn("p-2 sm:p-2.5 rounded-lg", stat.color)}>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className={cn("p-2 rounded-lg", stat.color)}>
                     <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  {stat.highlight && (
-                    <span className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium rounded-md bg-red-500/10 text-red-600 dark:text-red-500">
-                      Urgente
-                    </span>
-                  )}
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "text-xs font-medium px-2 py-0.5",
+                      stat.trendUp
+                        ? "bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20"
+                        : "bg-red-500/10 text-red-600 dark:text-red-500 border-red-500/20"
+                    )}
+                  >
+                    <TrendIcon className="h-3 w-3 mr-1" />
+                    {stat.trend}
+                  </Badge>
                 </div>
-                <div className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight mb-0.5 sm:mb-1">
+                <div className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
                   {stat.value}
                 </div>
-                <div className="text-[10px] sm:text-xs md:text-sm font-medium text-muted-foreground line-clamp-2">
+                <div className="text-sm font-medium text-muted-foreground mb-1">
                   {stat.label}
+                </div>
+                <div className="text-xs text-muted-foreground/80">
+                  {stat.description}
+                </div>
+                <div className="text-xs text-muted-foreground/60 mt-0.5">
+                  {stat.subDescription}
                 </div>
               </CardContent>
             </Card>

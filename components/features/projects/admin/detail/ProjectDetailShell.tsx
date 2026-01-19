@@ -187,15 +187,15 @@ export function ProjectDetailShell({
       />
 
       <div className="w-full bg-muted/20 dark:bg-background/50 flex-1 overflow-auto">
-        <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8 xl:p-10">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
             {/* Coluna principal: Tarefas */}
-            <div className="xl:col-span-2">
+            <div className="xl:col-span-2 order-1">
               <ProjectTasksPanel projectId={projectId} onCreateTask={onCreateTask} />
             </div>
 
             {/* Coluna secundária: Resumo */}
-            <div className="xl:col-span-1">
+            <div className="xl:col-span-1 order-2">
               <ProjectSummaryPanel
                 project={project}
                 tasks={tasks}

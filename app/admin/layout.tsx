@@ -11,8 +11,9 @@ export default function AdminLayout({
       <div className="flex h-screen w-full">
         <AppSidebar />
         <SidebarInset className="flex flex-col h-full">
-          <header className="flex h-16 md:hidden shrink-0 items-center gap-2 border-b px-4 md:px-6">
+          <header className="flex h-16 md:hidden shrink-0 items-center gap-3 border-b px-4 md:px-6">
             <SidebarTrigger className="-ml-1" />
+            <span className="text-base font-bold tracking-tight text-foreground">AtivaDesk</span>
             <div className="flex-1" />
           </header>
           <div className="flex-1 overflow-auto w-full h-full">

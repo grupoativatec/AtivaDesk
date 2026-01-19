@@ -152,10 +152,10 @@ export function TaskDetailsSidebar({
 
     return (
         <div className="w-full lg:w-80 shrink-0">
-            <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-4 sm:p-5 shadow-sm dark:shadow-none">
-                <h2 className="text-sm font-semibold text-foreground mb-4">Informações</h2>
+            <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-3 sm:p-4 md:p-5 shadow-sm dark:shadow-none">
+                <h2 className="text-xs sm:text-sm font-semibold text-foreground mb-3 sm:mb-4">Informações</h2>
 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                     {/* Projeto */}
                     <TaskEditableField
                         label="Projeto"

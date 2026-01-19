@@ -19,14 +19,14 @@ export const data = {
       icon: Ticket,
     },
     {
-      title: "Tarefas",
-      url: "/admin/tarefas",
-      icon: ListTodo,
-    },
-    {
       title: "Projetos",
       url: "/admin/projetos",
       icon: FolderKanban,
+    },
+    {
+      title: "Tarefas",
+      url: "/admin/tarefas",
+      icon: ListTodo,
     },
     {
       title: "Kanban",

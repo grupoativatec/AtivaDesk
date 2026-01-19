@@ -59,15 +59,15 @@ export function TaskDetailsShell({
 
     return (
         <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background/50">
-            <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 lg:py-8">
+            <div className="px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-6 lg:py-8">
                 <div className="max-w-[1600px] mx-auto">
                     {/* Layout duas colunas em desktop, uma coluna em mobile */}
-                    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+                    <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6">
                         {/* Conteúdo principal */}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 order-2 lg:order-1">
                             {/* Tabs */}
-                            <div className="border-b border-border dark:border-border/30 mb-4">
-                                <div className="flex items-center gap-1 overflow-x-auto">
+                            <div className="border-b border-border dark:border-border/30 mb-3 sm:mb-4">
+                                <div className="flex items-center gap-0.5 overflow-x-auto -mx-1 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                     {TABS.map((tab) => {
                                         const Icon = tab.icon
                                         const isActive = activeTab === tab.id
@@ -77,14 +77,14 @@ export function TaskDetailsShell({
                                                 key={tab.id}
                                                 onClick={() => setActiveTab(tab.id)}
                                                 className={cn(
-                                                    "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px",
+                                                    "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-colors border-b-2 -mb-px shrink-0",
                                                     isActive
                                                         ? "border-primary text-primary"
                                                         : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
                                                 )}
                                             >
-                                                {Icon && <Icon className="size-4" />}
-                                                {tab.label}
+                                                {Icon && <Icon className="size-3.5 sm:size-4" />}
+                                                <span className="whitespace-nowrap">{tab.label}</span>
                                             </button>
                                         )
                                     })}
@@ -92,7 +92,7 @@ export function TaskDetailsShell({
                             </div>
 
                             {/* Conteúdo das tabs */}
-                            <div className="min-h-[400px]">
+                            <div className="min-h-[300px] sm:min-h-[400px]">
                                 {activeTab === "overview" && (
                                     <TaskDetailsOverview 
                                         description={description}
@@ -120,7 +120,7 @@ export function TaskDetailsShell({
                         </div>
 
                         {/* Sidebar */}
-                        <div className="lg:order-last">
+                        <div className="lg:order-last order-1">
                             <TaskDetailsSidebar
                                 task={task}
                                 isEditing={isEditing}

@@ -154,35 +154,36 @@ export default function TicketDetailPage() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
       </div>
 
-      <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="relative w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="space-y-6"
+          className="space-y-4 sm:space-y-5 md:space-y-6"
         >
           {/* Back Button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push("/tickets")}
-            className="hover:bg-accent/50"
+            className="hover:bg-accent/50 h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
           >
-            <ArrowLeft className="size-4 mr-2" />
-            Voltar para Meus Chamados
+            <ArrowLeft className="size-3.5 sm:size-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Voltar para Meus Chamados</span>
+            <span className="sm:hidden">Voltar</span>
           </Button>
 
           {/* Main Content Container */}
-          <div className="border rounded-2xl bg-card/60 backdrop-blur-sm shadow-lg p-6 sm:p-8 lg:p-10">
+          <div className="border rounded-xl sm:rounded-2xl bg-card/60 backdrop-blur-sm shadow-lg p-4 sm:p-6 md:p-8 lg:p-10">
             {/* Ticket Details */}
             <TicketDetails ticket={ticket} />
 
             {/* Messages Section */}
-            <div className="mt-8 pt-8 border-t border-border/50">
-              <h2 className="text-xl font-semibold mb-6">
+            <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border/50">
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-4 sm:mb-6">
                 Comentários ({ticket.messages.length})
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <MessageList
                   messages={ticket.messages}
                   currentUserId={currentUserId}

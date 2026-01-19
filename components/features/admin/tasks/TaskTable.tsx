@@ -174,7 +174,7 @@ export function TaskTable({ tasks, onTaskClick }: TaskTableProps) {
       </div>
 
       {/* Cards Mobile */}
-      <div className="lg:hidden space-y-4">
+      <div className="lg:hidden space-y-3 sm:space-y-4">
         {tasks.map((task) => {
           const updatedDate = new Date(task.updatedAt)
           const timeAgo = formatDistanceToNow(updatedDate, {
@@ -190,15 +190,15 @@ export function TaskTable({ tasks, onTaskClick }: TaskTableProps) {
           return (
             <div
               key={task.id}
-              className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-4 shadow-sm dark:shadow-none cursor-pointer hover:shadow-md dark:hover:shadow-none transition-all"
+              className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-3 sm:p-4 shadow-sm dark:shadow-none cursor-pointer hover:shadow-md dark:hover:shadow-none transition-all"
               onClick={() => handleRowClick(task.id)}
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm text-foreground mb-1 line-clamp-2">
+                  <h3 className="font-semibold text-xs sm:text-sm text-foreground mb-1 line-clamp-2">
                     {task.title}
                   </h3>
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2 line-clamp-1">
                     {task.project.name} • {task.unit}
                   </p>
                 </div>
@@ -208,20 +208,20 @@ export function TaskTable({ tasks, onTaskClick }: TaskTableProps) {
                 </div>
               </div>
 
-              <div className="space-y-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Users className="size-3.5" />
-                  <span>
+              <div className="space-y-1.5 sm:space-y-2 text-[10px] sm:text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Users className="size-3 sm:size-3.5" />
+                  <span className="line-clamp-1">
                     {task.assignees.length > 0
                       ? task.assignees.map((a) => a.name.split(" ")[0]).join(", ")
                       : "Não definido"}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Clock className="size-3.5" />
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <Clock className="size-3 sm:size-3.5" />
                   <span
                     className={cn(
-                      "font-medium",
+                      "font-medium line-clamp-1",
                       isOverEstimated ? "text-destructive" : "text-foreground"
                     )}
                   >
@@ -230,21 +230,21 @@ export function TaskTable({ tasks, onTaskClick }: TaskTableProps) {
                   {isOverEstimated && (
                     <Badge
                       variant="outline"
-                      className="text-xs bg-destructive/10 text-destructive border-destructive/20"
+                      className="text-[10px] sm:text-xs bg-destructive/10 text-destructive border-destructive/20 shrink-0"
                     >
-                      <AlertTriangle className="size-3 mr-1" />
+                      <AlertTriangle className="size-2.5 sm:size-3 mr-0.5 sm:mr-1" />
                       Estourado
                     </Badge>
                   )}
                   {task.estimatedHours > 0 && !isOverEstimated && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">
                       ({hoursPercentage}%)
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="size-3.5" />
-                  <span>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Calendar className="size-3 sm:size-3.5" />
+                  <span className="line-clamp-1">
                     {format(updatedDate, "dd/MM/yyyy", { locale: ptBR })} • {timeAgo}
                   </span>
                 </div>

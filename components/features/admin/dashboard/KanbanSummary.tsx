@@ -114,44 +114,44 @@ export function KanbanSummary({ columns, loading }: KanbanSummaryProps) {
 
   return (
     <Card className="border-0 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="flex items-center gap-2.5 text-base font-semibold">
-          <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-500">
-            <Kanban className="h-4 w-4" />
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 sm:pb-4">
+        <CardTitle className="flex items-center gap-2 sm:gap-2.5 text-sm sm:text-base font-semibold">
+          <div className="p-1.5 sm:p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-500">
+            <Kanban className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
-          Kanban Resumido
+          <span className="line-clamp-1">Kanban Resumido</span>
         </CardTitle>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.push("/admin/kanban")}
-          className="h-8 gap-1.5 text-xs"
+          className="h-7 sm:h-8 gap-1 text-[10px] sm:text-xs shrink-0"
         >
-          Ver Completo
-          <ArrowRight className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Ver Completo</span>
+          <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
         </Button>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <CardContent className="p-3 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
           {columnConfigs.map((config) => {
             const column = columns[config.key]
             return (
               <div
                 key={config.key}
                 className={cn(
-                  "rounded-lg border p-3",
+                  "rounded-lg border p-2 sm:p-2.5 md:p-3",
                   config.color
                 )}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold">{config.title}</h3>
-                  <Badge variant="secondary" className="text-xs font-semibold">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <h3 className="text-xs sm:text-sm font-semibold line-clamp-1">{config.title}</h3>
+                  <Badge variant="secondary" className="text-[10px] sm:text-xs font-semibold shrink-0">
                     {column.count}
                   </Badge>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5 sm:space-y-2">
                   {column.cards.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-6">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground text-center py-4 sm:py-6">
                       Nenhum card
                     </p>
                   ) : (
@@ -159,15 +159,15 @@ export function KanbanSummary({ columns, loading }: KanbanSummaryProps) {
                       <div
                         key={card.id}
                         className={cn(
-                          "group rounded-lg border bg-background p-2.5",
+                          "group rounded-lg border bg-background p-2 sm:p-2.5",
                           "cursor-pointer transition-all duration-200",
                           "hover:border-primary/50 hover:shadow-sm",
                           "active:scale-[0.98]"
                         )}
                         onClick={() => router.push(`/admin/kanban/${card.boardId}`)}
                       >
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <h4 className="flex-1 text-xs font-medium leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                        <div className="flex items-start justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5">
+                          <h4 className="flex-1 text-[10px] sm:text-xs font-medium leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                             {card.title}
                           </h4>
                           {card.priority && (
@@ -175,12 +175,12 @@ export function KanbanSummary({ columns, loading }: KanbanSummaryProps) {
                           )}
                         </div>
                         {card.project && (
-                          <p className="text-xs text-muted-foreground truncate mb-1">
+                          <p className="text-[10px] sm:text-xs text-muted-foreground truncate mb-0.5 sm:mb-1">
                             {card.project.name}
                           </p>
                         )}
                         {card.assignee && (
-                          <p className="text-xs text-muted-foreground truncate">
+                          <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                             {card.assignee.name}
                           </p>
                         )}

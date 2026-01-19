@@ -115,61 +115,63 @@ export default function TicketsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Header Section */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+        <div className="mb-4 sm:mb-6 md:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">
                 Meus Chamados
               </h1>
-              <p className="text-sm sm:text-base text-muted-foreground">
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
                 Gerencie e acompanhe todos os seus chamados
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Toggle de Visualização */}
-              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              <div className="flex items-center gap-0.5 sm:gap-1 bg-muted rounded-lg p-0.5 sm:p-1">
                 <Button
                   variant={viewMode === "list" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("list")}
-                  className="h-8 px-3"
+                  className="h-7 sm:h-8 w-7 sm:w-auto px-2 sm:px-3"
                 >
-                  <List className="size-4" />
+                  <List className="size-3.5 sm:size-4" />
                 </Button>
                 <Button
                   variant={viewMode === "cards" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("cards")}
-                  className="h-8 px-3"
+                  className="h-7 sm:h-8 w-7 sm:w-auto px-2 sm:px-3"
                 >
-                  <Grid3x3 className="size-4" />
+                  <Grid3x3 className="size-3.5 sm:size-4" />
                 </Button>
               </div>
               <Button
                 onClick={handleOpenModal}
-                size="default"
+                size="sm"
+                className="h-7 sm:h-8 md:h-10 px-2 sm:px-3 text-xs sm:text-sm"
               >
-                <Plus className="size-4 mr-2" />
-                Novo Chamado
+                <Plus className="size-3.5 sm:size-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Novo Chamado</span>
+                <span className="sm:hidden">Novo</span>
               </Button>
             </div>
           </div>
 
           {/* Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 size-3.5 sm:size-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar chamados..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-10"
+                className="pl-8 sm:pl-9 md:pl-10 h-8 sm:h-9 md:h-10 text-xs sm:text-sm"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[160px] h-10">
+              <SelectTrigger className="w-full sm:w-[140px] md:w-[160px] h-8 sm:h-9 md:h-10 text-xs sm:text-sm">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>

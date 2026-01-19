@@ -36,17 +36,17 @@ export function TaskActivityTab({ taskId }: TaskActivityTabProps) {
     }, [taskId, loadEvents])
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
             {/* Resumo */}
-            <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-4 shadow-sm dark:shadow-none">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-                            <Activity className="size-5 text-primary" />
+            <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-3 sm:p-4 shadow-sm dark:shadow-none">
+                <div className="flex items-center justify-between gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <div className="size-8 sm:size-10 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center shrink-0">
+                            <Activity className="size-4 sm:size-5 text-primary" />
                         </div>
-                        <div>
-                            <h3 className="text-sm font-semibold text-foreground">Atividade</h3>
-                            <p className="text-2xl font-bold text-foreground">{events.length}</p>
+                        <div className="min-w-0">
+                            <h3 className="text-xs sm:text-sm font-semibold text-foreground">Atividade</h3>
+                            <p className="text-xl sm:text-2xl font-bold text-foreground">{events.length}</p>
                         </div>
                     </div>
                     {events.length > 0 && (
@@ -68,7 +68,7 @@ export function TaskActivityTab({ taskId }: TaskActivityTabProps) {
             ) : events.length === 0 ? (
                 <TaskActivityEmptyState />
             ) : (
-                <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-6 shadow-sm dark:shadow-none">
+                <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-4 sm:p-6 shadow-sm dark:shadow-none">
                     <TaskActivityTimeline events={events} />
                 </div>
             )}

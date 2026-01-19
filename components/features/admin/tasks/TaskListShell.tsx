@@ -178,17 +178,17 @@ export function TaskListShell({ loading: externalLoading }: TaskListShellProps) 
                             <Skeleton className="h-12 w-full" />
                         </div>
                     ) : tasks.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                                <ListTodo className="size-8 text-muted-foreground" />
+                        <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20 text-center px-4">
+                            <div className="size-12 sm:size-16 rounded-full bg-muted flex items-center justify-center mb-3 sm:mb-4">
+                                <ListTodo className="size-6 sm:size-8 text-muted-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold mb-2">
+                            <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">
                                 Nenhuma tarefa encontrada
                             </h3>
-                            <p className="text-sm text-muted-foreground mb-4">
+                            <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                                 Tente ajustar os filtros ou limpar a busca
                             </p>
-                            <Button variant="outline" onClick={clearFilters}>
+                            <Button variant="outline" onClick={clearFilters} size="sm" className="h-8 sm:h-9">
                                 Limpar filtros
                             </Button>
                         </div>
@@ -198,29 +198,31 @@ export function TaskListShell({ loading: externalLoading }: TaskListShellProps) 
 
                             {/* Paginação */}
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between">
-                                    <div className="text-sm text-muted-foreground">
+                                <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+                                    <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                                         Página {currentPage} de {totalPages} •{" "}
                                         {total} tarefa{total !== 1 ? "s" : ""}
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1.5 sm:gap-2">
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={() => goToPage(currentPage - 1)}
                                             disabled={currentPage <= 1}
+                                            className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
                                         >
-                                            <ChevronLeft className="size-4" />
-                                            Anterior
+                                            <ChevronLeft className="size-3.5 sm:size-4" />
+                                            <span className="hidden sm:inline">Anterior</span>
                                         </Button>
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={() => goToPage(currentPage + 1)}
                                             disabled={currentPage >= totalPages}
+                                            className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
                                         >
-                                            Próxima
-                                            <ChevronRight className="size-4" />
+                                            <span className="hidden sm:inline">Próxima</span>
+                                            <ChevronRight className="size-3.5 sm:size-4" />
                                         </Button>
                                     </div>
                                 </div>

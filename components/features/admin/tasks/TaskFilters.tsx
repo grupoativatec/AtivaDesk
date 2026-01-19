@@ -84,29 +84,29 @@ export function TaskFilters({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 sm:space-y-3">
       {/* Busca e Filtros em linha */}
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col gap-2">
         {/* Campo de busca */}
         <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 sm:size-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por título, projeto ou responsável…"
+            placeholder="Buscar tarefas..."
             value={filters.q || ""}
             onChange={(e) => handleFilterChange("q", e.target.value || undefined)}
-            className="pl-9 h-10 w-full text-sm"
+            className="pl-8 sm:pl-9 h-8 sm:h-9 md:h-10 w-full text-xs sm:text-sm"
           />
         </div>
 
-        {/* Filtros em linha */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+        {/* Filtros em linha com scroll horizontal */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-1 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <Select
             value={filters.status || "all"}
             onValueChange={(value) =>
               handleFilterChange("status", value === "all" ? undefined : (value as TaskStatus))
             }
           >
-            <SelectTrigger className="h-10 w-full sm:w-[140px] text-sm">
+            <SelectTrigger className="h-8 sm:h-9 md:h-10 w-[100px] sm:w-[120px] md:w-[140px] text-xs sm:text-sm shrink-0">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -128,7 +128,7 @@ export function TaskFilters({
               )
             }
           >
-            <SelectTrigger className="h-10 w-full sm:w-[130px] text-sm">
+            <SelectTrigger className="h-8 sm:h-9 md:h-10 w-[90px] sm:w-[110px] md:w-[130px] text-xs sm:text-sm shrink-0">
               <SelectValue placeholder="Prioridade" />
             </SelectTrigger>
             <SelectContent>
@@ -147,7 +147,7 @@ export function TaskFilters({
               handleFilterChange("unit", value === "all" ? undefined : (value as TaskUnit))
             }
           >
-            <SelectTrigger className="h-10 w-full sm:w-[110px] text-sm">
+            <SelectTrigger className="h-8 sm:h-9 md:h-10 w-[80px] sm:w-[100px] md:w-[110px] text-xs sm:text-sm shrink-0">
               <SelectValue placeholder="Unidade" />
             </SelectTrigger>
             <SelectContent>
@@ -166,7 +166,7 @@ export function TaskFilters({
               handleFilterChange("project", value === "all" ? undefined : value)
             }
           >
-            <SelectTrigger className="h-10 w-full sm:w-[160px] text-sm">
+            <SelectTrigger className="h-8 sm:h-9 md:h-10 w-[120px] sm:w-[140px] md:w-[160px] text-xs sm:text-sm shrink-0">
               <SelectValue placeholder="Projeto" />
             </SelectTrigger>
             <SelectContent>
@@ -184,9 +184,9 @@ export function TaskFilters({
               variant="ghost"
               size="sm"
               onClick={onClearFilters}
-              className="h-10 text-sm shrink-0 px-3"
+              className="h-8 sm:h-9 md:h-10 text-xs sm:text-sm shrink-0 px-2 sm:px-3"
             >
-              <X className="size-4 mr-1" />
+              <X className="size-3.5 sm:size-4 mr-1" />
               Limpar
             </Button>
           )}

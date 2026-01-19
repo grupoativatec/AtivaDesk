@@ -164,34 +164,34 @@ export default function NewTicketPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="w-full max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
+        <div className="mb-4 sm:mb-6 md:mb-8">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push("/tickets")}
-            className="mb-4 sm:mb-6"
+            className="mb-3 sm:mb-4 md:mb-6 h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
           >
-            <ArrowLeft className="size-4 mr-2" />
+            <ArrowLeft className="size-3.5 sm:size-4 mr-1 sm:mr-2" />
             Voltar
           </Button>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 text-foreground">
               Novo Chamado
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
               Descreva seu problema em detalhes para que possamos ajudá-lo
             </p>
           </div>
         </div>
 
         {/* Form */}
-        <div className="bg-card dark:bg-card/50 border border-border dark:border-border/50 rounded-lg p-5 sm:p-6 lg:p-8 shadow-sm dark:shadow-none">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-card dark:bg-card/50 border border-border dark:border-border/50 rounded-lg p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm dark:shadow-none">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 md:space-y-6">
               {/* Título */}
-              <div className="space-y-2">
-                <label htmlFor="title" className="text-sm font-semibold">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label htmlFor="title" className="text-xs sm:text-sm font-semibold">
                   Título / Assunto do chamado <span className="text-destructive">*</span>
                 </label>
                 <Input
@@ -206,20 +206,20 @@ export default function NewTicketPage() {
                   placeholder="Ex: Problema ao acessar o sistema"
                   aria-invalid={!!errors.title}
                   className={cn(
-                    "h-12 text-base",
+                    "h-10 sm:h-11 md:h-12 text-sm sm:text-base",
                     errors.title && "border-destructive ring-destructive/20"
                   )}
                 />
                 {errors.title && (
-                  <p className="text-sm text-destructive">{errors.title}</p>
+                  <p className="text-xs sm:text-sm text-destructive">{errors.title}</p>
                 )}
               </div>
 
               {/* Categoria, Prioridade e Unidade em Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
                 {/* Unidade */}
-                <div className="space-y-2">
-                  <label htmlFor="unit" className="text-sm font-semibold">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label htmlFor="unit" className="text-xs sm:text-sm font-semibold">
                     Unidade <span className="text-destructive">*</span>
                   </label>
                   <Select
@@ -234,7 +234,7 @@ export default function NewTicketPage() {
                     <SelectTrigger
                       error={!!errors.unit}
                       id="unit"
-                      className="h-12"
+                      className="h-10 sm:h-11 md:h-12 text-sm sm:text-base"
                     >
                       <SelectValue placeholder="Selecione a unidade" />
                     </SelectTrigger>
@@ -286,8 +286,8 @@ export default function NewTicketPage() {
                 </div>
 
                 {/* Prioridade */}
-                <div className="space-y-2">
-                  <label htmlFor="priority" className="text-sm font-semibold">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label htmlFor="priority" className="text-xs sm:text-sm font-semibold">
                     Prioridade <span className="text-destructive">*</span>
                   </label>
                   <Select
@@ -302,7 +302,7 @@ export default function NewTicketPage() {
                     <SelectTrigger
                       error={!!errors.priority}
                       id="priority"
-                      className="h-12"
+                      className="h-10 sm:h-11 md:h-12 text-sm sm:text-base"
                     >
                       <SelectValue placeholder="Selecione a prioridade" />
                     </SelectTrigger>
@@ -323,8 +323,8 @@ export default function NewTicketPage() {
               </div>
 
               {/* Descrição */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-semibold">
                   Descrição do problema <span className="text-destructive">*</span>
                 </label>
                 <RichTextEditor
@@ -338,20 +338,20 @@ export default function NewTicketPage() {
                   error={!!errors.description}
                 />
                 {errors.description && (
-                  <p className="text-sm text-destructive">{errors.description}</p>
+                  <p className="text-xs sm:text-sm text-destructive">{errors.description}</p>
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Use o editor para formatar o texto, adicionar links, imagens e anexar arquivos diretamente
                 </p>
               </div>
 
               {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 sm:pt-5 md:pt-6 border-t">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.push("/tickets")}
-                  className="flex-1 sm:flex-initial sm:min-w-[120px]"
+                  className="flex-1 sm:flex-initial sm:min-w-[120px] h-9 sm:h-10 md:h-11 text-xs sm:text-sm"
                   disabled={loading}
                 >
                   Cancelar
@@ -359,17 +359,16 @@ export default function NewTicketPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 sm:flex-initial sm:min-w-[180px]"
-                  size="lg"
+                  className="flex-1 sm:flex-initial sm:min-w-[180px] h-9 sm:h-10 md:h-11 text-xs sm:text-sm"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="size-4 mr-2 animate-spin" />
+                      <Loader2 className="size-3.5 sm:size-4 mr-1.5 sm:mr-2 animate-spin" />
                       Enviando...
                     </>
                   ) : (
                     <>
-                      <Send className="size-4 mr-2" />
+                      <Send className="size-3.5 sm:size-4 mr-1.5 sm:mr-2" />
                       Enviar chamado
                     </>
                   )}

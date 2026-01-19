@@ -30,9 +30,9 @@ export function ProjectTasksFilters({
   onSearchChange,
 }: ProjectTasksFiltersProps) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5 sm:space-y-3">
       {/* Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-2">
+      <div className="flex items-center gap-1 overflow-x-auto pb-2 -mx-1 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {TABS.map((tab) => (
           <Button
             key={tab.id}
@@ -40,7 +40,7 @@ export function ProjectTasksFilters({
             size="sm"
             onClick={() => onTabChange(tab.id)}
             className={cn(
-              "shrink-0",
+              "shrink-0 text-xs sm:text-sm h-7 sm:h-8 px-2.5 sm:px-3",
               activeTab === tab.id && "font-semibold"
             )}
           >
@@ -51,12 +51,12 @@ export function ProjectTasksFilters({
 
       {/* Busca */}
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 sm:size-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar tarefas por título..."
+          placeholder="Buscar tarefas..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 h-9 text-sm"
+          className="pl-8 sm:pl-9 h-8 sm:h-9 text-xs sm:text-sm"
         />
       </div>
     </div>

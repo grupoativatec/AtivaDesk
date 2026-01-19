@@ -336,34 +336,34 @@ export default function AdminTicketsPage() {
     <div className="w-full flex flex-col">
       {/* Header com Estatísticas */}
       <div className="border-b border-border dark:border-border/30 bg-card dark:bg-card/30 shadow-sm dark:shadow-none shrink-0">
-        <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-3 sm:py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-2.5 sm:py-3 md:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 md:gap-4 mb-3 sm:mb-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1 sm:mb-2">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-1 sm:mb-2">
                 Chamados em Aberto
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground">
                 Exibindo {stats.total} {stats.total === 1 ? "chamado" : "chamados"}
               </p>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* Toggle de Visualização */}
-              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              <div className="flex items-center gap-0.5 sm:gap-1 bg-muted rounded-lg p-0.5 sm:p-1">
                 <Button
                   variant={viewMode === "cards" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("cards")}
-                  className="h-8 px-2 sm:px-3"
+                  className="h-7 sm:h-8 w-7 sm:w-auto px-2 sm:px-3"
                 >
-                  <Grid3x3 className="size-4" />
+                  <Grid3x3 className="size-3.5 sm:size-4" />
                 </Button>
                 <Button
                   variant={viewMode === "list" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("list")}
-                  className="h-8 px-2 sm:px-3"
+                  className="h-7 sm:h-8 w-7 sm:w-auto px-2 sm:px-3"
                 >
-                  <List className="size-4" />
+                  <List className="size-3.5 sm:size-4" />
                 </Button>
               </div>
               <Button
@@ -371,43 +371,43 @@ export default function AdminTicketsPage() {
                 variant="outline"
                 size="sm"
                 disabled={loading}
-                className="shrink-0"
+                className="shrink-0 h-7 sm:h-8 w-7 sm:w-auto px-2 sm:px-3"
               >
-                <RefreshCw className={cn("size-4 sm:mr-2", loading && "animate-spin")} />
+                <RefreshCw className={cn("size-3.5 sm:size-4", loading && "animate-spin", "sm:mr-2")} />
                 <span className="hidden sm:inline">Atualizar</span>
               </Button>
             </div>
           </div>
 
           {/* Estatísticas Rápidas - Compactas */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4">
-            <div className="bg-muted border border-border rounded-lg p-2 sm:p-2.5">
-              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium mb-0.5">Abertos</div>
-              <div className="text-lg sm:text-xl font-bold text-foreground">{stats.open}</div>
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2 md:gap-3 mb-3 sm:mb-4">
+            <div className="bg-muted border border-border rounded-lg p-1.5 sm:p-2 md:p-2.5">
+              <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium mb-0.5 line-clamp-1">Abertos</div>
+              <div className="text-base sm:text-lg md:text-xl font-bold text-foreground">{stats.open}</div>
             </div>
-            <div className="bg-muted border border-border rounded-lg p-2 sm:p-2.5">
-              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium mb-0.5">Em Andamento</div>
-              <div className="text-lg sm:text-xl font-bold text-foreground">{stats.inProgress}</div>
+            <div className="bg-muted border border-border rounded-lg p-1.5 sm:p-2 md:p-2.5">
+              <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium mb-0.5 line-clamp-1">Em Andamento</div>
+              <div className="text-base sm:text-lg md:text-xl font-bold text-foreground">{stats.inProgress}</div>
             </div>
-            <div className="bg-muted border border-border rounded-lg p-2 sm:p-2.5">
-              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium mb-0.5">Críticos</div>
-              <div className="text-lg sm:text-xl font-bold text-foreground">{stats.urgent}</div>
+            <div className="bg-muted border border-border rounded-lg p-1.5 sm:p-2 md:p-2.5">
+              <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium mb-0.5 line-clamp-1">Críticos</div>
+              <div className="text-base sm:text-lg md:text-xl font-bold text-foreground">{stats.urgent}</div>
             </div>
-            <div className="bg-muted border border-border rounded-lg p-2 sm:p-2.5">
-              <div className="text-[10px] sm:text-xs text-muted-foreground font-medium mb-0.5">Total</div>
-              <div className="text-lg sm:text-xl font-bold text-foreground">{stats.total}</div>
+            <div className="bg-muted border border-border rounded-lg p-1.5 sm:p-2 md:p-2.5">
+              <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium mb-0.5 line-clamp-1">Total</div>
+              <div className="text-base sm:text-lg md:text-xl font-bold text-foreground">{stats.total}</div>
             </div>
           </div>
 
           {/* Barra de Busca e Filtros - Compacta */}
           <div className="space-y-2 sm:space-y-3">
             {/* Busca e Filtros em linha compacta */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+            <div className="flex flex-col gap-2">
               {/* Busca */}
               <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 sm:size-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por número, título ou descrição..."
+                  placeholder="Buscar chamados..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => {
@@ -416,14 +416,14 @@ export default function AdminTicketsPage() {
                       fetchTickets()
                     }
                   }}
-                  className="pl-9 sm:pl-10 h-9 sm:h-10 w-full text-sm"
+                  className="pl-8 sm:pl-9 md:pl-10 h-8 sm:h-9 md:h-10 w-full text-xs sm:text-sm"
                 />
               </div>
 
               {/* Filtros em linha */}
-              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-1 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-9 w-full sm:w-[120px] lg:w-[140px] text-xs sm:text-sm">
+                  <SelectTrigger className="h-8 sm:h-9 w-[100px] sm:w-[120px] md:w-[140px] text-xs sm:text-sm shrink-0">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -435,7 +435,7 @@ export default function AdminTicketsPage() {
                 </Select>
 
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="h-9 w-full sm:w-[110px] lg:w-[130px] text-xs sm:text-sm">
+                  <SelectTrigger className="h-8 sm:h-9 w-[90px] sm:w-[110px] md:w-[130px] text-xs sm:text-sm shrink-0">
                     <SelectValue placeholder="Prioridade" />
                   </SelectTrigger>
                   <SelectContent>
@@ -448,7 +448,7 @@ export default function AdminTicketsPage() {
                 </Select>
 
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="h-9 w-full sm:w-[110px] lg:w-[130px] text-xs sm:text-sm">
+                  <SelectTrigger className="h-8 sm:h-9 w-[90px] sm:w-[110px] md:w-[130px] text-xs sm:text-sm shrink-0">
                     <SelectValue placeholder="Categoria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -471,7 +471,7 @@ export default function AdminTicketsPage() {
                       setCategoryFilter("all")
                       setSearchQuery("")
                     }}
-                    className="h-9 text-xs shrink-0 px-2 sm:px-3"
+                    className="h-8 sm:h-9 text-xs shrink-0 px-2 sm:px-3"
                   >
                     Limpar
                   </Button>
@@ -484,7 +484,7 @@ export default function AdminTicketsPage() {
 
       {/* Content Area */}
       <div className="w-full bg-muted/20 dark:bg-background/50">
-        <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8 xl:p-10">
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -656,7 +656,7 @@ export default function AdminTicketsPage() {
               </div>
 
               {/* Cards Mobile */}
-              <div className="lg:hidden space-y-4">
+              <div className="lg:hidden space-y-3 sm:space-y-4">
                 {filteredTickets.map((ticket) => {
                   const statusConfig = STATUS_CONFIG[ticket.status]
                   const priorityConfig = PRIORITY_CONFIG[ticket.priority]
@@ -666,48 +666,48 @@ export default function AdminTicketsPage() {
                   return (
                     <div
                       key={ticket.id}
-                      className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-4 shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer"
+                      className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-3 sm:p-4 shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer"
                       onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
                     >
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-mono text-muted-foreground">#{ticket.id.slice(0, 8)}</span>
+                          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                            <span className="text-[10px] sm:text-xs font-mono text-muted-foreground">#{ticket.id.slice(0, 8)}</span>
                             <Badge
                               variant="outline"
-                              className={cn("text-xs font-semibold px-2 py-0.5", priorityConfig.color)}
+                              className={cn("text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5", priorityConfig.color)}
                             >
                               {priorityConfig.label}
                             </Badge>
                           </div>
-                          <h3 className="font-semibold text-sm text-foreground mb-2 line-clamp-2">
+                          <h3 className="font-semibold text-xs sm:text-sm text-foreground mb-1.5 sm:mb-2 line-clamp-2">
                             {ticket.title}
                           </h3>
                         </div>
                         <Badge
                           variant="outline"
-                          className={cn("text-xs font-medium px-2 py-1 shrink-0", statusConfig.color)}
+                          className={cn("text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 shrink-0", statusConfig.color)}
                         >
                           {statusConfig.label}
                         </Badge>
                       </div>
 
-                      <div className="space-y-2 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{CATEGORY_ICONS[ticket.category] || "📋"}</span>
-                          <span>{CATEGORY_LABELS[ticket.category] || ticket.category}</span>
+                      <div className="space-y-1.5 sm:space-y-2 text-[10px] sm:text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <span className="text-sm sm:text-base">{CATEGORY_ICONS[ticket.category] || "📋"}</span>
+                          <span className="line-clamp-1">{CATEGORY_LABELS[ticket.category] || ticket.category}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="size-3.5" />
-                          <span>{format(createdDate, "dd/MM/yyyy", { locale: ptBR })} • {timeAgo}</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <Calendar className="size-3 sm:size-3.5" />
+                          <span className="line-clamp-1">{format(createdDate, "dd/MM/yyyy", { locale: ptBR })} • {timeAgo}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <User className="size-3.5" />
-                          <span>Solicitante: {ticket.openedBy.name}</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <User className="size-3 sm:size-3.5" />
+                          <span className="line-clamp-1">Solicitante: {ticket.openedBy.name}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <UserCheck className="size-3.5" />
-                          <span className={cn(!ticket.assignee && "italic")}>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <UserCheck className="size-3 sm:size-3.5" />
+                          <span className={cn("line-clamp-1", !ticket.assignee && "italic")}>
                             Responsável: {ticket.assignee ? ticket.assignee.name : "Não definido"}
                           </span>
                         </div>
@@ -720,7 +720,7 @@ export default function AdminTicketsPage() {
           ) : (
             <>
               {/* Visualização em Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
                 {filteredTickets.map((ticket) => (
                   <TicketListCard key={ticket.id} ticket={ticket} />
                 ))}

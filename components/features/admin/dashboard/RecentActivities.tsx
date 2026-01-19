@@ -90,34 +90,34 @@ export function RecentActivities({ activities, loading }: RecentActivitiesProps)
 
   return (
     <Card className="border-0 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="flex items-center gap-2.5 text-base font-semibold">
-          <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-500">
-            <Activity className="h-4 w-4" />
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 sm:pb-4">
+        <CardTitle className="flex items-center gap-2 sm:gap-2.5 text-sm sm:text-base font-semibold">
+          <div className="p-1.5 sm:p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-500">
+            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
-          Atividades Recentes
+          <span className="line-clamp-1">Atividades Recentes</span>
         </CardTitle>
         {activities.length > 0 && (
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 gap-1.5 text-xs"
+            className="h-7 sm:h-8 gap-1 text-[10px] sm:text-xs shrink-0"
             onClick={() => {
               // Pode navegar para uma página de atividades completas no futuro
             }}
           >
-            Ver todas
-            <ArrowRight className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Ver todas</span>
+            <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           </Button>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 sm:p-6">
         {activities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="mb-3 rounded-full bg-muted p-3">
-              <Activity className="h-6 w-6 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center">
+            <div className="mb-2 sm:mb-3 rounded-full bg-muted p-2 sm:p-3">
+              <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
             </div>
-            <p className="text-sm font-medium text-muted-foreground">
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               Nenhuma atividade recente
             </p>
           </div>
@@ -131,38 +131,38 @@ export function RecentActivities({ activities, loading }: RecentActivitiesProps)
                 <div key={activity.id}>
                   <div
                     className={cn(
-                      "group flex gap-4 p-4 transition-colors",
+                      "group flex gap-2 sm:gap-3 md:gap-4 p-2.5 sm:p-3 md:p-4 transition-colors",
                       "cursor-pointer hover:bg-accent/50",
                       "active:scale-[0.98]"
                     )}
                     onClick={() => handleActivityClick(activity)}
                   >
-                    <div className={cn("p-2 rounded-lg shrink-0", iconColor)}>
-                      <Icon className="h-4 w-4" />
+                    <div className={cn("p-1.5 sm:p-2 rounded-lg shrink-0", iconColor)}>
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-3 mb-1.5">
-                        <h4 className="text-sm font-medium group-hover:text-primary transition-colors">
+                      <div className="flex items-start justify-between gap-2 sm:gap-3 mb-1 sm:mb-1.5">
+                        <h4 className="text-xs sm:text-sm font-medium group-hover:text-primary transition-colors line-clamp-2">
                           {activity.title}
                         </h4>
-                        <span className="text-xs text-muted-foreground shrink-0">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0 ml-1">
                           {formatDistanceToNow(new Date(activity.createdAt), {
                             addSuffix: true,
                             locale: ptBR,
                           })}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                      <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground line-clamp-2 mb-1.5 sm:mb-2">
                         {activity.description}
                       </p>
                       {activity.actor && (
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
+                            <AvatarFallback className="text-[10px] sm:text-xs bg-primary/10 text-primary">
                               {getInitials(activity.actor.name)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
                             {activity.actor.name}
                           </span>
                         </div>

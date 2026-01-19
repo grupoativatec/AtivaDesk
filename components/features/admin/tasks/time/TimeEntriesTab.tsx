@@ -115,17 +115,17 @@ export function TimeEntriesTab({ taskId, taskStatus, onTaskReload }: TimeEntries
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
             {/* Resumo e botão */}
-            <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-4 shadow-sm dark:shadow-none">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-                            <Clock className="size-5 text-primary" />
+            <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-3 sm:p-4 shadow-sm dark:shadow-none">
+                <div className="flex items-center justify-between gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <div className="size-8 sm:size-10 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center shrink-0">
+                            <Clock className="size-4 sm:size-5 text-primary" />
                         </div>
-                        <div>
-                            <h3 className="text-sm font-semibold text-foreground">Total lançado</h3>
-                            <p className="text-2xl font-bold text-foreground">{totalHours}h</p>
+                        <div className="min-w-0">
+                            <h3 className="text-xs sm:text-sm font-semibold text-foreground">Total lançado</h3>
+                            <p className="text-xl sm:text-2xl font-bold text-foreground">{totalHours}h</p>
                         </div>
                     </div>
                     <Tooltip>
@@ -134,9 +134,11 @@ export function TimeEntriesTab({ taskId, taskStatus, onTaskReload }: TimeEntries
                                 onClick={() => setModalOpen(true)}
                                 size="sm"
                                 disabled={isTaskDone}
+                                className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm shrink-0"
                             >
-                                <Plus className="size-4 mr-2" />
-                                Apontar horas
+                                <Plus className="size-3.5 sm:size-4 mr-1 sm:mr-2" />
+                                <span className="hidden sm:inline">Apontar horas</span>
+                                <span className="sm:hidden">Apontar</span>
                             </Button>
                         </TooltipTrigger>
                         {isTaskDone && (
@@ -150,15 +152,15 @@ export function TimeEntriesTab({ taskId, taskStatus, onTaskReload }: TimeEntries
 
             {/* Lista ou empty state */}
             {entries.length === 0 ? (
-                <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-12 shadow-sm dark:shadow-none">
+                <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-6 sm:p-8 md:p-12 shadow-sm dark:shadow-none">
                     <div className="text-center">
-                        <div className="size-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                            <Clock className="size-8 text-muted-foreground" />
+                        <div className="size-12 sm:size-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                            <Clock className="size-6 sm:size-8 text-muted-foreground" />
                         </div>
-                        <h3 className="text-lg font-semibold text-foreground mb-2">
+                        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                             Nenhum apontamento registrado
                         </h3>
-                        <p className="text-sm text-muted-foreground mb-6">
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 px-4">
                             Comece registrando horas trabalhadas nesta tarefa
                         </p>
                         <Tooltip>

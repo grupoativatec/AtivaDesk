@@ -98,52 +98,52 @@ export function KanbanBoardCard({ board, onUpdate }: KanbanBoardCardProps) {
     <>
       <div
         className={cn(
-          "group relative rounded-lg border bg-card p-6 shadow-sm transition-all hover:shadow-md",
+          "group relative rounded-lg border bg-card p-4 sm:p-5 md:p-6 shadow-sm transition-all hover:shadow-md",
           board.projectId && "border-primary/20 bg-primary/5"
         )}
       >
 
 
         {/* Menu de ações */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
           <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-7 sm:h-8 w-7 sm:w-8 p-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                 onClick={(e) => {
                   e.stopPropagation()
                 }}
               >
-                <MoreVertical className="h-4 w-4" />
+                <MoreVertical className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-48 p-2" align="end">
-              <div className="flex flex-col gap-1">
+            <PopoverContent className="w-40 sm:w-48 p-1.5 sm:p-2" align="end">
+              <div className="flex flex-col gap-0.5 sm:gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start"
+                  className="w-full justify-start h-8 sm:h-9 text-xs sm:text-sm"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleEdit()
                   }}
                 >
-                  <Pencil className="mr-2 h-4 w-4" />
+                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Editar
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start text-destructive hover:text-destructive"
+                  className="w-full justify-start text-destructive hover:text-destructive h-8 sm:h-9 text-xs sm:text-sm"
                   onClick={(e) => {
                     e.stopPropagation()
                     setIsPopoverOpen(false)
                     setIsDeletingConfirm(true)
                   }}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
+                  <Trash2 className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Excluir
                 </Button>
               </div>
@@ -156,16 +156,16 @@ export function KanbanBoardCard({ board, onUpdate }: KanbanBoardCardProps) {
           onClick={() => router.push(`/admin/kanban/${board.id}`)}
           className="cursor-pointer"
         >
-          <div className="flex items-start gap-3 mb-3">
+          <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
             <div className={cn(
-              "p-2 rounded-lg",
+              "p-1.5 sm:p-2 rounded-lg shrink-0",
               board.projectId ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
             )}>
-              <FolderKanban className="h-5 w-5" />
+              <FolderKanban className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="flex-1 min-w-0">
               {isEditing ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <Input
                     value={editedName}
                     onChange={(e) => setEditedName(e.target.value)}
@@ -180,11 +180,11 @@ export function KanbanBoardCard({ board, onUpdate }: KanbanBoardCardProps) {
                     onBlur={handleSave}
                     autoFocus
                     disabled={isSaving}
-                    className="h-8"
+                    className="h-7 sm:h-8 text-xs sm:text-sm"
                   />
                 </div>
               ) : (
-                <h3 className="text-lg font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                <h3 className="text-base sm:text-lg font-semibold group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1">
                   {board.name}
                 </h3>
               )}
@@ -192,28 +192,28 @@ export function KanbanBoardCard({ board, onUpdate }: KanbanBoardCardProps) {
           </div>
 
           {board.description && (
-            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
               {board.description}
             </p>
           )}
 
           {board.projectName && (
-            <div className="mb-4">
-              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-md">
-                <Link2 className="h-3 w-3" />
-                <span>{board.projectName}</span>
+            <div className="mb-3 sm:mb-4">
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium text-primary bg-primary/10 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md">
+                <Link2 className="h-2.5 sm:h-3 w-2.5 sm:w-3" />
+                <span className="line-clamp-1">{board.projectName}</span>
               </div>
             </div>
           )}
 
-          <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t">
+          <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground pt-3 sm:pt-4 border-t">
             <div className="flex items-center gap-1">
               <span className="font-medium">{board.cardCount}</span>
               <span>cards</span>
             </div>
             <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              <span>
+              <Calendar className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+              <span className="line-clamp-1">
                 {new Date(board.updatedAt).toLocaleDateString("pt-BR", {
                   day: "2-digit",
                   month: "short",
