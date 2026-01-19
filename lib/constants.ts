@@ -1,4 +1,4 @@
-import { Clock, LayoutDashboard, Ticket, ListTodo } from "lucide-react";
+import { Clock, LayoutDashboard, Ticket, ListTodo, FolderKanban } from "lucide-react";
 
 export const data = {
   user: {
@@ -22,6 +22,11 @@ export const data = {
       title: "Tarefas",
       url: "/admin/tarefas",
       icon: ListTodo,
+    },
+    {
+      title: "Projetos",
+      url: "/admin/projetos",
+      icon: FolderKanban,
     },
   ],
 

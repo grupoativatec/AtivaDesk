@@ -43,14 +43,22 @@ const createTaskSchema = z.object({
   description: z.string().optional(),
 })
 
-type CreateTaskFormData = z.infer<typeof createTaskSchema>
+type CreateTaskFormData = z.input<typeof createTaskSchema>
+type CreateTaskPayload = z.output<typeof createTaskSchema>
 
 interface CreateTaskModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  defaultProjectId?: string
+  onSuccess?: () => void
 }
 
-export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
+export function CreateTaskModal({
+  open,
+  onOpenChange,
+  defaultProjectId,
+  onSuccess,
+}: CreateTaskModalProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -71,6 +79,7 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
   } = useForm<CreateTaskFormData>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
+      projectId: defaultProjectId || "",
       status: TaskStatus.BACKLOG,
       priority: TaskPriority.MEDIUM,
       unit: TaskUnit.ITJ,
@@ -78,6 +87,13 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
       estimatedHours: 0,
     },
   })
+
+  // Atualizar projectId quando defaultProjectId mudar
+  useEffect(() => {
+    if (defaultProjectId && open) {
+      setValue("projectId", defaultProjectId)
+    }
+  }, [defaultProjectId, open, setValue])
 
   const selectedProjectId = watch("projectId")
   const selectedUnit = watch("unit")
@@ -90,18 +106,19 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
     if (open) {
       async function loadData() {
         try {
-          const [projectsData, adminsData] = await Promise.all([
-            listProjects(),
+          const [projectsRes, adminsData] = await Promise.all([
+            listProjects({ status: "ACTIVE", page: 1, pageSize: 200 }),
             listAdmins(),
           ])
-
-          // Transformar projetos para o formato esperado
+          
+          const projectsData = Array.isArray(projectsRes) ? projectsRes : projectsRes.projects
+          
           setProjects(
-            projectsData
+            (projectsData || [])
               .filter((p) => p.status === "ACTIVE")
               .map((p) => ({ id: p.id, name: p.name }))
           )
-
+          
           // Transformar admins para o formato esperado (Assignee)
           setAssignees(
             adminsData.map((admin) => ({ id: admin.id, name: admin.name }))
@@ -140,11 +157,15 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
       toast.success("Tarefa criada com sucesso!")
       onOpenChange(false)
       
-      // Redirecionar para o detalhe da tarefa
-      router.push(`/admin/tarefas/${response.task.id}`)
-    } catch (error: any) {
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        // Redirecionar para o detalhe da tarefa apenas se não houver callback
+        router.push(`/admin/tarefas/${response.task.id}`)
+      }
+    } catch (error) {
       console.error("Erro ao criar tarefa:", error)
-      toast.error(error.message || "Erro ao criar tarefa")
+      toast.error("Erro ao criar tarefa")
     } finally {
       setIsSubmitting(false)
     }
