@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth/get-current-user"
 import { TaskStatus, TaskPriority, TaskUnit } from "@/lib/generated/prisma/enums"
 import { z } from "zod"
+import {
+  notifyTaskStatusChanged,
+  notifyTaskUpdated,
+  notifyTaskAssigned,
+} from "@/lib/notifications"
 
 /**
  * Schema de validação para atualização de tarefa
@@ -167,6 +172,12 @@ export async function PATCH(
           select: {
             id: true,
             name: true,
+            createdById: true,
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
           },
         },
         assignees: {
@@ -431,6 +442,77 @@ export async function PATCH(
       }
 
       return task
+    })
+
+    // Criar notificações (fora da transação para não bloquear)
+    const notificationPromises: Promise<any>[] = []
+
+    // Notificar mudança de status
+    if (updateData.status !== undefined && updateData.status !== currentTask.status) {
+      const statusLabels: Record<TaskStatus, string> = {
+        BACKLOG: "Backlog",
+        TODO: "To Do",
+        IN_PROGRESS: "Em Progresso",
+        BLOCKED: "Bloqueada",
+        DONE: "Concluída",
+      }
+      notificationPromises.push(
+        notifyTaskStatusChanged(
+          updatedTask.id,
+          updatedTask.title,
+          updatedTask.project.id,
+          updatedTask.project.name,
+          statusLabels[currentTask.status],
+          statusLabels[updateData.status],
+          currentTask.createdBy?.id || null,
+          currentTask.project.createdById || null,
+          user.id
+        )
+      )
+    }
+
+    // Notificar atualização geral (se não foi apenas mudança de status)
+    if (
+      (updateData.priority !== undefined && updateData.priority !== currentTask.priority) ||
+      (updateData.unit !== undefined && updateData.unit !== currentTask.unit) ||
+      (updateData.estimatedHours !== undefined && updateData.estimatedHours !== currentTask.estimatedHours) ||
+      (updateData.projectId !== undefined && updateData.projectId !== currentTask.projectId)
+    ) {
+      notificationPromises.push(
+        notifyTaskUpdated(
+          updatedTask.id,
+          updatedTask.title,
+          updatedTask.project.id,
+          updatedTask.project.name,
+          currentTask.createdBy?.id || null,
+          currentTask.project.createdById || null,
+          user.id
+        )
+      )
+    }
+
+    // Notificar novos assignees
+    if (updateData.assigneeIds !== undefined) {
+      const currentAssigneeIds = currentTask.assignees.map((a) => a.user.id)
+      const newAssigneeIds = updateData.assigneeIds
+      const newAssignees = newAssigneeIds.filter((id) => !currentAssigneeIds.includes(id))
+
+      for (const assigneeId of newAssignees) {
+        notificationPromises.push(
+          notifyTaskAssigned(
+            updatedTask.id,
+            updatedTask.title,
+            updatedTask.project.id,
+            updatedTask.project.name,
+            assigneeId
+          )
+        )
+      }
+    }
+
+    Promise.all(notificationPromises).catch((err) => {
+      // Ignorar erros de notificação para não quebrar o fluxo principal
+      console.error("Erro ao criar notificações:", err)
     })
 
     // Calcular loggedHours (soma dos timeEntries)

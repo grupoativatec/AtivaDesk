@@ -48,6 +48,21 @@ export async function GET(req: Request) {
               priority: true,
             },
           },
+          task: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              priority: true,
+            },
+          },
+          project: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",

@@ -7,6 +7,11 @@ import {
   TaskUnit,
 } from "@/lib/generated/prisma/enums";
 import { z } from "zod";
+import {
+  notifyTaskCreated,
+  notifyProjectTaskAdded,
+  notifyTaskAssigned,
+} from "@/lib/notifications";
 
 /**
  * Schema de validação para criação de tarefa
@@ -214,9 +219,14 @@ export async function POST(req: Request) {
       description,
     } = parsed.data;
 
-    // Verificar se o projeto existe
+    // Verificar se o projeto existe e buscar criador
     const project = await prisma.project.findUnique({
       where: { id: projectId },
+      select: {
+        id: true,
+        name: true,
+        createdById: true,
+      },
     });
 
     if (!project) {
@@ -313,6 +323,58 @@ export async function POST(req: Request) {
 
       return newTask;
     });
+
+    // Criar notificações (fora da transação para não bloquear)
+    const notificationPromises: Promise<any>[] = []
+
+    // Sempre notificar o criador da tarefa sobre a criação
+    notificationPromises.push(
+      notifyTaskCreated(
+        task.id,
+        task.title,
+        project.id,
+        project.name,
+        user.id,
+        user.name,
+        project.createdById
+      )
+    )
+
+    // Notificar criador do projeto sobre nova tarefa (apenas se diferente do criador da tarefa)
+    if (project.createdById && project.createdById !== user.id) {
+      notificationPromises.push(
+        notifyProjectTaskAdded(
+          project.id,
+          project.name,
+          task.id,
+          task.title,
+          project.createdById,
+          user.id
+        )
+      )
+    }
+
+    // Notificar assignees (apenas se não forem o criador da tarefa)
+    for (const assignee of task.assignees) {
+      if (assignee.user.id !== user.id) {
+        notificationPromises.push(
+          notifyTaskAssigned(
+            task.id,
+            task.title,
+            project.id,
+            project.name,
+            assignee.user.id
+          )
+        )
+      }
+    }
+
+    if (notificationPromises.length > 0) {
+      Promise.all(notificationPromises).catch((err) => {
+        // Ignorar erros de notificação para não quebrar o fluxo principal
+        console.error("Erro ao criar notificações:", err)
+      })
+    }
 
     // Calcular loggedHours (soma dos timeEntries)
     const loggedHours = task.timeEntries.reduce(

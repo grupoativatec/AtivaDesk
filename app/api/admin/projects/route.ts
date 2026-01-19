@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth/get-current-user"
 import { ProjectStatus, TaskUnit } from "@/lib/generated/prisma/enums"
 import { z } from "zod"
+import { notifyProjectCreated } from "@/lib/notifications"
 
 /**
  * Schema de validação para criação de projeto
@@ -175,6 +176,7 @@ export async function POST(req: Request) {
         code: code && code.trim() ? code.trim() : null,
         unit: unit || null,
         status: status || "ACTIVE",
+        createdById: user.id,
       },
       include: {
         _count: {
@@ -183,6 +185,12 @@ export async function POST(req: Request) {
           },
         },
       },
+    })
+
+    // Criar notificação (fora da transação para não bloquear)
+    notifyProjectCreated(project.id, project.name, user.id).catch((err) => {
+      // Ignorar erros de notificação para não quebrar o fluxo principal
+      console.error("Erro ao criar notificação:", err)
     })
 
     return NextResponse.json({
