@@ -4,11 +4,11 @@ import { ProjectListItem } from "./project.types"
 import { ProjectStatusBadge } from "./ProjectStatusBadge"
 import { ProjectUnitBadge } from "./ProjectUnitBadge"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { format, formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { Calendar, Edit, Archive } from "lucide-react"
+import { Archive, Calendar, Edit } from "lucide-react"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { Button } from "@/components/ui/button"
 
 interface ProjectTableProps {
   projects: ProjectListItem[]

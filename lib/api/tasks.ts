@@ -27,6 +27,7 @@ export interface UpdateTaskRequest {
   priority?: TaskPriority
   estimatedHours?: number
   assigneeIds?: string[]
+  acceptance?: string | null
 }
 
 /**

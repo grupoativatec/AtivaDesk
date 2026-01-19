@@ -138,6 +138,7 @@ export async function GET(req: Request) {
         id: task.id,
         title: task.title,
         description: task.description || null,
+        acceptance: task.acceptance || null,
         project: {
           id: task.project.id,
           name: task.project.name,

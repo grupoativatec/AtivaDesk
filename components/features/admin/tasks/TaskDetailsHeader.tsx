@@ -4,11 +4,8 @@ import { TaskListItem } from "./task.types"
 import { TaskStatusBadge } from "./TaskStatusBadge"
 import { TaskPriorityBadge } from "./TaskPriorityBadge"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Edit, Clock, AlertTriangle, Users, FolderOpen, Calendar, Save, X, Loader2 } from "lucide-react"
+import { ArrowLeft, Edit, Save, X, Loader2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { formatDistanceToNow } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { cn } from "@/lib/utils"
 
 interface TaskDetailsHeaderProps {
     task: TaskListItem
@@ -33,14 +30,8 @@ export function TaskDetailsHeader({
     const searchParams = useSearchParams()
     const returnTo = searchParams.get("returnTo")
 
-    const taskIdFormatted = task.id.toUpperCase()
-    const updatedDate = new Date(task.updatedAt)
-    const timeAgo = formatDistanceToNow(updatedDate, {
-        addSuffix: true,
-        locale: ptBR,
-    })
-
-    const isOverEstimated = task.loggedHours > task.estimatedHours
+    // Mostrar apenas as 5 primeiras letras do UUID (sem hífens)
+    const taskIdFormatted = task.id.replace(/-/g, "").substring(0, 5).toUpperCase()
 
     const handleBack = () => {
         if (returnTo) {
@@ -65,7 +56,7 @@ export function TaskDetailsHeader({
                             <ArrowLeft className="size-4" />
                         </Button>
                         <span className="text-xs text-muted-foreground">
-                            Admin / Tarefas / {taskIdFormatted}
+                            Admin / Tarefas
                         </span>
                         {isEditing && hasUnsavedChanges && (
                             <span className="text-xs text-orange-600 dark:text-orange-500 font-medium">
@@ -132,58 +123,6 @@ export function TaskDetailsHeader({
                             <TaskPriorityBadge priority={task.priority} />
                             <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
                                 {task.unit}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Metadados rápidos */}
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground pt-2 border-t border-border/30">
-                        <div className="flex items-center gap-1.5">
-                            <FolderOpen className="size-4" />
-                            <span className="font-medium text-foreground">Projeto:</span>
-                            <span>{task.project.name}</span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                            <Users className="size-4" />
-                            <span className="font-medium text-foreground">Responsáveis:</span>
-                            <div className="flex items-center gap-1.5">
-                                {task.assignees.length > 0 ? (
-                                    task.assignees.map((assignee, idx) => (
-                                        <span key={assignee.id} className="text-xs bg-muted px-2 py-0.5 rounded">
-                                            {assignee.name.split(" ")[0]}
-                                            {idx < task.assignees.length - 1 && ","}
-                                        </span>
-                                    ))
-                                ) : (
-                                    <span className="text-xs italic">Não definido</span>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                            <Clock className="size-4" />
-                            <span className="font-medium text-foreground">Horas:</span>
-                            <span className={cn(
-                                "font-semibold",
-                                isOverEstimated && "text-orange-600 dark:text-orange-500"
-                            )}>
-                                {task.loggedHours}h lançadas
-                            </span>
-                            <span className="text-muted-foreground">/</span>
-                            <span>{task.estimatedHours}h estimadas</span>
-                            {isOverEstimated && (
-                                <div className="flex items-center gap-1 text-orange-600 dark:text-orange-500">
-                                    <AlertTriangle className="size-3.5" />
-                                    <span className="text-xs font-medium">Acima do estimado</span>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                            <Calendar className="size-4" />
-                            <span className="text-xs text-muted-foreground">
-                                Atualizado {timeAgo}
                             </span>
                         </div>
                     </div>

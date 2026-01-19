@@ -29,6 +29,7 @@ export const taskEditSchema = z.object({
     .int("Horas devem ser um número inteiro")
     .min(0, "Horas não podem ser negativas")
     .max(500, "Horas estimadas não podem exceder 500"),
+  acceptance: z.string().optional().nullable(),
 })
 
 export type TaskEditData = z.infer<typeof taskEditSchema>

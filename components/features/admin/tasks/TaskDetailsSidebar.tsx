@@ -71,14 +71,14 @@ export function TaskDetailsSidebar({
             async function loadData() {
                 setIsLoadingData(true)
                 try {
-                    const [projectsData, adminsData] = await Promise.all([
+                    const [projectsResponse, adminsData] = await Promise.all([
                         listProjects(),
                         listAdmins(),
                     ])
 
                     // Transformar projetos para o formato esperado
                     setProjects(
-                        projectsData
+                        (projectsResponse.projects || [])
                             .filter((p) => p.status === "ACTIVE")
                             .map((p) => ({ id: p.id, name: p.name }))
                     )

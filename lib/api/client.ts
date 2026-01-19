@@ -38,7 +38,7 @@ const getBaseURL = async (): Promise<string> => {
   // Tentar obter o host dos headers (Next.js 13+)
   try {
     const { headers } = await import("next/headers")
-    const headersList = headers()
+    const headersList = await headers()
     const host = headersList.get("host")
     const protocol = headersList.get("x-forwarded-proto") || 
                      (process.env.NODE_ENV === "production" ? "https" : "http")

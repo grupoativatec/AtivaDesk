@@ -35,6 +35,7 @@ export interface TaskListItem {
   id: string
   title: string
   description?: string | null
+  acceptance?: string | null
   project: Project
   unit: TaskUnit
   status: TaskStatus

@@ -8,7 +8,7 @@ import { ProjectSummaryPanel } from "./ProjectSummaryPanel"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { FolderKanban, ArrowLeft } from "lucide-react"
-import { getProjectById, updateProject } from "@/lib/api/projects"
+import { getProjectById, updateProject, type ProjectDetailResponse } from "@/lib/api/projects"
 import { listTasks } from "@/lib/api/tasks"
 import { ProjectListItem } from "../project.types"
 import { TaskListItem } from "@/components/features/admin/tasks/task.types"
@@ -18,13 +18,6 @@ interface ProjectDetailShellProps {
   projectId: string
   onEdit: (project: ProjectListItem) => void
   onCreateTask: () => void
-}
-
-type ProjectDetailResponse = {
-  project: ProjectListItem
-  metrics?: {
-    totalHours?: number
-  }
 }
 
 export function ProjectDetailShell({
@@ -52,7 +45,7 @@ export function ProjectDetailShell({
 
       try {
         const [projectRes, tasksData] = await Promise.all([
-          getProjectById(projectId) as Promise<ProjectDetailResponse>,
+          getProjectById(projectId),
           listTasks({ project: projectId, pageSize: 100 }),
         ])
 
@@ -96,7 +89,7 @@ export function ProjectDetailShell({
   }
 
   const reloadProject = async () => {
-    const projectRes = (await getProjectById(projectId)) as ProjectDetailResponse
+    const projectRes = await getProjectById(projectId)
     setProject(projectRes.project)
     setTotalHours(projectRes.metrics?.totalHours ?? 0)
   }

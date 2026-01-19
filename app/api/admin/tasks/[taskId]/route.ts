@@ -14,6 +14,7 @@ const updateTaskSchema = z.object({
   priority: z.nativeEnum(TaskPriority).optional(),
   assigneeIds: z.array(z.string().min(1)).optional(),
   estimatedHours: z.number().int().min(0).optional(),
+  acceptance: z.string().optional().nullable(),
 })
 
 /**
@@ -90,6 +91,7 @@ export async function GET(
       id: task.id,
       title: task.title,
       description: task.description || null,
+      acceptance: task.acceptance || null,
       project: {
         id: task.project.id,
         name: task.project.name,
@@ -240,6 +242,9 @@ export async function PATCH(
     }
     if (updateData.estimatedHours !== undefined) {
       taskUpdateData.estimatedHours = updateData.estimatedHours
+    }
+    if (updateData.acceptance !== undefined) {
+      taskUpdateData.acceptance = updateData.acceptance
     }
 
     // Atualizar tarefa e assignees em uma transação
@@ -439,6 +444,7 @@ export async function PATCH(
       id: updatedTask.id,
       title: updatedTask.title,
       description: updatedTask.description || null,
+      acceptance: updatedTask.acceptance || null,
       project: {
         id: updatedTask.project.id,
         name: updatedTask.project.name,

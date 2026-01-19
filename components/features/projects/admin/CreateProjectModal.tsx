@@ -45,6 +45,15 @@ export function CreateProjectModal({
     setMounted(true)
   }, [])
 
+  const form = useForm<CreateProjectFormData>({
+    resolver: zodResolver(createProjectSchema),
+    defaultValues: {
+      name: "",
+      code: "",
+      status: "ACTIVE" as const,
+    },
+  })
+
   const {
     register,
     handleSubmit,
@@ -52,12 +61,7 @@ export function CreateProjectModal({
     setValue,
     watch,
     reset,
-  } = useForm<CreateProjectFormData>({
-    resolver: zodResolver(createProjectSchema),
-    defaultValues: {
-      status: "ACTIVE",
-    },
-  })
+  } = form
 
   const selectedUnit = watch("unit")
   const selectedStatus = watch("status")

@@ -36,6 +36,13 @@ export function TaskDetailsShell({
     const [activeTab, setActiveTab] = useState<TabId>("overview")
     const [activityReloadKey, setActivityReloadKey] = useState(0)
     const description = task.description || "Nenhuma descrição fornecida."
+    const acceptance = task.acceptance || null
+
+    const handleAcceptanceChange = (newAcceptance: string | null) => {
+        if (onDraftChange) {
+            onDraftChange({ acceptance: newAcceptance })
+        }
+    }
 
     // Função para recarregar atividade (chamada após mudanças)
     const reloadActivity = () => {
@@ -87,7 +94,12 @@ export function TaskDetailsShell({
                             {/* Conteúdo das tabs */}
                             <div className="min-h-[400px]">
                                 {activeTab === "overview" && (
-                                    <TaskDetailsOverview description={description} />
+                                    <TaskDetailsOverview 
+                                        description={description}
+                                        acceptance={acceptance}
+                                        isEditing={isEditing}
+                                        onAcceptanceChange={handleAcceptanceChange}
+                                    />
                                 )}
 
                                 {activeTab === "time" && (

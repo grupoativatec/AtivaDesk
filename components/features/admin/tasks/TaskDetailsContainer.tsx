@@ -25,6 +25,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
     priority: initialTask.priority,
     assignees: initialTask.assignees,
     estimatedHours: initialTask.estimatedHours,
+    acceptance: initialTask.acceptance || null,
   }))
 
   // Verifica se há alterações não salvas
@@ -35,6 +36,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
       draft.status !== task.status ||
       draft.priority !== task.priority ||
       draft.estimatedHours !== task.estimatedHours ||
+      draft.acceptance !== (task.acceptance || null) ||
       JSON.stringify(draft.assignees?.map((a) => a.id).sort()) !==
       JSON.stringify(task.assignees.map((a) => a.id).sort())
     )
@@ -49,6 +51,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
       priority: task.priority,
       assignees: task.assignees,
       estimatedHours: task.estimatedHours,
+      acceptance: task.acceptance || null,
     })
     setIsEditing(true)
   }
@@ -62,6 +65,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
       priority: task.priority,
       assignees: task.assignees,
       estimatedHours: task.estimatedHours,
+      acceptance: task.acceptance || null,
     })
     setIsEditing(false)
   }
@@ -89,6 +93,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
         priority: validatedData.priority,
         assigneeIds: validatedData.assignees.map((a) => a.id),
         estimatedHours: validatedData.estimatedHours,
+        acceptance: validatedData.acceptance ?? null,
       }
 
       // Chamar API real

@@ -10,7 +10,7 @@ export const createProjectSchema = z.object({
     .optional()
     .or(z.literal("")),
   unit: z.enum(["ITJ", "SFS", "FOZ", "DIO", "AOL"]).optional(),
-  status: z.enum(["ACTIVE", "ARCHIVED"]).default("ACTIVE"),
+  status: z.enum(["ACTIVE", "ARCHIVED"]),
 })
 
 export const updateProjectSchema = createProjectSchema.partial().extend({

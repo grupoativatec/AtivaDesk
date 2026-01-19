@@ -45,6 +45,16 @@ export interface ProjectResponse {
 }
 
 /**
+ * Resposta de detalhes do projeto (com métricas)
+ */
+export interface ProjectDetailResponse {
+  project: ProjectListItem
+  metrics?: {
+    totalHours: number
+  }
+}
+
+/**
  * Lista projetos com filtros e paginação
  */
 export async function listProjects(filters?: ProjectFilters): Promise<ProjectsListResponse> {
@@ -63,10 +73,10 @@ export async function listProjects(filters?: ProjectFilters): Promise<ProjectsLi
 }
 
 /**
- * Busca um projeto pelo ID
+ * Busca um projeto pelo ID (com métricas)
  */
-export async function getProjectById(projectId: string): Promise<ProjectListItem> {
-  return api.get<ProjectListItem>(`/api/admin/projects/${projectId}`)
+export async function getProjectById(projectId: string): Promise<ProjectDetailResponse> {
+  return api.get<ProjectDetailResponse>(`/api/admin/projects/${projectId}`)
 }
 
 /**

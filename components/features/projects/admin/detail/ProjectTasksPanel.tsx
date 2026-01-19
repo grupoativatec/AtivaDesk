@@ -47,12 +47,7 @@ export function ProjectTasksPanel({ projectId, onCreateTask }: ProjectTasksPanel
 
         // Filtrar por status se necessário (para tabs que precisam de múltiplos status)
         let filteredTasks = response.tasks
-        if (statusFilter && statusFilter.length > 1) {
-          filteredTasks = response.tasks.filter((task) =>
-            statusFilter.includes(task.status)
-          )
-        } else if (statusFilter && statusFilter.length === 1) {
-          // Já filtrado pela API, mas garantir consistência
+        if (statusFilter && statusFilter.length > 0) {
           filteredTasks = response.tasks.filter((task) =>
             statusFilter.includes(task.status)
           )
