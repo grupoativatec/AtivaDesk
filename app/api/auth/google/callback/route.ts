@@ -86,7 +86,7 @@ export async function GET(req: Request) {
 
     // Redirecionar com cookie
     const redirectUrl = new URL(
-      user.role === "ADMIN" ? "/admin/dashboard" : "/tickets/new",
+      user.role === "ADMIN" ? "/admin/dashboard" : "/tickets",
       req.url
     );
 

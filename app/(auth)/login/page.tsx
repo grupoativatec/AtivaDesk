@@ -55,8 +55,12 @@ export default function LoginPage() {
 
             // Redirect por role (cookie JWT já foi setado pelo backend)
             const role = (data as { user: { role: "USER" | "AGENT" | "ADMIN" } }).user.role;
-            if (role === "ADMIN") router.push("/admin/dashboard");
-            else router.push("/tickets/new");
+            
+            // Verifica se há um redirect na URL
+            const redirectParam = searchParams.get("redirect");
+            const redirectTo = redirectParam || (role === "ADMIN" ? "/admin/dashboard" : "/tickets");
+            
+            router.push(redirectTo);
         } catch {
             toast.error("Erro de rede ao tentar logar.");
         } finally {

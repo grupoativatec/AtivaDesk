@@ -2,47 +2,83 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
 import { verifyAuthToken } from "@/lib/auth/jwt";
-
-const PUBLIC_ROUTES = ["/login", "/register"];
-const USER_HOME = "/tickets/new";
-const ADMIN_HOME = "/admin/dashboard";
-
-function isPublic(pathname: string) {
-  return PUBLIC_ROUTES.some((p) => pathname.startsWith(p));
-}
+import {
+  isPublicRoute,
+  isProtectedRoute,
+  requiresAdminRole,
+  getDefaultRoute,
+} from "@/lib/routes/config";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
-
-  // Sem token: bloqueia áreas protegidas
-  if (!token) {
-    if (pathname.startsWith("/admin") || pathname.startsWith("/tickets")) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
+  // Ignorar todas as rotas de API (elas fazem sua própria validação de autenticação)
+  if (pathname.startsWith("/api")) {
     return NextResponse.next();
   }
 
-  // Com token: valida
+  const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+
+  // ============================================
+  // CASO 1: Usuário NÃO autenticado
+  // ============================================
+  if (!token) {
+    // Se tentando acessar rota pública, permite
+    if (isPublicRoute(pathname)) {
+      return NextResponse.next();
+    }
+
+    // Se tentando acessar rota protegida, redireciona para login
+    if (isProtectedRoute(pathname)) {
+      const loginUrl = new URL("/login", req.url);
+      // Salva a URL original para redirecionar após login
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Rota raiz: redireciona para login
+    if (pathname === "/") {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+
+    // Outras rotas não protegidas: permite
+    return NextResponse.next();
+  }
+
+  // ============================================
+  // CASO 2: Usuário autenticado (com token)
+  // ============================================
   try {
     const payload = await verifyAuthToken(token);
 
-    // Se logado e tentando acessar login/register, redireciona conforme role
-    if (isPublic(pathname)) {
-      return NextResponse.redirect(
-        new URL(payload.role === "ADMIN" ? ADMIN_HOME : USER_HOME, req.url)
-      );
+    // Se logado e tentando acessar login/register, redireciona para rota padrão
+    if (isPublicRoute(pathname)) {
+      const defaultRoute = getDefaultRoute(payload.role);
+      return NextResponse.redirect(new URL(defaultRoute, req.url));
     }
 
-    // Bloqueio role-based
+    // Rota raiz: redireciona para rota padrão baseada no role
+    if (pathname === "/") {
+      const defaultRoute = getDefaultRoute(payload.role);
+      return NextResponse.redirect(new URL(defaultRoute, req.url));
+    }
+
+    // Verificação de role: bloqueia acesso de não-admin a rotas admin
+    if (requiresAdminRole(pathname) && payload.role !== "ADMIN") {
+      const userDefaultRoute = getDefaultRoute(payload.role);
+      return NextResponse.redirect(new URL(userDefaultRoute, req.url));
+    }
+
+    // Verificação adicional: usuários não-admin não podem acessar /admin/*
     if (pathname.startsWith("/admin") && payload.role !== "ADMIN") {
-      return NextResponse.redirect(new URL(USER_HOME, req.url));
+      const userDefaultRoute = getDefaultRoute(payload.role);
+      return NextResponse.redirect(new URL(userDefaultRoute, req.url));
     }
 
+    // Tudo ok, permite acesso
     return NextResponse.next();
-  } catch {
-    // Token inválido/expirado: manda pro login
+  } catch (error) {
+    // Token inválido/expirado: limpa cookie e redireciona para login
     const res = NextResponse.redirect(new URL("/login", req.url));
     res.cookies.set(AUTH_COOKIE_NAME, "", { path: "/", maxAge: 0 });
     return res;
@@ -50,5 +86,14 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/register", "/admin/:path*", "/tickets/:path*"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)",
+  ],
 };
