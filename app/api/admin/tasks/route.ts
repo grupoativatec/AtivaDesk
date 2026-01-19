@@ -324,6 +324,73 @@ export async function POST(req: Request) {
       return newTask;
     });
 
+    // Sincronizar com Kanban: se o projeto tem um board vinculado, adiciona a tarefa automaticamente
+    try {
+      const kanbanBoards = await prisma.kanbanBoard.findMany({
+        where: {
+          projectId: projectId,
+        },
+        include: {
+          columns: {
+            orderBy: { order: "asc" },
+          },
+        },
+      })
+
+      // Para cada board vinculado ao projeto, adiciona a tarefa
+      for (const board of kanbanBoards) {
+        if (board.columns.length > 0) {
+          const firstColumn = board.columns[0]
+          const { mapTaskStatusToKanbanStatus } = await import("@/lib/kanban/task-mapper")
+          
+          // Encontra a coluna correspondente ao status da tarefa
+          const kanbanStatus = mapTaskStatusToKanbanStatus(task.status)
+          const targetColumn = board.columns.find((col) => col.status === kanbanStatus) || firstColumn
+
+          // Verifica se já existe um card para essa tarefa neste board
+          const existingCard = await prisma.kanbanCard.findFirst({
+            where: {
+              boardId: board.id,
+              taskId: task.id,
+            },
+          })
+
+          if (!existingCard) {
+            // Calcula a ordem
+            const lastCard = await prisma.kanbanCard.findFirst({
+              where: { columnId: targetColumn.id },
+              orderBy: { order: "desc" },
+              select: { order: true },
+            })
+
+            const order = lastCard ? lastCard.order + 1 : 0
+
+            // Pega o primeiro assignee (se houver)
+            const firstAssignee = task.assignees[0]?.user
+
+            // Cria o card
+            await prisma.kanbanCard.create({
+              data: {
+                boardId: board.id,
+                columnId: targetColumn.id,
+                taskId: task.id,
+                title: task.title,
+                description: task.description,
+                priority: task.priority,
+                dueDate: null,
+                tags: [],
+                assigneeId: firstAssignee?.id,
+                order,
+              },
+            })
+          }
+        }
+      }
+    } catch (kanbanError) {
+      // Log do erro mas não falha a criação da tarefa
+      console.error("Erro ao sincronizar tarefa com Kanban:", kanbanError)
+    }
+
     // Criar notificações (fora da transação para não bloquear)
     const notificationPromises: Promise<any>[] = []
 

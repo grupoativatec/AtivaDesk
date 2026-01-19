@@ -515,6 +515,58 @@ export async function PATCH(
       console.error("Erro ao criar notificações:", err)
     })
 
+    // Sincronizar com Kanban: se o status mudou, atualiza o card correspondente
+    if (updateData.status !== undefined && updateData.status !== currentTask.status) {
+      try {
+        const { mapTaskStatusToKanbanStatus } = await import("@/lib/kanban/task-mapper")
+        
+        // Busca todos os cards vinculados a esta tarefa
+        const kanbanCards = await prisma.kanbanCard.findMany({
+          where: {
+            taskId: taskId,
+          },
+          include: {
+            board: {
+              include: {
+                columns: {
+                  orderBy: { order: "asc" },
+                },
+              },
+            },
+          },
+        })
+
+        // Para cada card, move para a coluna correspondente ao novo status
+        for (const card of kanbanCards) {
+          const kanbanStatus = mapTaskStatusToKanbanStatus(updateData.status)
+          const targetColumn = card.board.columns.find((col) => col.status === kanbanStatus)
+
+          if (targetColumn && targetColumn.id !== card.columnId) {
+            // Calcula a nova ordem na coluna destino
+            const lastCard = await prisma.kanbanCard.findFirst({
+              where: { columnId: targetColumn.id },
+              orderBy: { order: "desc" },
+              select: { order: true },
+            })
+
+            const newOrder = lastCard ? lastCard.order + 1 : 0
+
+            // Atualiza o card
+            await prisma.kanbanCard.update({
+              where: { id: card.id },
+              data: {
+                columnId: targetColumn.id,
+                order: newOrder,
+              },
+            })
+          }
+        }
+      } catch (kanbanError) {
+        // Log do erro mas não falha a atualização da tarefa
+        console.error("Erro ao sincronizar tarefa com Kanban:", kanbanError)
+      }
+    }
+
     // Calcular loggedHours (soma dos timeEntries)
     const loggedHours = updatedTask.timeEntries.reduce(
       (sum, entry) => sum + Number(entry.hours),

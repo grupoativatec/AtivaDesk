@@ -94,6 +94,13 @@ enum TaskActivityType {
   TIME_ENTRY_DELETED
 }
 
+enum KanbanStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
 enum NotificationType {
   NEW_TICKET
   NEW_MESSAGE
@@ -138,6 +145,11 @@ model User {
   assignedTickets Ticket[]        @relation("AssignedTickets")
   messages        TicketMessage[]
   notifications   Notification[]
+
+  // Kanban
+  createdKanbanBoards   KanbanBoard[]  @relation("KanbanBoardCreatedBy")
+  kanbanCardAssignments KanbanCard[]
+  kanbanMemberships     KanbanMember[]
 }
 
 model Ticket {
@@ -265,6 +277,7 @@ model Project {
 
   tasks         Task[]
   notifications Notification[]
+  kanbanBoards  KanbanBoard[]  @relation("KanbanBoardProject")
 
   @@index([status])
   @@index([unit])
@@ -297,6 +310,7 @@ model Task {
   timeEntries   TimeEntry[]
   activity      TaskActivityEvent[]
   notifications Notification[]
+  kanbanCards   KanbanCard[]        @relation("KanbanCardTask")
 
   @@index([projectId])
   @@index([status])
@@ -349,4 +363,98 @@ model TaskActivityEvent {
 
   @@index([taskId, createdAt])
   @@index([actorId])
+}
+
+model KanbanBoard {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  projectId   String?
+  project     Project? @relation("KanbanBoardProject", fields: [projectId], references: [id], onDelete: SetNull)
+
+  createdById String
+  createdBy   User   @relation("KanbanBoardCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  columns KanbanColumn[]
+  cards   KanbanCard[]
+  members KanbanMember[]
+
+  @@index([projectId])
+  @@index([createdById])
+  @@index([updatedAt])
+}
+
+model KanbanColumn {
+  id      String      @id @default(uuid())
+  boardId String
+  board   KanbanBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  status KanbanStatus
+  title  String
+  order  Int
+
+  cards KanbanCard[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([boardId, status]) // um status por board (no seu modelo atual)
+  @@index([boardId, order])
+}
+
+model KanbanCard {
+  id String @id @default(uuid())
+
+  boardId String
+  board   KanbanBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  columnId String
+  column   KanbanColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  // vínculo opcional com Task (para puxar tarefa de Project)
+  taskId String?
+  task   Task?   @relation("KanbanCardTask", fields: [taskId], references: [id], onDelete: SetNull)
+
+  title       String
+  description String?
+  priority    TaskPriority? // reaproveita enum existente (LOW/MEDIUM/HIGH/URGENT)
+  dueDate     DateTime?
+  tags        String[]      @default([])
+
+  // assignee "rápido" (opcional): como você já tem assignees em Task, aqui pode ser simples
+  assigneeId String?
+  assignee   User?   @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  order Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([boardId, taskId]) // impede vincular a mesma task duas vezes no mesmo board
+  @@index([boardId, columnId, order])
+  @@index([taskId])
+  @@index([assigneeId])
+}
+
+enum KanbanMemberRole {
+  VIEWER
+  EDITOR
+  ADMIN
+}
+
+model KanbanMember {
+  boardId String
+  userId  String
+  role    KanbanMemberRole @default(EDITOR)
+
+  board KanbanBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([boardId, userId])
+  @@index([userId])
 }
