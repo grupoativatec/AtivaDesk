@@ -31,11 +31,18 @@ export async function PATCH(
 
     const { cardId } = await params
 
-    // Busca o card com o board
+    // Busca o card com o board e task
     const card = await prisma.kanbanCard.findUnique({
       where: { id: cardId },
       include: {
         board: true,
+        task: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+          },
+        },
       },
     })
 
@@ -81,39 +88,90 @@ export async function PATCH(
       }
     }
 
-    // Atualiza o card
-    const updatedCard = await prisma.kanbanCard.update({
-      where: { id: cardId },
-      data: {
-        ...(title !== undefined && { title }),
-        ...(description !== undefined && { description }),
-        ...(priority !== undefined && { priority }),
-        ...(dueDate !== undefined && {
-          dueDate: dueDate === null || dueDate === "" ? null : new Date(dueDate),
-        }),
-        ...(tags !== undefined && { tags }),
-        ...(assigneeId !== undefined && { assigneeId }),
-      },
-      include: {
-        assignee: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+    // Atualiza o card e sincroniza com Task se necessário
+    const updatedCard = await prisma.$transaction(async (tx) => {
+      // Atualiza o card
+      const updated = await tx.kanbanCard.update({
+        where: { id: cardId },
+        data: {
+          ...(title !== undefined && { title }),
+          ...(description !== undefined && { description }),
+          ...(priority !== undefined && { priority }),
+          ...(dueDate !== undefined && {
+            dueDate: dueDate === null || dueDate === "" ? null : new Date(dueDate),
+          }),
+          ...(tags !== undefined && { tags }),
+          ...(assigneeId !== undefined && { assigneeId }),
         },
-        column: true,
-        board: {
-          include: {
-            project: {
-              select: {
-                id: true,
-                name: true,
+        include: {
+          assignee: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          column: true,
+          board: {
+            include: {
+              project: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
         },
-      },
+      })
+
+      // Se o card está vinculado a uma Task, sincroniza as mudanças
+      if (card.taskId && (title !== undefined || description !== undefined)) {
+        const taskUpdateData: any = {}
+        const changes: string[] = []
+        
+        if (title !== undefined && title.trim() !== (card.task?.title || "")) {
+          taskUpdateData.title = title.trim()
+          changes.push(`título de "${card.task?.title || ""}" para "${title.trim()}"`)
+        }
+        
+        const currentDescription = card.task?.description || null
+        const newDescription = description !== undefined ? (description.trim() || null) : undefined
+        
+        if (description !== undefined && newDescription !== currentDescription) {
+          taskUpdateData.description = newDescription
+          changes.push(`descrição de "${currentDescription || "vazio"}" para "${newDescription || "vazio"}"`)
+        }
+
+        // Atualiza a Task se houver mudanças
+        if (Object.keys(taskUpdateData).length > 0) {
+          await tx.task.update({
+            where: { id: card.taskId },
+            data: taskUpdateData,
+          })
+
+          // Registra evento de atividade na Task
+          const changeMessage = changes.length > 0 
+            ? `${user.name} alterou o ${changes.join(" e o ")} via Kanban`
+            : `${user.name} atualizou a tarefa via Kanban`
+          
+          await tx.taskActivityEvent.create({
+            data: {
+              taskId: card.taskId,
+              type: "TASK_UPDATED",
+              actorId: user.id,
+              message: changeMessage,
+              meta: {
+                fields: Object.keys(taskUpdateData),
+                changes: taskUpdateData,
+                source: "kanban",
+              },
+            },
+          })
+        }
+      }
+
+      return updated
     })
 
     const transformedCard = transformCard(updatedCard)
