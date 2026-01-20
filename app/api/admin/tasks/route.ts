@@ -439,8 +439,8 @@ export async function POST(req: Request) {
           notifyTaskAssigned(
             task.id,
             task.title,
-            project?.id || null,
-            project?.name || null,
+            project?.id ?? "",
+            project?.name ?? "",
             assignee.user.id
           )
         );

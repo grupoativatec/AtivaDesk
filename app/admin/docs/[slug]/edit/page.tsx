@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { DocsShell } from "@/components/features/docs/DocsShell"
 import { DocEditor, DocPreview } from "@/components/features/docs/DocEditor"
@@ -28,7 +28,8 @@ import {
 } from "@/components/ui/alert-dialog"
 
 const CURRENT_USER_ID = "u-1"
-const CURRENT_USER_NAME = "Michael Silva"
+
+type EditorTab = "edit" | "preview" | "metadata"
 
 function generateSlug(title: string): string {
   return title
@@ -39,22 +40,25 @@ function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, "")
 }
 
-type EditorTab = "edit" | "preview" | "metadata"
-
-export default function NewDocPage() {
-  const docs = useDocsStore((state) => state.docs)
-  const addDoc = useDocsStore((state) => state.addDoc)
+export default function DocEditPage() {
+  const params = useParams()
+  const router = useRouter()
+  const slug = params.slug as string
   const isMobile = useIsMobile()
+
+  const docs = useDocsStore((state) => state.docs)
+  const getDocBySlug = useDocsStore((state) => state.getDocBySlug)
+  const updateDoc = useDocsStore((state) => state.updateDoc)
 
   function isSlugUnique(slug: string, excludeId?: string): boolean {
     return !docs.some((doc) => doc.slug === slug && doc.id !== excludeId)
   }
 
-  const router = useRouter()
+  const [doc, setDoc] = useState<ReturnType<typeof getDocBySlug> | null>(null)
   const [title, setTitle] = useState("")
   const [summary, setSummary] = useState("")
   const [content, setContent] = useState("")
-  const [slug, setSlug] = useState("")
+  const [docSlug, setDocSlug] = useState("")
   const [category, setCategory] = useState<"Infra" | "Sistemas" | "Processos" | "Segurança" | "Geral">("Geral")
   const [status, setStatus] = useState<DocStatus>("draft")
   const [isDirty, setIsDirty] = useState(false)
@@ -63,32 +67,51 @@ export default function NewDocPage() {
   const [slugError, setSlugError] = useState<string>("")
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false)
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<EditorTab>("edit")
 
-  // Auto-gerar slug a partir do título (apenas se slug estiver vazio)
+  // Carregar documento
   useEffect(() => {
-    if (title && !slug.trim()) {
-      const generated = generateSlug(title)
-      setSlug(generated)
-      setIsDirty(true)
+    const foundDoc = getDocBySlug(slug)
+    if (foundDoc) {
+      setDoc(foundDoc)
+      setTitle(foundDoc.title)
+      setSummary(foundDoc.summary)
+      setContent(foundDoc.content || "")
+      setDocSlug(foundDoc.slug)
+      setCategory(foundDoc.category)
+      setStatus(foundDoc.status)
+      setIsLoading(false)
+    } else {
+      router.push("/admin/docs")
     }
-  }, [title])
+  }, [slug, router])
 
-  // Validar slug único
+  // Validar slug único (excluindo o documento atual)
   useEffect(() => {
-    if (slug) {
-      if (!isSlugUnique(slug)) {
+    if (docSlug && doc) {
+      if (docSlug !== doc.slug && !isSlugUnique(docSlug, doc.id)) {
         setSlugError("Este slug já está em uso")
       } else {
         setSlugError("")
       }
     }
-  }, [slug, docs])
+  }, [docSlug, doc, docs])
 
   // Detectar mudanças
   useEffect(() => {
-    setIsDirty(true)
-  }, [title, summary, content, slug, category, status])
+    if (doc) {
+      const hasChanges =
+        title !== doc.title ||
+        summary !== doc.summary ||
+        content !== (doc.content || "") ||
+        docSlug !== doc.slug ||
+        category !== doc.category ||
+        status !== doc.status
+
+      setIsDirty(hasChanges)
+    }
+  }, [title, summary, content, docSlug, category, status, doc])
 
   // Aviso ao sair com mudanças não salvas
   useEffect(() => {
@@ -117,7 +140,7 @@ export default function NewDocPage() {
       return
     }
 
-    if (!slug.trim()) {
+    if (!docSlug.trim()) {
       alert("O slug é obrigatório")
       return
     }
@@ -127,38 +150,40 @@ export default function NewDocPage() {
       return
     }
 
+    if (!doc) return
+
     setIsSaving(true)
 
     // Simular salvamento
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    // Salvar no store
-    const docId = addDoc({
+    // Atualizar no store
+    updateDoc(doc.id, {
       title: title.trim(),
-      slug: slug.trim(),
+      slug: docSlug.trim(),
       summary: summary.trim(),
       content: content.trim(),
       category,
       tags: [], // Tags removidas da UI, mas mantidas no tipo para compatibilidade
       status: newStatus,
-      authorId: CURRENT_USER_ID,
-      authorName: CURRENT_USER_NAME,
     })
 
     setLastSaved(new Date())
     setIsDirty(false)
     setIsSaving(false)
 
-    // Redireciona para a página de leitura
-    router.push(`/admin/docs/${slug}`)
+    // Se o slug mudou, redireciona para a nova URL
+    if (docSlug !== slug) {
+      router.push(`/admin/docs/${docSlug}`)
+    }
   }
 
   const handleCancel = () => {
     if (isDirty) {
       setShowUnsavedDialog(true)
-      setPendingNavigation("/admin/docs")
+      setPendingNavigation(`/admin/docs/${slug}`)
     } else {
-      router.push("/admin/docs")
+      router.push(`/admin/docs/${slug}`)
     }
   }
 
@@ -169,11 +194,13 @@ export default function NewDocPage() {
     }
   }
 
-  const breadcrumbItems = [
+  const breadcrumbItems = doc ? [
     { label: "Home", href: "/admin/dashboard" },
     { label: "Documentação", href: "/admin/docs" },
-    { label: "Novo" },
-  ]
+    { label: doc.category },
+    { label: doc.title, href: `/admin/docs/${doc.slug}` },
+    { label: "Editar" },
+  ] : undefined
 
   const editorActions = {
     isDirty,
@@ -185,18 +212,30 @@ export default function NewDocPage() {
     onPublish: () => handleSave("published"),
   }
 
+  if (isLoading || !doc) {
+    return (
+      <DocsShell pageTitle="Carregando..." hideSidebar={true}>
+        <Card>
+          <div className="p-6 text-center">
+            <p className="text-muted-foreground text-sm">Carregando documento...</p>
+          </div>
+        </Card>
+      </DocsShell>
+    )
+  }
+
   return (
     <>
       <DocsShell
-        pageTitle="Novo documento"
+        pageTitle="Editar documento"
         breadcrumbItems={breadcrumbItems}
         editorActions={editorActions}
         hideSidebar={true}
       >
-        {/* Template selector - oculto no mobile para economizar espaço */}
+        {/* Template selector - oculto no mobile */}
         <div className="mb-6 hidden sm:block">
           <Label htmlFor="template-select" className="text-sm font-medium mb-2 block">
-            Template (opcional)
+            Aplicar template (substitui conteúdo atual)
           </Label>
           <Select onValueChange={handleTemplateSelect}>
             <SelectTrigger id="template-select" className="w-full sm:w-64">
@@ -282,10 +321,10 @@ export default function NewDocPage() {
                 <Card>
                   <div className="p-4">
                     <DocMetadataPanel
-                      slug={slug}
+                      slug={docSlug}
                       category={category}
                       status={status}
-                      onSlugChange={setSlug}
+                      onSlugChange={setDocSlug}
                       onCategoryChange={setCategory}
                       onStatusChange={setStatus}
                       slugError={slugError}
@@ -317,10 +356,10 @@ export default function NewDocPage() {
               <Card>
                 <div className="p-4">
                   <DocMetadataPanel
-                    slug={slug}
+                    slug={docSlug}
                     category={category}
                     status={status}
-                    onSlugChange={setSlug}
+                    onSlugChange={setDocSlug}
                     onCategoryChange={setCategory}
                     onStatusChange={setStatus}
                     slugError={slugError}
