@@ -9,7 +9,6 @@ export function mapTaskStatusToKanbanStatus(taskStatus: TaskStatus): KanbanStatu
     BACKLOG: "TODO",
     TODO: "TODO",
     IN_PROGRESS: "IN_PROGRESS",
-    BLOCKED: "REVIEW", // Tarefas bloqueadas vão para REVIEW
     DONE: "DONE",
   }
 
@@ -23,7 +22,7 @@ export function mapKanbanStatusToTaskStatus(kanbanStatus: KanbanStatus): TaskSta
   const mapping: Record<KanbanStatus, TaskStatus> = {
     TODO: "TODO",
     IN_PROGRESS: "IN_PROGRESS",
-    REVIEW: "IN_PROGRESS", // REVIEW no Kanban mantém como IN_PROGRESS na Task (ou pode ser BLOCKED)
+    REVIEW: "IN_PROGRESS", // REVIEW no Kanban mantém como IN_PROGRESS na Task
     DONE: "DONE",
   }
 

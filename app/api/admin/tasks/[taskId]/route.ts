@@ -318,9 +318,8 @@ export async function PATCH(
       if (updateData.status !== undefined && updateData.status !== currentTask.status) {
         const statusLabels: Record<TaskStatus, string> = {
           BACKLOG: "Backlog",
-          TODO: "To Do",
+          TODO: "A Fazer",
           IN_PROGRESS: "Em Progresso",
-          BLOCKED: "Bloqueada",
           DONE: "Concluída",
         }
         activityEvents.push({
@@ -458,9 +457,8 @@ export async function PATCH(
     if (updateData.status !== undefined && updateData.status !== currentTask.status) {
       const statusLabels: Record<TaskStatus, string> = {
         BACKLOG: "Backlog",
-        TODO: "To Do",
+        TODO: "A Fazer",
         IN_PROGRESS: "Em Progresso",
-        BLOCKED: "Bloqueada",
         DONE: "Concluída",
       }
       if (updatedTask.project) {

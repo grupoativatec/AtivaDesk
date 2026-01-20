@@ -6,7 +6,7 @@ import { Search } from "lucide-react"
 import { TaskStatus } from "@/components/features/admin/tasks/task.types"
 import { cn } from "@/lib/utils"
 
-type TaskFilterTab = "all" | "todo" | "in_progress" | "blocked" | "done"
+type TaskFilterTab = "all" | "todo" | "in_progress" | "done"
 
 interface ProjectTasksFiltersProps {
   activeTab: TaskFilterTab
@@ -19,7 +19,6 @@ const TABS: Array<{ id: TaskFilterTab; label: string }> = [
   { id: "all", label: "Todas" },
   { id: "todo", label: "A Fazer" },
   { id: "in_progress", label: "Em Progresso" },
-  { id: "blocked", label: "Bloqueadas" },
   { id: "done", label: "Concluídas" },
 ]
 
@@ -69,8 +68,6 @@ export function getStatusFilterFromTab(tab: TaskFilterTab): TaskStatus[] | undef
       return [TaskStatus.BACKLOG, TaskStatus.TODO]
     case "in_progress":
       return [TaskStatus.IN_PROGRESS]
-    case "blocked":
-      return [TaskStatus.BLOCKED]
     case "done":
       return [TaskStatus.DONE]
     default:

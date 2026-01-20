@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { TaskStatus } from "./task.types"
-import { Loader2, AlertCircle, CheckCircle2, Ban, Circle } from "lucide-react"
+import { Loader2, AlertCircle, CheckCircle2, Circle } from "lucide-react"
 
 const STATUS_CONFIG: Record<
   TaskStatus,
@@ -25,11 +25,6 @@ const STATUS_CONFIG: Record<
     label: "Em Andamento",
     color: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/10 dark:text-yellow-500/60 dark:border-yellow-900/20",
     icon: Loader2,
-  },
-  BLOCKED: {
-    label: "Bloqueada",
-    color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/10 dark:text-red-500/60 dark:border-red-900/20",
-    icon: Ban,
   },
   DONE: {
     label: "Concluída",
@@ -66,6 +61,5 @@ export const statusLabelMap: Record<TaskStatus, string> = {
   BACKLOG: "Backlog",
   TODO: "A Fazer",
   IN_PROGRESS: "Em Andamento",
-  BLOCKED: "Bloqueada",
   DONE: "Concluída",
 }

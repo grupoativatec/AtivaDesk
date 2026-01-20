@@ -305,11 +305,10 @@ export function CreateTaskModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={TaskStatus.BACKLOG}>Backlog</SelectItem>
-                  <SelectItem value={TaskStatus.TODO}>To Do</SelectItem>
+                  <SelectItem value={TaskStatus.TODO}>A Fazer</SelectItem>
                   <SelectItem value={TaskStatus.IN_PROGRESS}>
                     Em Progresso
                   </SelectItem>
-                  <SelectItem value={TaskStatus.BLOCKED}>Bloqueada</SelectItem>
                 </SelectContent>
               </Select>
               {errors.status && (

@@ -6,7 +6,7 @@ import { ProjectUnitBadge } from "../ProjectUnitBadge"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { Calendar, CheckCircle2, Ban, Clock } from "lucide-react"
+import { Calendar, CheckCircle2, Clock } from "lucide-react"
 import { TaskListItem } from "@/components/features/admin/tasks/task.types"
 
 interface ProjectSummaryPanelProps {
@@ -24,9 +24,8 @@ export function ProjectSummaryPanel({ project, tasks, totalHours }: ProjectSumma
   const updatedDate = new Date(project.updatedAt)
 
   const taskDistribution = {
-    active: tasks.filter((t) => t.status !== "DONE" && t.status !== "BLOCKED").length,
+    active: tasks.filter((t) => t.status !== "DONE").length,
     done: tasks.filter((t) => t.status === "DONE").length,
-    blocked: tasks.filter((t) => t.status === "BLOCKED").length,
   }
 
   return (
@@ -51,7 +50,7 @@ export function ProjectSummaryPanel({ project, tasks, totalHours }: ProjectSumma
         {/* Distribuição de Tarefas - Mobile compacto */}
         <div className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-3 shadow-sm dark:shadow-none">
           <h3 className="text-xs font-semibold text-foreground mb-2.5">Tarefas</h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <div className="text-center">
               <div className="text-lg font-bold text-foreground">{taskDistribution.active}</div>
               <div className="text-[10px] text-muted-foreground mt-0.5">Ativas</div>
@@ -59,10 +58,6 @@ export function ProjectSummaryPanel({ project, tasks, totalHours }: ProjectSumma
             <div className="text-center">
               <div className="text-lg font-bold text-green-600 dark:text-green-500">{taskDistribution.done}</div>
               <div className="text-[10px] text-muted-foreground mt-0.5">Concluídas</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-red-600 dark:text-red-500">{taskDistribution.blocked}</div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">Bloqueadas</div>
             </div>
           </div>
         </div>
@@ -160,13 +155,6 @@ export function ProjectSummaryPanel({ project, tasks, totalHours }: ProjectSumma
                 <span className="text-muted-foreground">Concluídas</span>
               </div>
               <span className="font-semibold text-foreground">{taskDistribution.done}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <Ban className="size-3.5 text-red-600 dark:text-red-500" />
-                <span className="text-muted-foreground">Bloqueadas</span>
-              </div>
-              <span className="font-semibold text-foreground">{taskDistribution.blocked}</span>
             </div>
           </div>
         </div>
