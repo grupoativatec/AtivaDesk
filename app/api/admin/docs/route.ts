@@ -38,6 +38,7 @@ export async function GET(req: Request) {
     const status = searchParams.get("status")
     const archived = searchParams.get("archived")
     const onlyMine = searchParams.get("onlyMine") === "true"
+    const favorites = searchParams.get("favorites") === "true"
     const searchQuery = searchParams.get("search")?.trim() || ""
     const sortBy = searchParams.get("sortBy") || "recent"
 
@@ -80,6 +81,30 @@ export async function GET(req: Request) {
       where.authorId = user.id
     }
 
+    // Filtro de favoritos
+    if (favorites) {
+      // Buscar IDs dos documentos favoritados pelo usuário
+      const favoriteDocs = await prisma.docFavorite.findMany({
+        where: {
+          userId: user.id,
+        },
+        select: {
+          docId: true,
+        },
+      })
+
+      const favoriteDocIds = favoriteDocs.map((f) => f.docId)
+
+      if (favoriteDocIds.length === 0) {
+        // Se não há favoritos, retornar array vazio
+        return NextResponse.json({ docs: [] })
+      }
+
+      where.id = {
+        in: favoriteDocIds,
+      }
+    }
+
     // Busca por título ou resumo
     if (searchQuery) {
       where.OR = [
@@ -117,6 +142,14 @@ export async function GET(req: Request) {
             name: true,
           },
         },
+        favoritedBy: {
+          where: {
+            userId: user.id,
+          },
+          select: {
+            userId: true,
+          },
+        },
       },
       orderBy,
     })
@@ -136,6 +169,7 @@ export async function GET(req: Request) {
       views: doc.views,
       archived: doc.archived ?? false,
       content: doc.content,
+      isFavorite: doc.favoritedBy && doc.favoritedBy.length > 0,
     }))
 
     return NextResponse.json({ docs: mappedDocs })

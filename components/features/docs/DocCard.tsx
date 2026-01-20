@@ -1,12 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Star } from "lucide-react"
-import { useDocsStore } from "@/lib/stores/docs-store"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 export type DocStatus = "draft" | "published"
 
@@ -24,6 +25,7 @@ export interface Doc {
   views: number
   archived?: boolean
   content?: string
+  isFavorite?: boolean
 }
 
 function formatUpdatedAt(updatedAt: string): string {
@@ -42,16 +44,43 @@ interface DocCardProps {
 }
 
 export function DocCard({ doc }: DocCardProps) {
-  const favoriteDocIds = useDocsStore((state) => state.favoriteDocIds)
-  const toggleFavorite = useDocsStore((state) => state.toggleFavorite)
-  const isFavorite = favoriteDocIds.includes(doc.id)
+  const [isFavorite, setIsFavorite] = useState(doc.isFavorite ?? false)
+  const [isToggling, setIsToggling] = useState(false)
 
   const statusLabel = doc.status === "published" ? "Publicado" : "Rascunho"
 
-  const handleToggleFavorite = (e: React.MouseEvent) => {
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    toggleFavorite(doc.id)
+
+    if (isToggling) return
+
+    try {
+      setIsToggling(true)
+      const newFavoriteState = !isFavorite
+
+      const method = newFavoriteState ? "POST" : "DELETE"
+      const res = await fetch(`/api/admin/docs/${doc.id}/favorite`, {
+        method,
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Erro ao atualizar favorito")
+      }
+
+      setIsFavorite(newFavoriteState)
+      toast.success(
+        newFavoriteState
+          ? "Adicionado aos favoritos"
+          : "Removido dos favoritos"
+      )
+    } catch (error: any) {
+      console.error("Erro ao atualizar favorito:", error)
+      toast.error(error.message || "Erro ao atualizar favorito")
+    } finally {
+      setIsToggling(false)
+    }
   }
 
   return (
@@ -61,7 +90,7 @@ export function DocCard({ doc }: DocCardProps) {
           <CardTitle className="text-base md:text-lg font-semibold leading-snug flex-1">
             <Link
               href={`/admin/docs/${doc.slug}`}
-              className="hover:text-primary transition-colors line-clamp-2 block min-h-[2.5rem]"
+              className="hover:text-primary transition-colors line-clamp-2 block min-h-10"
             >
               {doc.title}
             </Link>

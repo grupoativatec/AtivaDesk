@@ -45,6 +45,14 @@ export async function GET(
             name: true,
           },
         },
+        favoritedBy: {
+          where: {
+            userId: user.id,
+          },
+          select: {
+            userId: true,
+          },
+        },
       },
     })
 
@@ -70,6 +78,7 @@ export async function GET(
       views: document.views,
       archived: document.archived ?? false,
       content: document.content,
+      isFavorite: document.favoritedBy.length > 0,
     }
 
     return NextResponse.json({ doc: mappedDoc })

@@ -1,21 +1,58 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
 import { DocsShell } from "@/components/features/docs/DocsShell"
-import { DocCard } from "@/components/features/docs/DocCard"
-import { useDocsStore } from "@/lib/stores/docs-store"
+import { DocCard, type Doc } from "@/components/features/docs/DocCard"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { FileText, Star } from "lucide-react"
 import Link from "next/link"
+import { toast } from "sonner"
 
 export default function FavoritesPage() {
-  const getFavoriteDocs = useDocsStore((state) => state.getFavoriteDocs)
-  const favoriteDocs = useMemo(() => getFavoriteDocs(), [getFavoriteDocs])
+  const [favoriteDocs, setFavoriteDocs] = useState<Doc[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchFavoriteDocs = async () => {
+      try {
+        setIsLoading(true)
+        const res = await fetch("/api/admin/docs?favorites=true")
+        const data = await res.json()
+
+        if (!res.ok) {
+          throw new Error(data.error || "Erro ao buscar favoritos")
+        }
+
+        setFavoriteDocs(data.docs || [])
+      } catch (error: any) {
+        console.error("Erro ao buscar favoritos:", error)
+        toast.error(error.message || "Erro ao carregar favoritos")
+        setFavoriteDocs([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchFavoriteDocs()
+  }, [])
 
   return (
     <DocsShell pageTitle="Favoritos">
-      {favoriteDocs.length === 0 ? (
+      {isLoading ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-full mb-4" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : favoriteDocs.length === 0 ? (
         <Card>
           <CardContent className="py-16 flex flex-col items-center justify-center gap-4">
             <div className="rounded-full bg-muted p-4">

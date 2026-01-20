@@ -59,7 +59,8 @@ export default function DocReadPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [favoriteDocIds, setFavoriteDocIds] = useState<string[]>([])
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   // Carregar documento
@@ -109,18 +110,20 @@ export default function DocReadPage() {
     fetchDoc()
   }, [slug, router])
 
-  // Carregar favoritos do localStorage
+  // Carregar usuário atual
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("docs-favorites")
-      if (stored) {
-        try {
-          setFavoriteDocIds(JSON.parse(stored))
-        } catch {
-          setFavoriteDocIds([])
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me")
+        const data = await res.json()
+        if (res.ok && data.user) {
+          setCurrentUserId(data.user.id)
         }
+      } catch (error) {
+        console.error("Erro ao buscar usuário atual:", error)
       }
     }
+    fetchCurrentUser()
   }, [])
 
   if (isLoading) {
@@ -200,19 +203,34 @@ export default function DocReadPage() {
 
   // Funções de ação
   const handleToggleFavorite = async () => {
-    const newFavorites = favoriteDocIds.includes(doc.id)
-      ? favoriteDocIds.filter((id) => id !== doc.id)
-      : [...favoriteDocIds, doc.id]
-    
-    setFavoriteDocIds(newFavorites)
-    
-    // Salvar no localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem("docs-favorites", JSON.stringify(newFavorites))
-    }
+    if (isTogglingFavorite || !doc) return
 
-    // TODO: Salvar favorito no backend via API quando implementar
-    toast.success(favoriteDocIds.includes(doc.id) ? "Removido dos favoritos" : "Adicionado aos favoritos")
+    try {
+      setIsTogglingFavorite(true)
+      const newFavoriteState = !isFavorite
+
+      const method = newFavoriteState ? "POST" : "DELETE"
+      const res = await fetch(`/api/admin/docs/${doc.id}/favorite`, {
+        method,
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Erro ao atualizar favorito")
+      }
+
+      setIsFavorite(newFavoriteState)
+      toast.success(
+        newFavoriteState
+          ? "Adicionado aos favoritos"
+          : "Removido dos favoritos"
+      )
+    } catch (error: any) {
+      console.error("Erro ao atualizar favorito:", error)
+      toast.error(error.message || "Erro ao atualizar favorito")
+    } finally {
+      setIsTogglingFavorite(false)
+    }
   }
 
   const handleArchive = async () => {
@@ -288,7 +306,7 @@ export default function DocReadPage() {
   // Ações para o header
   const docActions = {
     onFavorite: handleToggleFavorite,
-    isFavorite: favoriteDocIds.includes(doc.id),
+    isFavorite: isFavorite,
     editUrl: `/admin/docs/${doc.slug}/edit`,
     onCopyLink: () => copyToClipboard(docUrl),
     onArchiveClick: !doc.archived
