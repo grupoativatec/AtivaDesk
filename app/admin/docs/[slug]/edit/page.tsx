@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useDocsStore } from "@/lib/stores/docs-store"
 import { templates, getTemplate, type TemplateType } from "@/lib/docs/templates"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -26,8 +25,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-const CURRENT_USER_ID = "u-1"
+import { toast } from "sonner"
+import type { Doc } from "@/components/features/docs/DocCard"
 
 type EditorTab = "edit" | "preview" | "metadata"
 
@@ -46,15 +45,24 @@ export default function DocEditPage() {
   const slug = params.slug as string
   const isMobile = useIsMobile()
 
-  const docs = useDocsStore((state) => state.docs)
-  const getDocBySlug = useDocsStore((state) => state.getDocBySlug)
-  const updateDoc = useDocsStore((state) => state.updateDoc)
+  const [doc, setDoc] = useState<Doc | null>(null)
 
-  function isSlugUnique(slug: string, excludeId?: string): boolean {
-    return !docs.some((doc) => doc.slug === slug && doc.id !== excludeId)
+  // Verificar se slug é único via API (excluindo o documento atual)
+  const checkSlugUnique = async (newSlug: string, currentDocId: string): Promise<boolean> => {
+    if (newSlug === slug) return true // Mesmo slug, não precisa verificar
+    try {
+      const res = await fetch(`/api/admin/docs/slug/${newSlug}`)
+      if (res.status === 404) return true // Slug disponível
+      if (res.ok) {
+        const data = await res.json()
+        // Se o documento encontrado é o mesmo, está ok
+        return data.doc.id === currentDocId
+      }
+      return false
+    } catch {
+      return true
+    }
   }
-
-  const [doc, setDoc] = useState<ReturnType<typeof getDocBySlug> | null>(null)
   const [title, setTitle] = useState("")
   const [summary, setSummary] = useState("")
   const [content, setContent] = useState("")
@@ -72,31 +80,55 @@ export default function DocEditPage() {
 
   // Carregar documento
   useEffect(() => {
-    const foundDoc = getDocBySlug(slug)
-    if (foundDoc) {
-      setDoc(foundDoc)
-      setTitle(foundDoc.title)
-      setSummary(foundDoc.summary)
-      setContent(foundDoc.content || "")
-      setDocSlug(foundDoc.slug)
-      setCategory(foundDoc.category)
-      setStatus(foundDoc.status)
-      setIsLoading(false)
-    } else {
-      router.push("/admin/docs")
+    const fetchDoc = async () => {
+      try {
+        setIsLoading(true)
+        const res = await fetch(`/api/admin/docs/slug/${slug}`)
+        const data = await res.json()
+
+        if (!res.ok) {
+          if (res.status === 404) {
+            toast.error("Documento não encontrado")
+            router.push("/admin/docs")
+            return
+          }
+          throw new Error(data.error || "Erro ao buscar documento")
+        }
+
+        const foundDoc = data.doc
+        setDoc(foundDoc)
+        setTitle(foundDoc.title)
+        setSummary(foundDoc.summary)
+        setContent(foundDoc.content || "")
+        setDocSlug(foundDoc.slug)
+        setCategory(foundDoc.category)
+        setStatus(foundDoc.status)
+      } catch (error: any) {
+        console.error("Erro ao carregar documento:", error)
+        toast.error(error.message || "Erro ao carregar documento")
+        router.push("/admin/docs")
+      } finally {
+        setIsLoading(false)
+      }
     }
+
+    fetchDoc()
   }, [slug, router])
 
   // Validar slug único (excluindo o documento atual)
   useEffect(() => {
     if (docSlug && doc) {
-      if (docSlug !== doc.slug && !isSlugUnique(docSlug, doc.id)) {
-        setSlugError("Este slug já está em uso")
-      } else {
-        setSlugError("")
-      }
+      const timer = setTimeout(async () => {
+        const isUnique = await checkSlugUnique(docSlug, doc.id)
+        if (!isUnique) {
+          setSlugError("Este slug já está em uso")
+        } else {
+          setSlugError("")
+        }
+      }, 500) // Debounce de 500ms
+      return () => clearTimeout(timer)
     }
-  }, [docSlug, doc, docs])
+  }, [docSlug, doc, slug])
 
   // Detectar mudanças
   useEffect(() => {
@@ -136,17 +168,22 @@ export default function DocEditPage() {
 
   const handleSave = async (newStatus: DocStatus) => {
     if (!title.trim()) {
-      alert("O título é obrigatório")
+      toast.error("O título é obrigatório")
+      return
+    }
+
+    if (!summary.trim()) {
+      toast.error("O resumo é obrigatório")
       return
     }
 
     if (!docSlug.trim()) {
-      alert("O slug é obrigatório")
+      toast.error("O slug é obrigatório")
       return
     }
 
     if (slugError) {
-      alert("Corrija o erro do slug antes de salvar")
+      toast.error("Corrija o erro do slug antes de salvar")
       return
     }
 
@@ -154,27 +191,43 @@ export default function DocEditPage() {
 
     setIsSaving(true)
 
-    // Simular salvamento
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    try {
+      const res = await fetch(`/api/admin/docs/${doc.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          slug: docSlug.trim(),
+          summary: summary.trim(),
+          content: content.trim(),
+          category,
+          tags: [],
+          status: newStatus,
+        }),
+      })
 
-    // Atualizar no store
-    updateDoc(doc.id, {
-      title: title.trim(),
-      slug: docSlug.trim(),
-      summary: summary.trim(),
-      content: content.trim(),
-      category,
-      tags: [], // Tags removidas da UI, mas mantidas no tipo para compatibilidade
-      status: newStatus,
-    })
+      const data = await res.json()
 
-    setLastSaved(new Date())
-    setIsDirty(false)
-    setIsSaving(false)
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao atualizar documento")
+      }
 
-    // Se o slug mudou, redireciona para a nova URL
-    if (docSlug !== slug) {
-      router.push(`/admin/docs/${docSlug}`)
+      setLastSaved(new Date())
+      setIsDirty(false)
+      setIsSaving(false)
+
+      toast.success("Documento atualizado com sucesso!")
+
+      // Se o slug mudou, redireciona para a nova URL
+      if (docSlug !== slug) {
+        router.push(`/admin/docs/${docSlug}`)
+      }
+    } catch (error: any) {
+      console.error("Erro ao atualizar documento:", error)
+      toast.error(error.message || "Erro ao atualizar documento")
+      setIsSaving(false)
     }
   }
 

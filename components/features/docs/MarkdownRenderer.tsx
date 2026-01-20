@@ -106,12 +106,54 @@ export function MarkdownRenderer({
         "[&_table]:w-full [&_table]:border-collapse [&_table]:my-4",
         "[&_th]:border [&_th]:border-border [&_th]:bg-muted [&_th]:px-4 [&_th]:py-2 [&_th]:text-left [&_th]:font-semibold [&_th]:text-foreground",
         "[&_td]:border [&_td]:border-border [&_td]:px-4 [&_td]:py-2 [&_td]:text-foreground/90",
-        "[&_img]:rounded-lg [&_img]:my-4 [&_img]:max-w-full",
+        "[&_img]:rounded-lg [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto",
         "[&_hr]:border-border [&_hr]:my-6",
         className
       )}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          img: ({ node, ...props }) => {
+            const src = props.src || ""
+            
+            // Não renderizar se src estiver vazio
+            if (!src || src.trim() === "") {
+              return null
+            }
+            
+            // Se for uma URL externa ou relativa, usar img normal
+            if (src.startsWith("http") || src.startsWith("/")) {
+              return (
+                <img
+                  {...props}
+                  src={src}
+                  alt={props.alt || ""}
+                  className="rounded-lg my-4 max-w-full h-auto"
+                  loading="lazy"
+                  onError={(e) => {
+                    // Fallback para imagem quebrada
+                    const target = e.target as HTMLImageElement
+                    target.style.display = "none"
+                  }}
+                />
+              )
+            }
+            
+            return (
+              <img
+                {...props}
+                src={src}
+                alt={props.alt || ""}
+                className="rounded-lg my-4 max-w-full h-auto"
+                loading="lazy"
+              />
+            )
+          },
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   )
 }

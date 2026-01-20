@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { DocsShell } from "@/components/features/docs/DocsShell"
 import { DocCard, type Doc } from "@/components/features/docs/DocCard"
-import { useDocsStore } from "@/lib/stores/docs-store"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -21,15 +20,14 @@ import {
 } from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { FileText, Search, Filter, ArrowUpDown, Folder, CheckCircle2, User, X } from "lucide-react"
-
-const CURRENT_USER_ID = "u-1"
+import { toast } from "sonner"
 
 type SortOption = "recent" | "oldest" | "az" | "views"
 
 export default function DocsHubPage() {
-  const docs = useDocsStore((state) => state.docs)
   const isMobile = useIsMobile()
 
+  const [docs, setDocs] = useState<Doc[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string | "all">("all")
   const [onlyPublished, setOnlyPublished] = useState(false)
@@ -39,61 +37,68 @@ export default function DocsHubPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [filtersSheetOpen, setFiltersSheetOpen] = useState(false)
 
+  // Debounce para busca
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
+
   useEffect(() => {
-    const timeout = setTimeout(() => setIsLoading(false), 400)
-    return () => clearTimeout(timeout)
-  }, [])
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
-  const filteredDocs = useMemo(() => {
-    let filtered = [...docs]
+  // Buscar documentos do backend
+  useEffect(() => {
+    const fetchDocs = async () => {
+      try {
+        setIsLoading(true)
+        const params = new URLSearchParams()
 
-    if (showArchivedOnly) {
-      filtered = filtered.filter((doc) => doc.archived)
-    } else {
-      filtered = filtered.filter((doc) => !doc.archived)
-    }
+        if (debouncedSearchQuery.trim()) {
+          params.append("search", debouncedSearchQuery.trim())
+        }
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase()
-      filtered = filtered.filter((doc) => {
-        return (
-          doc.title.toLowerCase().includes(q) ||
-          doc.summary.toLowerCase().includes(q)
-        )
-      })
-    }
+        if (categoryFilter !== "all") {
+          params.append("category", categoryFilter)
+        }
 
-    if (categoryFilter !== "all") {
-      filtered = filtered.filter((doc) => doc.category === categoryFilter)
-    }
+        if (onlyPublished) {
+          params.append("status", "published")
+        }
 
-    if (onlyPublished) {
-      filtered = filtered.filter((doc) => doc.status === "published")
-    }
+        if (onlyMine) {
+          params.append("onlyMine", "true")
+        }
 
-    if (onlyMine) {
-      filtered = filtered.filter((doc) => doc.authorId === CURRENT_USER_ID)
-    }
+        if (showArchivedOnly) {
+          params.append("archived", "true")
+        } else {
+          params.append("archived", "false")
+        }
 
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "recent":
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        case "oldest":
-          return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-        case "az":
-          return a.title.localeCompare(b.title)
-        case "views":
-          return b.views - a.views
-        default:
-          return 0
+        params.append("sortBy", sortBy)
+
+        const res = await fetch(`/api/admin/docs?${params.toString()}`)
+        const data = await res.json()
+
+        if (!res.ok) {
+          throw new Error(data.error || "Erro ao buscar documentos")
+        }
+
+        setDocs(data.docs || [])
+      } catch (error: any) {
+        console.error("Erro ao buscar documentos:", error)
+        toast.error(error.message || "Erro ao carregar documentos")
+        setDocs([])
+      } finally {
+        setIsLoading(false)
       }
-    })
+    }
 
-    return filtered
-  }, [docs, categoryFilter, onlyMine, onlyPublished, searchQuery, showArchivedOnly, sortBy])
+    fetchDocs()
+  }, [debouncedSearchQuery, categoryFilter, onlyPublished, onlyMine, showArchivedOnly, sortBy])
 
-  const docsCount = filteredDocs.length
+  const docsCount = docs.length
 
   // Contar filtros ativos
   const activeFiltersCount = useMemo(() => {
@@ -334,7 +339,7 @@ export default function DocsHubPage() {
             </div>
           )}
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-            {filteredDocs.map((doc) => (
+            {docs.map((doc) => (
               <DocCard key={doc.id} doc={doc} />
             ))}
           </div>

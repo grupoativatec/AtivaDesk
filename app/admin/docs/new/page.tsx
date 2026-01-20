@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useDocsStore } from "@/lib/stores/docs-store"
 import { templates, getTemplate, type TemplateType } from "@/lib/docs/templates"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -26,9 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-const CURRENT_USER_ID = "u-1"
-const CURRENT_USER_NAME = "Michael Silva"
+import { toast } from "sonner"
 
 function generateSlug(title: string): string {
   return title
@@ -42,12 +39,18 @@ function generateSlug(title: string): string {
 type EditorTab = "edit" | "preview" | "metadata"
 
 export default function NewDocPage() {
-  const docs = useDocsStore((state) => state.docs)
-  const addDoc = useDocsStore((state) => state.addDoc)
   const isMobile = useIsMobile()
 
-  function isSlugUnique(slug: string, excludeId?: string): boolean {
-    return !docs.some((doc) => doc.slug === slug && doc.id !== excludeId)
+  // Verificar se slug é único via API
+  const checkSlugUnique = async (slug: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/admin/docs/slug/${slug}`)
+      // Se retornar 404, o slug está disponível
+      return res.status === 404
+    } catch {
+      // Em caso de erro, assumir que está disponível
+      return true
+    }
   }
 
   const router = useRouter()
@@ -77,13 +80,17 @@ export default function NewDocPage() {
   // Validar slug único
   useEffect(() => {
     if (slug) {
-      if (!isSlugUnique(slug)) {
-        setSlugError("Este slug já está em uso")
-      } else {
-        setSlugError("")
-      }
+      const timer = setTimeout(async () => {
+        const isUnique = await checkSlugUnique(slug)
+        if (!isUnique) {
+          setSlugError("Este slug já está em uso")
+        } else {
+          setSlugError("")
+        }
+      }, 500) // Debounce de 500ms
+      return () => clearTimeout(timer)
     }
-  }, [slug, docs])
+  }, [slug])
 
   // Detectar mudanças
   useEffect(() => {
@@ -113,44 +120,63 @@ export default function NewDocPage() {
 
   const handleSave = async (newStatus: DocStatus) => {
     if (!title.trim()) {
-      alert("O título é obrigatório")
+      toast.error("O título é obrigatório")
+      return
+    }
+
+    if (!summary.trim()) {
+      toast.error("O resumo é obrigatório")
       return
     }
 
     if (!slug.trim()) {
-      alert("O slug é obrigatório")
+      toast.error("O slug é obrigatório")
       return
     }
 
     if (slugError) {
-      alert("Corrija o erro do slug antes de salvar")
+      toast.error("Corrija o erro do slug antes de salvar")
       return
     }
 
     setIsSaving(true)
 
-    // Simular salvamento
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    try {
+      const res = await fetch("/api/admin/docs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          slug: slug.trim(),
+          summary: summary.trim(),
+          content: content.trim(),
+          category,
+          tags: [],
+          status: newStatus,
+        }),
+      })
 
-    // Salvar no store
-    const docId = addDoc({
-      title: title.trim(),
-      slug: slug.trim(),
-      summary: summary.trim(),
-      content: content.trim(),
-      category,
-      tags: [], // Tags removidas da UI, mas mantidas no tipo para compatibilidade
-      status: newStatus,
-      authorId: CURRENT_USER_ID,
-      authorName: CURRENT_USER_NAME,
-    })
+      const data = await res.json()
 
-    setLastSaved(new Date())
-    setIsDirty(false)
-    setIsSaving(false)
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao criar documento")
+      }
 
-    // Redireciona para a página de leitura
-    router.push(`/admin/docs/${slug}`)
+      setLastSaved(new Date())
+      setIsDirty(false)
+      setIsSaving(false)
+
+      toast.success("Documento criado com sucesso!")
+      
+      // Redireciona para a página de leitura
+      router.push(`/admin/docs/${slug}`)
+    } catch (error: any) {
+      console.error("Erro ao criar documento:", error)
+      toast.error(error.message || "Erro ao criar documento")
+      setIsSaving(false)
+    }
   }
 
   const handleCancel = () => {

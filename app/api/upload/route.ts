@@ -21,6 +21,11 @@ function validateMagicBytes(magicBytes: Buffer, extension: string, mimeType: str
       )
     },
     ".bmp": (bytes) => bytes.slice(0, 2).toString("ascii") === "BM",
+    ".svg": (bytes) => {
+      // SVG pode começar com <?xml ou <svg
+      const start = bytes.slice(0, 100).toString("utf-8").trim()
+      return start.startsWith("<?xml") || start.startsWith("<svg")
+    },
     ".pdf": (bytes) => bytes.slice(0, 4).toString("ascii") === "%PDF",
   }
 
@@ -85,7 +90,7 @@ export async function POST(req: Request) {
     const extension = extname(file.name).toLowerCase()
     const allowedExtensions = [
       // Imagens
-      ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp",
+      ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg",
       // Documentos
       ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".csv",
     ]
@@ -105,6 +110,7 @@ export async function POST(req: Request) {
       "image/gif",
       "image/webp",
       "image/bmp",
+      "image/svg+xml",
       // Documentos
       "application/pdf",
       "application/msword",
@@ -130,6 +136,7 @@ export async function POST(req: Request) {
       ".gif": ["image/gif"],
       ".webp": ["image/webp"],
       ".bmp": ["image/bmp"],
+      ".svg": ["image/svg+xml"],
       ".pdf": ["application/pdf"],
       ".doc": ["application/msword"],
       ".docx": ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],

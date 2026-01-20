@@ -7,8 +7,6 @@ import { DocsShell } from "@/components/features/docs/DocsShell"
 import { MarkdownRenderer, type Heading } from "@/components/features/docs/MarkdownRenderer"
 import { DocTOC } from "@/components/features/docs/DocTOC"
 import { DocCard, type Doc } from "@/components/features/docs/DocCard"
-import { useDocsStore } from "@/lib/stores/docs-store"
-
 type DocWithContent = Doc & { content: string }
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -25,8 +23,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 
-const CURRENT_USER_ID = "u-1"
-
 function copyToClipboard(text: string) {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text)
@@ -36,17 +32,20 @@ function copyToClipboard(text: string) {
   }
 }
 
-function getRelatedDocs(currentDoc: Doc, allDocs: Doc[], limit: number = 5): Doc[] {
-  const related = allDocs
-    .filter(
-      (doc) =>
-        doc.id !== currentDoc.id &&
-        !doc.archived &&
-        doc.category === currentDoc.category
-    )
-    .slice(0, limit)
-
-  return related
+async function getRelatedDocs(currentDoc: Doc, limit: number = 5): Promise<Doc[]> {
+  try {
+    const res = await fetch(`/api/admin/docs?category=${currentDoc.category}&archived=false&limit=${limit + 1}`)
+    const data = await res.json()
+    
+    if (!res.ok) return []
+    
+    // Filtrar o documento atual e limitar
+    return (data.docs || [])
+      .filter((doc: Doc) => doc.id !== currentDoc.id)
+      .slice(0, limit)
+  } catch {
+    return []
+  }
 }
 
 export default function DocReadPage() {
@@ -54,44 +53,75 @@ export default function DocReadPage() {
   const router = useRouter()
   const slug = params.slug as string
 
-  const getDocBySlug = useDocsStore((state) => state.getDocBySlug)
-  const docs = useDocsStore((state) => state.docs)
-  const archiveDoc = useDocsStore((state) => state.archiveDoc)
-  const unarchiveDoc = useDocsStore((state) => state.unarchiveDoc)
-  const incrementViews = useDocsStore((state) => state.incrementViews)
-  const favoriteDocIds = useDocsStore((state) => state.favoriteDocIds)
-  const toggleFavorite = useDocsStore((state) => state.toggleFavorite)
-
   const [doc, setDoc] = useState<DocWithContent | null>(null)
   const [headings, setHeadings] = useState<Heading[]>([])
   const [relatedDocs, setRelatedDocs] = useState<Doc[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [favoriteDocIds, setFavoriteDocIds] = useState<string[]>([])
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
+  // Carregar documento
   useEffect(() => {
-    setIsLoading(true)
-    const foundDoc = getDocBySlug(slug)
+    const fetchDoc = async () => {
+      try {
+        setIsLoading(true)
+        const res = await fetch(`/api/admin/docs/slug/${slug}`)
+        const data = await res.json()
 
-    if (foundDoc && foundDoc.content) {
-      setDoc(foundDoc as DocWithContent)
-      const related = getRelatedDocs(foundDoc, docs, 5)
-      setRelatedDocs(related)
+        if (!res.ok) {
+          if (res.status === 404) {
+            toast.error("Documento não encontrado")
+            router.push("/admin/docs")
+            return
+          }
+          throw new Error(data.error || "Erro ao buscar documento")
+        }
+
+        const foundDoc = data.doc as DocWithContent
+        setDoc(foundDoc)
+
+        // Buscar documentos relacionados
+        const related = await getRelatedDocs(foundDoc, 5)
+        setRelatedDocs(related)
+
+        // Incrementar views (uma vez por sessão)
+        if (typeof window !== "undefined") {
+          const key = `doc_viewed_${foundDoc.id}`
+          if (!sessionStorage.getItem(key)) {
+            // Incrementar views via API
+            await fetch(`/api/admin/docs/${foundDoc.id}/views`, {
+              method: "POST",
+            }).catch(() => {}) // Ignorar erros
+            sessionStorage.setItem(key, "1")
+          }
+        }
+      } catch (error: any) {
+        console.error("Erro ao carregar documento:", error)
+        toast.error(error.message || "Erro ao carregar documento")
+        router.push("/admin/docs")
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    setIsLoading(false)
-  }, [slug, getDocBySlug, docs])
+    fetchDoc()
+  }, [slug, router])
 
-  // Incrementa views uma vez por sessão
+  // Carregar favoritos do localStorage
   useEffect(() => {
-    if (!doc) return
-    if (typeof window === "undefined") return
-
-    const key = `doc_viewed_${doc.id}`
-    if (sessionStorage.getItem(key)) return
-
-    incrementViews(doc.id)
-    sessionStorage.setItem(key, "1")
-  }, [doc, incrementViews])
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("docs-favorites")
+      if (stored) {
+        try {
+          setFavoriteDocIds(JSON.parse(stored))
+        } catch {
+          setFavoriteDocIds([])
+        }
+      }
+    }
+  }, [])
 
   if (isLoading) {
     return (
@@ -127,7 +157,7 @@ export default function DocReadPage() {
   }
 
   // Verificar permissão para drafts
-  const canViewDraft = doc.status === "published" || doc.authorId === CURRENT_USER_ID
+  const canViewDraft = doc ? (doc.status === "published" || doc.authorId === currentUserId) : false
 
   if (!canViewDraft) {
     return (
@@ -168,9 +198,96 @@ export default function DocReadPage() {
     archived: doc.archived,
   }
 
+  // Funções de ação
+  const handleToggleFavorite = async () => {
+    const newFavorites = favoriteDocIds.includes(doc.id)
+      ? favoriteDocIds.filter((id) => id !== doc.id)
+      : [...favoriteDocIds, doc.id]
+    
+    setFavoriteDocIds(newFavorites)
+    
+    // Salvar no localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("docs-favorites", JSON.stringify(newFavorites))
+    }
+
+    // TODO: Salvar favorito no backend via API quando implementar
+    toast.success(favoriteDocIds.includes(doc.id) ? "Removido dos favoritos" : "Adicionado aos favoritos")
+  }
+
+  const handleArchive = async () => {
+    try {
+      const res = await fetch(`/api/admin/docs/${doc.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          archived: true,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Erro ao arquivar documento")
+      }
+
+      toast.success("Documento arquivado")
+      router.push("/admin/docs")
+    } catch (error: any) {
+      console.error("Erro ao arquivar documento:", error)
+      toast.error(error.message || "Erro ao arquivar documento")
+    }
+  }
+
+  const handleUnarchive = async () => {
+    try {
+      const res = await fetch(`/api/admin/docs/${doc.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          archived: false,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Erro ao restaurar documento")
+      }
+
+      toast.success("Documento restaurado")
+      // Recarregar a página
+      router.refresh()
+    } catch (error: any) {
+      console.error("Erro ao restaurar documento:", error)
+      toast.error(error.message || "Erro ao restaurar documento")
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`/api/admin/docs/${doc.id}`, {
+        method: "DELETE",
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Erro ao excluir documento")
+      }
+
+      toast.success("Documento excluído com sucesso")
+      router.push("/admin/docs")
+    } catch (error: any) {
+      console.error("Erro ao excluir documento:", error)
+      toast.error(error.message || "Erro ao excluir documento")
+    }
+  }
+
   // Ações para o header
   const docActions = {
-    onFavorite: () => toggleFavorite(doc.id),
+    onFavorite: handleToggleFavorite,
     isFavorite: favoriteDocIds.includes(doc.id),
     editUrl: `/admin/docs/${doc.slug}/edit`,
     onCopyLink: () => copyToClipboard(docUrl),
@@ -178,12 +295,10 @@ export default function DocReadPage() {
       ? () => setIsArchiveDialogOpen(true)
       : undefined,
     onUnarchive: doc.archived
-      ? () => {
-        unarchiveDoc(doc.id)
-        toast.success("Documento restaurado")
-      }
+      ? handleUnarchive
       : undefined,
     isArchived: doc.archived,
+    onDelete: () => setIsDeleteDialogOpen(true),
   }
 
   const sidebarContent = (
@@ -249,19 +364,34 @@ export default function DocReadPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  archiveDoc(doc.id)
-                  toast.success("Documento arquivado")
-                  router.push("/admin/docs")
-                }}
-              >
+              <AlertDialogAction onClick={handleArchive}>
                 Arquivar
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      {/* Dialog de exclusão (fora do DocsShell) */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir documento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não poderá ser desfeita. O documento será removido
+              permanentemente da documentação.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

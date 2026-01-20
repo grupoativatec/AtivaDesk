@@ -121,6 +121,19 @@ enum NotificationStatus {
   READ
 }
 
+enum DocCategory {
+  INFRA
+  SISTEMAS
+  PROCESSOS
+  SEGURANCA
+  GERAL
+}
+
+enum DocStatus {
+  DRAFT
+  PUBLISHED
+}
+
 model User {
   id       String   @id @default(uuid())
   name     String
@@ -150,6 +163,10 @@ model User {
   createdKanbanBoards   KanbanBoard[]  @relation("KanbanBoardCreatedBy")
   kanbanCardAssignments KanbanCard[]
   kanbanMemberships     KanbanMember[]
+
+  // Documentação
+  createdDocs  Document[]    @relation("DocCreatedBy")
+  favoriteDocs DocFavorite[]
 }
 
 model Ticket {
@@ -457,4 +474,49 @@ model KanbanMember {
 
   @@id([boardId, userId])
   @@index([userId])
+}
+
+model Document {
+  id       String      @id @default(uuid())
+  title    String
+  slug     String      @unique
+  summary  String
+  content  String      @default("")
+  category DocCategory @default(GERAL)
+  status   DocStatus   @default(DRAFT)
+  tags     String[]    @default([])
+  views    Int         @default(0)
+  archived Boolean     @default(false)
+
+  // Autor
+  authorId String
+  author   User   @relation("DocCreatedBy", fields: [authorId], references: [id], onDelete: Restrict)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Favoritos (many-to-many com User)
+  favoritedBy DocFavorite[]
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([category])
+  @@index([status])
+  @@index([archived])
+  @@index([updatedAt])
+  @@index([status, archived, updatedAt]) // Para queries comuns: documentos ativos ordenados por data
+}
+
+model DocFavorite {
+  docId  String
+  userId String
+  doc    Document @relation(fields: [docId], references: [id], onDelete: Cascade)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([docId, userId])
+  @@index([userId])
+  @@index([docId])
 }

@@ -50,6 +50,7 @@ interface DocActions {
   onUnarchive?: () => void
   isArchived?: boolean
   onArchiveClick?: () => void
+  onDelete?: () => void
 }
 
 interface EditorActions {
@@ -420,6 +421,20 @@ export function DocsShell({
                               Arquivar
                             </DropdownMenuItem>
                           )
+                        )}
+                        {docActions.onDelete && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onSelect={(event) => {
+                                event.preventDefault()
+                                docActions.onDelete?.()
+                              }}
+                            >
+                              <X className="size-4 mr-2" />
+                              Excluir documento
+                            </DropdownMenuItem>
+                          </>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
