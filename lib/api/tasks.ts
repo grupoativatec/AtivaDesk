@@ -27,6 +27,7 @@ export interface UpdateTaskRequest {
   priority?: TaskPriority
   estimatedHours?: number
   assigneeIds?: string[]
+  teamId?: string | null // Equipe responsável
   acceptance?: string | null
 }
 
@@ -74,6 +75,7 @@ export interface CreateTaskRequest {
   priority: TaskPriority
   status?: TaskStatus
   assigneeIds?: string[]
+  teamId?: string | null // Equipe responsável
   estimatedHours?: number
   description?: string
 }

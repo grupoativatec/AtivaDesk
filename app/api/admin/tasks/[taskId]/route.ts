@@ -18,6 +18,7 @@ const updateTaskSchema = z.object({
   status: z.nativeEnum(TaskStatus).optional(),
   priority: z.nativeEnum(TaskPriority).optional(),
   assigneeIds: z.array(z.string().min(1)).optional(),
+  teamId: z.string().optional().nullable(), // Equipe responsável
   estimatedHours: z.number().int().min(0).optional(),
   acceptance: z.string().optional().nullable(),
 })
@@ -55,6 +56,12 @@ export async function GET(
       where: { id: taskId },
       include: {
         project: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        team: {
           select: {
             id: true,
             name: true,
@@ -100,6 +107,10 @@ export async function GET(
       project: task.project ? {
         id: task.project.id,
         name: task.project.name,
+      } : null,
+      team: task.team ? {
+        id: task.team.id,
+        name: task.team.name,
       } : null,
       unit: task.unit,
       status: task.status,
@@ -214,14 +225,86 @@ export async function PATCH(
       }
     }
 
+    // Verificar se a equipe existe (se foi alterada)
+    let teamMembers: string[] = []
+    if (updateData.teamId !== undefined) {
+      if (updateData.teamId) {
+        const team = await prisma.team.findUnique({
+          where: { id: updateData.teamId },
+          include: {
+            members: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    role: true,
+                    deletedAt: true,
+                  },
+                },
+              },
+            },
+          },
+        })
+
+        if (!team) {
+          return NextResponse.json(
+            { error: "Equipe não encontrada" },
+            { status: 404 }
+          )
+        }
+
+        // Obter IDs dos membros ativos da equipe
+        teamMembers = team.members
+          .filter((m) => !m.user.deletedAt && m.user.role === "ADMIN")
+          .map((m) => m.user.id)
+      }
+    } else {
+      // Se teamId não foi alterado, manter a equipe atual e seus membros
+      if (currentTask.teamId) {
+        const currentTeam = await prisma.team.findUnique({
+          where: { id: currentTask.teamId },
+          include: {
+            members: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    role: true,
+                    deletedAt: true,
+                  },
+                },
+              },
+            },
+          },
+        })
+
+        if (currentTeam) {
+          teamMembers = currentTeam.members
+            .filter((m) => !m.user.deletedAt && m.user.role === "ADMIN")
+            .map((m) => m.user.id)
+        }
+      }
+    }
+
+    // Combinar assigneeIds com membros da equipe (se assigneeIds foi fornecido)
+    let finalAssigneeIds: string[] = []
+    if (updateData.assigneeIds !== undefined) {
+      // Se assigneeIds foi fornecido, combinar com membros da equipe
+      finalAssigneeIds = Array.from(new Set([...updateData.assigneeIds, ...teamMembers]))
+    } else if (updateData.teamId !== undefined) {
+      // Se apenas teamId foi alterado, usar membros da equipe + assignees atuais
+      const currentAssigneeIds = currentTask.assignees.map((a) => a.user.id)
+      finalAssigneeIds = Array.from(new Set([...currentAssigneeIds, ...teamMembers]))
+    }
+
     // Verificar se os assignees existem (se foram alterados)
-    if (updateData.assigneeIds) {
+    if (finalAssigneeIds.length > 0) {
       const assignees = await prisma.user.findMany({
-        where: { id: { in: updateData.assigneeIds } },
+        where: { id: { in: finalAssigneeIds } },
         select: { id: true },
       })
 
-      if (assignees.length !== updateData.assigneeIds.length) {
+      if (assignees.length !== finalAssigneeIds.length) {
         return NextResponse.json(
           { error: "Um ou mais responsáveis não foram encontrados" },
           { status: 400 }
@@ -257,20 +340,23 @@ export async function PATCH(
     if (updateData.acceptance !== undefined) {
       taskUpdateData.acceptance = updateData.acceptance
     }
+    if (updateData.teamId !== undefined) {
+      taskUpdateData.teamId = updateData.teamId || null
+    }
 
     // Atualizar tarefa e assignees em uma transação
     const updatedTask = await prisma.$transaction(async (tx) => {
-      // Atualizar assignees se necessário
-      if (updateData.assigneeIds !== undefined) {
+      // Atualizar assignees se necessário (assigneeIds foi alterado OU teamId foi alterado)
+      if (updateData.assigneeIds !== undefined || updateData.teamId !== undefined) {
         // Remover assignees antigos
         await tx.taskAssignee.deleteMany({
           where: { taskId },
         })
 
-        // Adicionar novos assignees
-        if (updateData.assigneeIds.length > 0) {
+        // Adicionar novos assignees (combinando assigneeIds e membros da equipe)
+        if (finalAssigneeIds.length > 0) {
           await tx.taskAssignee.createMany({
-            data: updateData.assigneeIds.map((userId) => ({
+            data: finalAssigneeIds.map((userId) => ({
               taskId,
               userId,
             })),
@@ -284,6 +370,12 @@ export async function PATCH(
         data: taskUpdateData,
         include: {
           project: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          team: {
             select: {
               id: true,
               name: true,
@@ -332,27 +424,40 @@ export async function PATCH(
         })
       }
 
-      // Assignees mudaram
-      if (updateData.assigneeIds !== undefined) {
+      // Assignees mudaram (ou equipe mudou)
+      if (updateData.assigneeIds !== undefined || updateData.teamId !== undefined) {
         const currentAssigneeIds = currentTask.assignees.map((a) => a.user.id).sort()
-        const newAssigneeIds = [...updateData.assigneeIds].sort()
+        const newAssigneeIds = finalAssigneeIds.sort()
         const idsChanged = JSON.stringify(currentAssigneeIds) !== JSON.stringify(newAssigneeIds)
 
         if (idsChanged) {
           const currentNames = currentTask.assignees.map((a) => a.user.name).join(", ") || "Nenhum"
-          const newNames = updateData.assigneeIds.length > 0
+          const newNames = finalAssigneeIds.length > 0
             ? (await tx.user.findMany({
-                where: { id: { in: updateData.assigneeIds } },
+                where: { id: { in: finalAssigneeIds } },
                 select: { name: true },
               })).map((u) => u.name).join(", ")
             : "Nenhum"
 
+          let message = `${user.name} alterou os responsáveis de "${currentNames}" para "${newNames}"`
+          if (updateData.teamId !== undefined) {
+            const teamName = updateData.teamId
+              ? (await tx.team.findUnique({ where: { id: updateData.teamId }, select: { name: true } }))?.name || "Equipe"
+              : null
+            if (teamName) {
+              message = `${user.name} atribuiu a equipe "${teamName}" e os responsáveis foram atualizados`
+            } else if (updateData.teamId === null && currentTask.teamId) {
+              message = `${user.name} removeu a equipe e os responsáveis foram atualizados`
+            }
+          }
+
           activityEvents.push({
             type: "TASK_ASSIGNEES_CHANGED",
-            message: `${user.name} alterou os responsáveis de "${currentNames}" para "${newNames}"`,
+            message,
             meta: {
               from: currentAssigneeIds,
-              to: updateData.assigneeIds,
+              to: finalAssigneeIds,
+              teamId: updateData.teamId !== undefined ? updateData.teamId : currentTask.teamId,
             },
           })
         }
@@ -500,11 +605,10 @@ export async function PATCH(
       }
     }
 
-    // Notificar novos assignees
-    if (updateData.assigneeIds !== undefined) {
+    // Notificar novos assignees (incluindo membros da equipe)
+    if (updateData.assigneeIds !== undefined || updateData.teamId !== undefined) {
       const currentAssigneeIds = currentTask.assignees.map((a) => a.user.id)
-      const newAssigneeIds = updateData.assigneeIds
-      const newAssignees = newAssigneeIds.filter((id) => !currentAssigneeIds.includes(id))
+      const newAssignees = finalAssigneeIds.filter((id) => !currentAssigneeIds.includes(id))
 
       for (const assigneeId of newAssignees) {
         if (updatedTask.project) {

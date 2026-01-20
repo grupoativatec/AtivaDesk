@@ -9,6 +9,7 @@ const updateTicketSchema = z.object({
   category: z.enum(["HARDWARE", "SOFTWARE", "NETWORK", "EMAIL", "ACCESS", "OTHER"]).optional(),
   unit: z.enum(["ITJ", "SFS", "FOZ", "DIO", "AOL"]).nullable().optional(),
   assigneeId: z.string().nullable().optional(),
+  teamId: z.string().nullable().optional(), // Equipe responsável
 })
 
 export async function GET(
@@ -52,6 +53,12 @@ export async function GET(
             id: true,
             name: true,
             email: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
           },
         },
         messages: {
@@ -131,6 +138,8 @@ export async function PATCH(
 
     const data = parsed.data
 
+    console.log("Dados recebidos para atualização:", data)
+
     // Verificar se o ticket existe
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
@@ -164,6 +173,45 @@ export async function PATCH(
           )
         }
       }
+    }
+
+    // Verificar se a equipe existe (se foi atribuída)
+    let teamMembers: string[] = []
+    if (data.teamId !== undefined && data.teamId !== null) {
+      console.log("Buscando equipe:", data.teamId)
+      const team = await prisma.team.findUnique({
+        where: { id: data.teamId },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  role: true,
+                  deletedAt: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (!team) {
+        console.error("Equipe não encontrada:", data.teamId)
+        return NextResponse.json(
+          { error: "Equipe não encontrada" },
+          { status: 404 }
+        )
+      }
+
+      console.log("Equipe encontrada:", { id: team.id, name: team.name, membersCount: team.members.length })
+
+      // Obter IDs dos membros ativos da equipe
+      teamMembers = team.members
+        .filter((m) => !m.user.deletedAt && m.user.role === "ADMIN")
+        .map((m) => m.user.id)
+      
+      console.log("Membros da equipe:", teamMembers)
     }
 
     // Preparar dados de atualização
@@ -242,6 +290,31 @@ export async function PATCH(
       }
     }
 
+    if (data.teamId !== undefined) {
+      // Sempre atualizar teamId, mesmo se for null (para remover equipe)
+      // Usar sintaxe explícita para garantir que null seja setado corretamente
+      if (data.teamId === null) {
+        updateData.teamId = null
+      } else {
+        updateData.teamId = data.teamId
+      }
+      console.log("Atualizando teamId:", { 
+        valor: data.teamId, 
+        tipo: typeof data.teamId,
+        ticketAtual: ticket.teamId 
+      })
+      
+      // Se está atribuindo uma equipe e o status é OPEN, mudar para IN_PROGRESS
+      if (data.teamId !== null && ticket.status === "OPEN") {
+        updateData.status = "IN_PROGRESS"
+        if (!ticket.inProgressAt) {
+          updateData.inProgressAt = new Date()
+        }
+      }
+    }
+
+    console.log("Dados de atualização preparados:", updateData)
+
     // Atualizar o ticket
     const updatedTicket = await prisma.ticket.update({
       where: { id: ticketId },
@@ -259,6 +332,12 @@ export async function PATCH(
             id: true,
             name: true,
             email: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
           },
         },
         messages: {
@@ -282,6 +361,42 @@ export async function PATCH(
         },
       },
     })
+
+    console.log("Ticket atualizado:", {
+      id: updatedTicket.id,
+      teamId: updatedTicket.teamId,
+      team: updatedTicket.team,
+    })
+
+    // Notificar membros da equipe se uma equipe foi atribuída
+    if (data.teamId !== undefined && data.teamId !== null && teamMembers.length > 0) {
+      const { notifyTicketAssigned } = await import("@/lib/notifications")
+      
+      // Notificar todos os membros da equipe
+      Promise.all(
+        teamMembers.map((memberId) =>
+          notifyTicketAssigned(
+            ticketId,
+            ticket.title,
+            memberId
+          )
+        )
+      ).catch((err) => {
+        console.error("Erro ao notificar membros da equipe:", err)
+      })
+    }
+    
+    // Notificar assignee individual apenas se não foi atribuído via equipe
+    if (data.assigneeId !== undefined && data.assigneeId !== null && (data.teamId === undefined || data.teamId === null)) {
+      const { notifyTicketAssigned } = await import("@/lib/notifications")
+      notifyTicketAssigned(
+        ticketId,
+        ticket.title,
+        data.assigneeId
+      ).catch((err) => {
+        console.error("Erro ao notificar assignee:", err)
+      })
+    }
 
     return NextResponse.json({
       ok: true,

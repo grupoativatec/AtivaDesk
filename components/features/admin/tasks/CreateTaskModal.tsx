@@ -39,6 +39,7 @@ const createTaskSchema = z.object({
   priority: z.nativeEnum(TaskPriority),
   status: z.nativeEnum(TaskStatus).default(TaskStatus.BACKLOG),
   assigneeIds: z.array(z.string()).default([]),
+  teamId: z.string().optional().nullable(), // Equipe responsável
   estimatedHours: z.number().int().min(0).default(0),
   description: z.string().optional(),
 })
@@ -64,6 +65,7 @@ export function CreateTaskModal({
   const [mounted, setMounted] = useState(false)
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([])
   const [assignees, setAssignees] = useState<{ id: string; name: string }[]>([])
+  const [teams, setTeams] = useState<{ id: string; name: string }[]>([])
 
   useEffect(() => {
     setMounted(true)
@@ -100,15 +102,17 @@ export function CreateTaskModal({
   const selectedPriority = watch("priority")
   const selectedStatus = watch("status")
   const selectedAssigneeIds = watch("assigneeIds")
+  const selectedTeamId = watch("teamId")
 
-  // Carregar projetos e assignees do banco de dados
+  // Carregar projetos, assignees e equipes do banco de dados
   useEffect(() => {
     if (open) {
       async function loadData() {
         try {
-          const [projectsRes, adminsData] = await Promise.all([
+          const [projectsRes, adminsData, teamsRes] = await Promise.all([
             listProjects({ status: "ACTIVE", page: 1, pageSize: 200 }),
             listAdmins(),
+            fetch("/api/admin/teams").then((res) => res.json()).then((data) => data.teams || []).catch(() => []),
           ])
           
           const projectsData = Array.isArray(projectsRes) ? projectsRes : projectsRes.projects
@@ -123,8 +127,13 @@ export function CreateTaskModal({
           setAssignees(
             adminsData.map((admin) => ({ id: admin.id, name: admin.name }))
           )
+
+          // Transformar equipes
+          setTeams(
+            (teamsRes || []).map((team: any) => ({ id: team.id, name: team.name }))
+          )
         } catch (error) {
-          console.error("Erro ao carregar projetos/usuários:", error)
+          console.error("Erro ao carregar projetos/usuários/equipes:", error)
           toast.error("Erro ao carregar dados. Tente novamente.")
         }
       }
@@ -150,6 +159,7 @@ export function CreateTaskModal({
         priority: data.priority,
         status: data.status,
         assigneeIds: data.assigneeIds,
+        teamId: data.teamId || undefined,
         estimatedHours: data.estimatedHours,
         description: data.description,
       })
@@ -337,9 +347,42 @@ export function CreateTaskModal({
             </div>
           </div>
 
+          {/* Equipe */}
+          <div className="space-y-2">
+            <Label htmlFor="teamId">Equipe Responsável</Label>
+            {mounted ? (
+              <Select
+                value={selectedTeamId || "none"}
+                onValueChange={(value) => {
+                  setValue("teamId", value === "none" ? undefined : value, { shouldValidate: true })
+                }}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger id="teamId">
+                  <SelectValue placeholder="Selecione uma equipe (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma equipe</SelectItem>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="h-10 rounded-md border bg-background px-3 py-2 text-sm flex items-center text-muted-foreground">
+                Carregando...
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Ao selecionar uma equipe, todos os membros serão automaticamente atribuídos como responsáveis.
+            </p>
+          </div>
+
           {/* Responsáveis */}
           <div className="space-y-2">
-            <Label htmlFor="assignees">Responsáveis</Label>
+            <Label htmlFor="assignees">Responsáveis Individuais</Label>
             <TaskAssigneesMultiSelect
               assignees={
                 (selectedAssigneeIds || [])
@@ -356,6 +399,9 @@ export function CreateTaskModal({
               }}
               disabled={isSubmitting}
             />
+            <p className="text-xs text-muted-foreground">
+              Você pode adicionar responsáveis individuais além da equipe selecionada.
+            </p>
           </div>
 
           {/* Descrição */}

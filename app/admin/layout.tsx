@@ -1,11 +1,26 @@
+import { redirect } from "next/navigation"
+import { notFound } from "next/navigation"
+import { getCurrentUser } from "@/lib/auth/get-current-user"
 import AppSidebar from "@/components/features/admin/sidebar"
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const user = await getCurrentUser()
+
+  // Se não logado, redireciona para login
+  if (!user) {
+    redirect("/login")
+  }
+
+  // Se não é admin, retorna 404 (não expõe a rota)
+  if (user.role !== "ADMIN") {
+    notFound()
+  }
+
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full">

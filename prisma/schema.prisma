@@ -143,6 +143,8 @@ model User {
 
   tokenVersion Int @default(0)
 
+  deletedAt DateTime? // Soft delete
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -166,6 +168,9 @@ model User {
   // Documentação
   createdDocs  Document[]    @relation("DocCreatedBy")
   favoriteDocs DocFavorite[]
+
+  // Equipes
+  teamMemberships TeamMember[]
 }
 
 model Ticket {
@@ -198,6 +203,10 @@ model Ticket {
   assigneeId String?
   assignee   User?   @relation("AssignedTickets", fields: [assigneeId], references: [id])
 
+  // Equipe responsável
+  teamId String?
+  team  Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
   // Chat/comentários
   messages TicketMessage[]
 
@@ -211,6 +220,7 @@ model Ticket {
   @@index([priority])
   @@index([openedById])
   @@index([assigneeId])
+  @@index([teamId])
   @@index([category])
   @@index([unit])
 }
@@ -288,6 +298,10 @@ model Project {
   createdById String?
   createdBy   User?   @relation("ProjectCreatedBy", fields: [createdById], references: [id])
 
+  // Equipe responsável
+  teamId String?
+  team  Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -298,6 +312,7 @@ model Project {
   @@index([status])
   @@index([unit])
   @@index([createdById])
+  @@index([teamId])
 }
 
 model Task {
@@ -315,6 +330,10 @@ model Task {
   projectId String?
   project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
+  // Equipe responsável
+  teamId String?
+  team  Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
   createdById String?
   createdBy   User?   @relation("TaskCreatedBy", fields: [createdById], references: [id])
 
@@ -329,6 +348,7 @@ model Task {
   kanbanCards   KanbanCard[]        @relation("KanbanCardTask")
 
   @@index([projectId])
+  @@index([teamId])
   @@index([status])
   @@index([priority])
   @@index([unit])
@@ -518,4 +538,37 @@ model DocFavorite {
   @@id([docId, userId])
   @@index([userId])
   @@index([docId])
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Membros da equipe (apenas ADMINs podem ser membros)
+  members TeamMember[]
+
+  // Projetos, tarefas e tickets atribuídos à equipe
+  projects Project[]
+  tasks    Task[]
+  tickets  Ticket[]
+
+  @@index([name])
+}
+
+model TeamMember {
+  teamId String
+  userId String
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([teamId, userId])
+  @@index([userId])
+  @@index([teamId])
 }

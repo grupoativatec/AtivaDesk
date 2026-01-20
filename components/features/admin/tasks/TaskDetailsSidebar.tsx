@@ -60,20 +60,27 @@ export function TaskDetailsSidebar({
         ? Math.round((task.loggedHours / task.estimatedHours) * 100)
         : 0
 
-    // Estados para projetos e assignees do banco de dados
+    // Estados para projetos, assignees e equipes do banco de dados
     const [projects, setProjects] = useState<Project[]>([])
     const [availableAssignees, setAvailableAssignees] = useState<Assignee[]>([])
+    const [teams, setTeams] = useState<{ id: string; name: string }[]>([])
     const [isLoadingData, setIsLoadingData] = useState(false)
+    const [mounted, setMounted] = useState(false)
 
-    // Carregar projetos e assignees quando entrar em modo de edição
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    // Carregar projetos, assignees e equipes quando entrar em modo de edição
     useEffect(() => {
         if (isEditing) {
             async function loadData() {
                 setIsLoadingData(true)
                 try {
-                    const [projectsResponse, adminsData] = await Promise.all([
+                    const [projectsResponse, adminsData, teamsRes] = await Promise.all([
                         listProjects(),
                         listAdmins(),
+                        fetch("/api/admin/teams").then((res) => res.json()).then((data) => data.teams || []).catch(() => []),
                     ])
 
                     // Transformar projetos para o formato esperado
@@ -87,8 +94,13 @@ export function TaskDetailsSidebar({
                     setAvailableAssignees(
                         adminsData.map((admin) => ({ id: admin.id, name: admin.name }))
                     )
+
+                    // Transformar equipes
+                    setTeams(
+                        (teamsRes || []).map((team: any) => ({ id: team.id, name: team.name }))
+                    )
                 } catch (error) {
-                    console.error("Erro ao carregar projetos/usuários:", error)
+                    console.error("Erro ao carregar projetos/usuários/equipes:", error)
                     toast.error("Erro ao carregar dados. Tente novamente.")
                 } finally {
                     setIsLoadingData(false)
@@ -104,6 +116,7 @@ export function TaskDetailsSidebar({
         ? {
             ...task,
             project: draft.project ?? task.project,
+            team: draft.team ?? task.team,
             unit: draft.unit ?? task.unit,
             status: draft.status ?? task.status,
             priority: draft.priority ?? task.priority,
@@ -192,6 +205,56 @@ export function TaskDetailsSidebar({
                                     ))}
                                 </SelectContent>
                             </Select>
+                        }
+                    />
+
+                    <Separator />
+
+                    {/* Equipe */}
+                    <TaskEditableField
+                        label="Equipe Responsável"
+                        icon={Users}
+                        isEditing={isEditing}
+                        displayContent={
+                            <p className="text-sm text-foreground font-medium">
+                                {displayTask.team?.name || "Sem equipe"}
+                            </p>
+                        }
+                        editContent={
+                            mounted ? (
+                                <Select
+                                    value={displayTask.team?.id || "none"}
+                                    onValueChange={(value) => {
+                                        if (value === "none") {
+                                            if (onDraftChange) {
+                                                onDraftChange({ team: null })
+                                            }
+                                        } else {
+                                            const selectedTeam = teams.find((t) => t.id === value)
+                                            if (selectedTeam && onDraftChange) {
+                                                onDraftChange({ team: { id: selectedTeam.id, name: selectedTeam.name } })
+                                            }
+                                        }
+                                    }}
+                                    disabled={isLoadingData}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder={isLoadingData ? "Carregando..." : "Selecione uma equipe (opcional)"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Sem equipe</SelectItem>
+                                        {teams.map((team) => (
+                                            <SelectItem key={team.id} value={team.id}>
+                                                {team.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <div className="h-10 rounded-md border bg-background px-3 py-2 text-sm flex items-center text-muted-foreground">
+                                    Carregando...
+                                </div>
+                            )
                         }
                     />
 

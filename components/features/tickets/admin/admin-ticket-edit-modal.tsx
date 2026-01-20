@@ -38,6 +38,10 @@ type TicketEditModalProps = {
       name: string
       email: string
     } | null
+    team: {
+      id: string
+      name: string
+    } | null
   }
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -50,13 +54,22 @@ export function AdminTicketEditModal({ ticket, open, onOpenChange, onUpdate }: T
   const [category, setCategory] = useState<string>(ticket.category)
   const [unit, setUnit] = useState<string>(ticket.unit || "none")
   const [assigneeId, setAssigneeId] = useState<string>(ticket.assignee?.id || "none")
+  const [teamId, setTeamId] = useState<string>(ticket.team?.id ? ticket.team.id : "none")
   const [admins, setAdmins] = useState<AdminUser[]>([])
+  const [teams, setTeams] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingAdmins, setLoadingAdmins] = useState(true)
+  const [loadingTeams, setLoadingTeams] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (open) {
       fetchAdmins()
+      fetchTeams()
     }
   }, [open])
 
@@ -67,12 +80,14 @@ export function AdminTicketEditModal({ ticket, open, onOpenChange, onUpdate }: T
     setCategory(ticket.category)
     setUnit(ticket.unit || "none")
     setAssigneeId(ticket.assignee?.id || "none")
+    // Garantir que teamId seja "none" se não houver equipe
+    setTeamId(ticket.team?.id ? ticket.team.id : "none")
   }, [ticket])
 
   const fetchAdmins = async () => {
     try {
       setLoadingAdmins(true)
-      const res = await fetch("/api/admin/users")
+      const res = await fetch("/api/admin/users?role=ADMIN&status=active&all=true")
       const data = await res.json()
 
       if (res.ok && data.users) {
@@ -83,6 +98,23 @@ export function AdminTicketEditModal({ ticket, open, onOpenChange, onUpdate }: T
       toast.error("Erro ao carregar lista de administradores")
     } finally {
       setLoadingAdmins(false)
+    }
+  }
+
+  const fetchTeams = async () => {
+    try {
+      setLoadingTeams(true)
+      const res = await fetch("/api/admin/teams")
+      const data = await res.json()
+
+      if (res.ok && data.teams) {
+        setTeams(data.teams.map((t: any) => ({ id: t.id, name: t.name })))
+      }
+    } catch (error) {
+      console.error("Erro ao buscar equipes:", error)
+      toast.error("Erro ao carregar lista de equipes")
+    } finally {
+      setLoadingTeams(false)
     }
   }
 
@@ -118,10 +150,22 @@ export function AdminTicketEditModal({ ticket, open, onOpenChange, onUpdate }: T
         hasChanges = true
       }
 
+      const currentTeamId = ticket.team?.id || null
+      const newTeamId = teamId === "none" ? null : teamId
+      
+      // Sempre incluir teamId se foi alterado (mesmo se for null para remover equipe)
+      if (newTeamId !== currentTeamId) {
+        updateData.teamId = newTeamId
+        hasChanges = true
+        console.log("TeamId será atualizado:", { currentTeamId, newTeamId })
+      }
+
       if (!hasChanges) {
         toast.info("Nenhuma alteração foi feita")
         return
       }
+
+      console.log("Enviando atualização:", updateData)
 
       const res = await fetch(`/api/admin/tickets/${ticket.id}`, {
         method: "PATCH",
@@ -142,9 +186,11 @@ export function AdminTicketEditModal({ ticket, open, onOpenChange, onUpdate }: T
       const data = await res.json()
 
       if (!res.ok) {
+        console.error("Erro na resposta:", data)
         throw new Error(data.error || "Erro ao atualizar ticket")
       }
 
+      console.log("Ticket atualizado com sucesso:", data)
       toast.success("Ticket atualizado com sucesso!")
       onUpdate()
       onOpenChange(false)
@@ -237,9 +283,42 @@ export function AdminTicketEditModal({ ticket, open, onOpenChange, onUpdate }: T
             </Select>
           </div>
 
-          {/* Atribuir a */}
+          {/* Atribuir Equipe */}
           <div className="flex flex-col gap-2 sm:col-span-2">
-            <label className="text-sm font-medium text-muted-foreground">Atribuir a</label>
+            <label className="text-sm font-medium text-muted-foreground">Atribuir Equipe</label>
+            {mounted ? (
+              loadingTeams ? (
+                <div className="h-11 flex items-center justify-center border rounded-md">
+                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <Select value={teamId} onValueChange={setTeamId}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Selecione uma equipe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhuma equipe</SelectItem>
+                    {teams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )
+            ) : (
+              <div className="h-11 rounded-md border bg-background px-3 py-2 text-sm flex items-center text-muted-foreground">
+                Carregando...
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Ao selecionar uma equipe, todos os membros receberão notificação sobre este ticket.
+            </p>
+          </div>
+
+          {/* Atribuir a (Admin Individual) */}
+          <div className="flex flex-col gap-2 sm:col-span-2">
+            <label className="text-sm font-medium text-muted-foreground">Atribuir a (Admin Individual)</label>
             {loadingAdmins ? (
               <div className="h-11 flex items-center justify-center border rounded-md">
                 <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -259,6 +338,9 @@ export function AdminTicketEditModal({ ticket, open, onOpenChange, onUpdate }: T
                 </SelectContent>
               </Select>
             )}
+            <p className="text-xs text-muted-foreground">
+              Você pode atribuir um admin individual além da equipe.
+            </p>
           </div>
         </div>
 

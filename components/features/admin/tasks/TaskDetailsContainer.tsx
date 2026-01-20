@@ -34,6 +34,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [draft, setDraft] = useState<Partial<TaskEditData>>(() => ({
     project: initialTask.project,
+    team: initialTask.team,
     unit: initialTask.unit,
     status: initialTask.status,
     priority: initialTask.priority,
@@ -46,6 +47,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
   const hasUnsavedChanges = useMemo(() => {
     return (
       draft.project?.id !== task.project?.id ||
+      draft.team?.id !== task.team?.id ||
       draft.unit !== task.unit ||
       draft.status !== task.status ||
       draft.priority !== task.priority ||
@@ -60,6 +62,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
     // Resetar draft para o estado atual da task
     setDraft({
       project: task.project,
+      team: task.team,
       unit: task.unit,
       status: task.status,
       priority: task.priority,
@@ -74,6 +77,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
     // Reverter draft para o estado atual da task
     setDraft({
       project: task.project,
+      team: task.team,
       unit: task.unit,
       status: task.status,
       priority: task.priority,
@@ -102,6 +106,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
       // Preparar payload para API
       const updatePayload = {
         projectId: validatedData.project?.id || null,
+        teamId: validatedData.team?.id || null,
         unit: validatedData.unit,
         status: validatedData.status,
         priority: validatedData.priority,
@@ -110,10 +115,11 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
         acceptance: validatedData.acceptance ?? null,
       }
 
-      // Corrigir: remover null para projectId, pois UpdateTaskRequest espera string | undefined, nunca null
+      // Corrigir: remover null para projectId e teamId, pois UpdateTaskRequest espera string | undefined, nunca null
       const fixedUpdatePayload = {
         ...updatePayload,
         projectId: updatePayload.projectId ?? undefined,
+        teamId: updatePayload.teamId ?? undefined,
       };
 
       // Chamar API real

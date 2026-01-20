@@ -23,6 +23,7 @@ const createTaskSchema = z.object({
   priority: z.nativeEnum(TaskPriority),
   status: z.nativeEnum(TaskStatus).default(TaskStatus.BACKLOG),
   assigneeIds: z.array(z.string().min(1)).default([]),
+  teamId: z.string().optional().nullable(), // Equipe responsável
   estimatedHours: z.number().int().min(0).default(0),
   description: z.string().optional(),
 });
@@ -110,6 +111,12 @@ export async function GET(req: Request) {
               name: true,
             },
           },
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           assignees: {
             include: {
               user: {
@@ -151,6 +158,10 @@ export async function GET(req: Request) {
         project: task.project ? {
           id: task.project.id,
           name: task.project.name,
+        } : null,
+        team: task.team ? {
+          id: task.team.id,
+          name: task.team.name,
         } : null,
         unit: task.unit,
         status: task.status,
@@ -219,6 +230,7 @@ export async function POST(req: Request) {
       priority,
       status,
       assigneeIds,
+      teamId,
       estimatedHours,
       description,
     } = parsed.data;
@@ -243,6 +255,42 @@ export async function POST(req: Request) {
       }
     }
 
+    // Verificar se a equipe existe (se fornecido)
+    let teamMembers: string[] = []
+    if (teamId) {
+      const team = await prisma.team.findUnique({
+        where: { id: teamId },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  role: true,
+                  deletedAt: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (!team) {
+        return NextResponse.json(
+          { error: "Equipe não encontrada" },
+          { status: 404 }
+        )
+      }
+
+      // Obter IDs dos membros ativos da equipe
+      teamMembers = team.members
+        .filter((m) => !m.user.deletedAt && m.user.role === "ADMIN")
+        .map((m) => m.user.id)
+    }
+
+    // Combinar assigneeIds com membros da equipe (remover duplicatas)
+    const finalAssigneeIds = Array.from(new Set([...assigneeIds, ...teamMembers]))
+
     // Verificar se status é DONE e bloquear criação direta como DONE
     if (status === TaskStatus.DONE) {
       return NextResponse.json(
@@ -252,13 +300,13 @@ export async function POST(req: Request) {
     }
 
     // Verificar se os assignees existem (se houver)
-    if (assigneeIds.length > 0) {
+    if (finalAssigneeIds.length > 0) {
       const assignees = await prisma.user.findMany({
-        where: { id: { in: assigneeIds } },
+        where: { id: { in: finalAssigneeIds } },
         select: { id: true },
       });
 
-      if (assignees.length !== assigneeIds.length) {
+      if (assignees.length !== finalAssigneeIds.length) {
         return NextResponse.json(
           { error: "Um ou mais responsáveis não foram encontrados" },
           { status: 400 }
@@ -278,16 +326,23 @@ export async function POST(req: Request) {
           status,
           priority,
           estimatedHours,
+          teamId: teamId || null, // Atribuir equipe
           createdById: user.id,
           completedAt: null, // Só seta se status for DONE (mas bloqueamos isso)
           assignees: {
-            create: assigneeIds.map((userId) => ({
+            create: finalAssigneeIds.map((userId) => ({
               userId,
             })),
           },
         },
         include: {
           project: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          team: {
             select: {
               id: true,
               name: true,

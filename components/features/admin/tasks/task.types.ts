@@ -30,12 +30,18 @@ export interface Assignee {
   name: string
 }
 
+export interface Team {
+  id: string
+  name: string
+}
+
 export interface TaskListItem {
   id: string
   title: string
   description?: string | null
   acceptance?: string | null
   project: Project | null
+  team: Team | null
   unit: TaskUnit
   status: TaskStatus
   priority: TaskPriority

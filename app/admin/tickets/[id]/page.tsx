@@ -59,6 +59,10 @@ type Ticket = {
     name: string
     email: string
   } | null
+  team: {
+    id: string
+    name: string
+  } | null
   messages: Array<{
     id: string
     content: string
@@ -812,6 +816,7 @@ export default function AdminTicketDetailPage() {
             category: ticket.category,
             unit: ticket.unit ?? null,
             assignee: ticket.assignee,
+            team: ticket.team ?? null,
           }}
           open={editModalOpen}
           onOpenChange={setEditModalOpen}

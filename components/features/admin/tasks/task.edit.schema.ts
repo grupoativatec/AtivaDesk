@@ -9,6 +9,10 @@ export const taskEditSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
   }).nullable().optional(),
+  team: z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+  }).nullable().optional(),
   unit: z.nativeEnum(TaskUnit, {
     required_error: "Unidade é obrigatória",
   }),

@@ -32,6 +32,10 @@ type TicketEditProps = {
       name: string
       email: string
     } | null
+    team: {
+      id: string
+      name: string
+    } | null
   }
   onUpdate: () => void
 }
@@ -42,9 +46,13 @@ export function AdminTicketEdit({ ticket, onUpdate }: TicketEditProps) {
   const [category, setCategory] = useState<string>(ticket.category)
   const [unit, setUnit] = useState<string>(ticket.unit || "none")
   const [assigneeId, setAssigneeId] = useState<string>(ticket.assignee?.id || "none")
+  const [teamId, setTeamId] = useState<string>(ticket.team?.id || "none")
   const [admins, setAdmins] = useState<AdminUser[]>([])
+  const [teams, setTeams] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingAdmins, setLoadingAdmins] = useState(true)
+  const [loadingTeams, setLoadingTeams] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
@@ -58,12 +66,13 @@ export function AdminTicketEdit({ ticket, onUpdate }: TicketEditProps) {
     setCategory(ticket.category)
     setUnit(ticket.unit || "none")
     setAssigneeId(ticket.assignee?.id || "none")
+    setTeamId(ticket.team?.id || "none")
   }, [ticket])
 
   const fetchAdmins = async () => {
     try {
       setLoadingAdmins(true)
-      const res = await fetch("/api/admin/users")
+      const res = await fetch("/api/admin/users?role=ADMIN&status=active&all=true")
       const data = await res.json()
 
       if (res.ok && data.users) {
@@ -74,6 +83,23 @@ export function AdminTicketEdit({ ticket, onUpdate }: TicketEditProps) {
       toast.error("Erro ao carregar lista de administradores")
     } finally {
       setLoadingAdmins(false)
+    }
+  }
+
+  const fetchTeams = async () => {
+    try {
+      setLoadingTeams(true)
+      const res = await fetch("/api/admin/teams")
+      const data = await res.json()
+
+      if (res.ok && data.teams) {
+        setTeams(data.teams.map((t: any) => ({ id: t.id, name: t.name })))
+      }
+    } catch (error) {
+      console.error("Erro ao buscar equipes:", error)
+      toast.error("Erro ao carregar lista de equipes")
+    } finally {
+      setLoadingTeams(false)
     }
   }
 
@@ -106,6 +132,11 @@ export function AdminTicketEdit({ ticket, onUpdate }: TicketEditProps) {
 
       if (assigneeId !== (ticket.assignee?.id || "none")) {
         updateData.assigneeId = assigneeId === "none" ? null : assigneeId
+        hasChanges = true
+      }
+
+      if (teamId !== (ticket.team?.id || "none")) {
+        updateData.teamId = teamId === "none" ? null : teamId
         hasChanges = true
       }
 
@@ -235,9 +266,42 @@ export function AdminTicketEdit({ ticket, onUpdate }: TicketEditProps) {
           </Select>
         </div>
 
-        {/* Atribuir a */}
+        {/* Atribuir Equipe */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-muted-foreground">Atribuir a</label>
+          <label className="text-sm font-medium text-muted-foreground">Atribuir Equipe</label>
+          {mounted ? (
+            loadingTeams ? (
+              <div className="h-11 flex items-center justify-center border rounded-md">
+                <Loader2 className="size-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <Select value={teamId} onValueChange={setTeamId}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Selecione uma equipe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma equipe</SelectItem>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )
+          ) : (
+            <div className="h-11 rounded-md border bg-background px-3 py-2 text-sm flex items-center text-muted-foreground">
+              Carregando...
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Todos os membros da equipe receberão notificação.
+          </p>
+        </div>
+
+        {/* Atribuir a (Admin Individual) */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-muted-foreground">Atribuir a (Admin Individual)</label>
           {loadingAdmins ? (
             <div className="h-11 flex items-center justify-center border rounded-md">
               <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -257,6 +321,10 @@ export function AdminTicketEdit({ ticket, onUpdate }: TicketEditProps) {
               </SelectContent>
             </Select>
           )}
+          <p className="text-xs text-muted-foreground">
+            Você pode atribuir um admin individual além da equipe.
+          </p>
+        </div>
               </div>
             </div>
 
