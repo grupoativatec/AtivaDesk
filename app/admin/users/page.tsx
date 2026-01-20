@@ -111,58 +111,72 @@ export default function UsersPage() {
   }, [roleFilter, statusFilter])
 
   return (
-    <div className="container mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+    <div className="w-full flex flex-col">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <UsersIcon className="h-6 w-6 sm:h-8 sm:w-8 shrink-0" />
-            <span className="truncate">Usuários</span>
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            Gerencie usuários, cargos e permissões do sistema
-          </p>
+      <div className="border-b border-border dark:border-border/30 bg-card dark:bg-card/30 shadow-sm dark:shadow-none shrink-0">
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 md:gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-1 sm:mb-2 flex items-center gap-2">
+                <UsersIcon className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
+                <span className="truncate">Usuários</span>
+              </h1>
+              <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground">
+                Gerencie usuários, cargos e permissões do sistema
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={() => setTeamsDialogOpen(true)}
+                variant="outline"
+                size="sm"
+                className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
+              >
+                <Users2 className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Equipes</span>
+                <span className="sm:hidden">Equipes</span>
+              </Button>
+            </div>
+          </div>
         </div>
-        <Button
-          onClick={() => setTeamsDialogOpen(true)}
-          variant="outline"
-          className="w-full sm:w-auto shrink-0"
-        >
-          <Users2 className="mr-2 h-4 w-4" />
-          Equipes
-        </Button>
       </div>
 
-      {/* Toolbar */}
-      <UsersToolbar
-        search={search}
-        onSearchChange={setSearch}
-        roleFilter={roleFilter}
-        onRoleFilterChange={setRoleFilter}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        onRefresh={handleRefresh}
-        activeFiltersCount={activeFiltersCount}
-        onClearFilters={handleClearFilters}
-      />
+      {/* Conteúdo principal */}
+      <div className="flex-1 overflow-auto">
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-4 sm:py-5 md:py-6 space-y-4 sm:space-y-6">
 
-      {/* Tabela */}
-      <UsersTable
-        users={users}
-        isLoading={isLoading}
-        onRefresh={handleRefresh}
-        pagination={pagination || undefined}
-        onPageChange={setPage}
-      />
+          {/* Toolbar */}
+          <UsersToolbar
+            search={search}
+            onSearchChange={setSearch}
+            roleFilter={roleFilter}
+            onRoleFilterChange={setRoleFilter}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            onRefresh={handleRefresh}
+            activeFiltersCount={activeFiltersCount}
+            onClearFilters={handleClearFilters}
+          />
 
-      {/* Dialog de gerenciamento de equipes */}
-      <TeamsManagementDialog
-        open={teamsDialogOpen}
-        onOpenChange={setTeamsDialogOpen}
-        onSuccess={() => {
-          handleRefresh()
-        }}
-      />
+          {/* Tabela */}
+          <UsersTable
+            users={users}
+            isLoading={isLoading}
+            onRefresh={handleRefresh}
+            pagination={pagination || undefined}
+            onPageChange={setPage}
+          />
+
+          {/* Dialog de gerenciamento de equipes */}
+          <TeamsManagementDialog
+            open={teamsDialogOpen}
+            onOpenChange={setTeamsDialogOpen}
+            onSuccess={() => {
+              handleRefresh()
+            }}
+          />
+        </div>
+      </div>
     </div>
   )
 }
