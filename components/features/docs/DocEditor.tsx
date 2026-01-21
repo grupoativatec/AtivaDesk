@@ -160,6 +160,40 @@ export function DocEditor({
     }
   }
 
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items
+    
+    if (!items) return
+
+    // Procurar por imagem no clipboard
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      
+      // Verificar se é uma imagem
+      if (item.type.startsWith("image/")) {
+        e.preventDefault() // Prevenir colar texto padrão
+        
+        const file = item.getAsFile()
+        if (file) {
+          // Criar um nome de arquivo baseado no timestamp se não tiver nome
+          if (!file.name) {
+            const extension = file.type.split("/")[1] || "png"
+            const timestamp = Date.now()
+            Object.defineProperty(file, "name", {
+              writable: true,
+              value: `imagem-${timestamp}.${extension}`,
+            })
+          }
+          
+          await handleImageUpload(file)
+        }
+        return
+      }
+    }
+    
+    // Se não for imagem, permitir comportamento padrão (colar texto)
+  }
+
   return (
     <div className="space-y-4">
       {/* Título */}
@@ -239,6 +273,7 @@ export function DocEditor({
             id="doc-content"
             value={content}
             onChange={(e) => onContentChange(e.target.value)}
+            onPaste={handlePaste}
             placeholder="# Título do documento
 
 Comece escrevendo seu conteúdo aqui em Markdown..."
@@ -263,7 +298,8 @@ Comece escrevendo seu conteúdo aqui em Markdown..."
           Use <code className="px-1 py-0.5 bg-muted rounded text-xs">#</code>,{" "}
           <code className="px-1 py-0.5 bg-muted rounded text-xs">##</code> para títulos,{" "}
           <code className="px-1 py-0.5 bg-muted rounded text-xs">```</code> para código,{" "}
-          <code className="px-1 py-0.5 bg-muted rounded text-xs">![texto](url)</code> para imagens
+          <code className="px-1 py-0.5 bg-muted rounded text-xs">![texto](url)</code> para imagens.{" "}
+          Você também pode colar imagens diretamente com <kbd className="px-1 py-0.5 bg-muted rounded text-xs border border-border">Ctrl+V</kbd>
         </p>
       </div>
     </div>
