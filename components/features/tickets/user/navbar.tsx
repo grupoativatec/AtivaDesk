@@ -15,6 +15,7 @@ import {
 import { Ticket, LogOut, Menu, X, Sun, Moon, ChevronDown, User } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { AtivaDeskLogo } from "@/components/shared/logo/AtivaDeskLogo"
 
 type User = {
   id: string
@@ -117,10 +118,7 @@ export function TicketsNavbar() {
             onClick={() => router.push("/tickets")}
             className="flex items-center gap-2 group"
           >
-            <div className="size-8 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors">
-              <Ticket className="size-4.5 text-primary" />
-            </div>
-            <span className="font-bold text-lg text-foreground">AtivaDesk</span>
+            <AtivaDeskLogo size="lg" showText={true} animated={true} />
           </button>
 
           {/* Desktop Navigation */}

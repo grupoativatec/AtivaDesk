@@ -9,6 +9,7 @@ import { GoogleButton } from "@/components/features/auth/google-button";
 import { PasswordStrength } from "@/components/features/auth/password-strength";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AtivaDeskLogo } from "@/components/shared/logo/AtivaDeskLogo";
 
 type RegisterResponse = { ok: true } | { error: string };
 
@@ -81,20 +82,9 @@ export default function RegisterPage() {
             {/* Logo/Brand */}
             <motion.div 
                 variants={itemVariants}
-                className="flex items-center gap-3 mb-2"
+                className="flex items-center justify-center mb-2"
             >
-                <motion.div 
-                    className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 shadow-sm"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                    <span className="text-2xl font-bold text-primary">A</span>
-                </motion.div>
-                <h1 className="text-2xl font-bold tracking-tight">
-                    <span className="bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
-                        AtivaDesk
-                    </span>
-                </h1>
+                <AtivaDeskLogo size="lg" showText={true} animated={true} className="text-2xl" />
             </motion.div>
 
             {/* Header */}

@@ -4,6 +4,7 @@ import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, Sideba
 import Link from 'next/link'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 type Ticket = {
     id: string
@@ -86,58 +87,96 @@ const RecentOpen = () => {
         }
     }
 
+    const itemVariants = {
+        hidden: { opacity: 0, x: -8 },
+        visible: (index: number) => ({
+            opacity: 1,
+            x: 0,
+            transition: {
+                duration: 0.3,
+                delay: index * 0.05,
+                ease: "easeOut",
+            },
+        }),
+    }
+
     return (
         <SidebarGroup className="p-0">
-            <SidebarGroupLabel className="text-[10px] font-semibold text-sidebar-foreground/60 uppercase tracking-wider px-2 mb-2">
-                Seus Chamados
-            </SidebarGroupLabel>
+            <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+            >
+                <SidebarGroupLabel className="text-[10px] font-semibold text-sidebar-foreground/60 uppercase tracking-wider px-2 mb-2">
+                    Seus Chamados
+                </SidebarGroupLabel>
+            </motion.div>
 
             <SidebarMenu className="gap-1">
                 {loading ? (
                     Array.from({ length: 3 }).map((_, index) => (
                         <SidebarMenuItem key={index}>
-                            <Skeleton className="h-8 w-full rounded-md bg-sidebar-accent/30" />
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.3, delay: index * 0.1 }}
+                            >
+                                <Skeleton className="h-8 w-full rounded-md bg-sidebar-accent/30" />
+                            </motion.div>
                         </SidebarMenuItem>
                     ))
                 ) : tickets.length > 0 ? (
-                    tickets.map((ticket) => {
+                    tickets.map((ticket, index) => {
                         const statusConfig = getStatusConfig(ticket.status)
 
                         return (
                             <SidebarMenuItem key={ticket.id}>
-                                <SidebarMenuButton
-                                    asChild
-                                    tooltip={ticket.title}
-                                    className={cn(
-                                        "h-auto rounded-md px-2.5 py-2",
-                                        "bg-sidebar-accent/30 hover:bg-sidebar-accent",
-                                        "transition-all duration-200",
-                                        "group"
-                                    )}
+                                <motion.div
+                                    custom={index}
+                                    variants={itemVariants}
+                                    initial="hidden"
+                                    animate="visible"
                                 >
-                                    <Link href={ticket.url} onClick={handleLinkClick} className="w-full">
-                                        <div className="flex items-start gap-2 w-full">
-                                            <div className={cn(
-                                                "size-1.5 rounded-full mt-1.5 shrink-0",
-                                                statusConfig.dot
-                                            )} />
-                                            <span className={cn(
-                                                "text-xs leading-snug line-clamp-2 flex-1 text-left",
-                                                "text-sidebar-foreground/80 group-hover:text-sidebar-foreground transition-colors"
-                                            )}>
-                                                {ticket.title}
-                                            </span>
-                                        </div>
-                                    </Link>
-                                </SidebarMenuButton>
+                                    <SidebarMenuButton
+                                        asChild
+                                        tooltip={ticket.title}
+                                        className={cn(
+                                            "h-auto rounded-md px-2.5 py-2",
+                                            "bg-sidebar-accent/30 hover:bg-sidebar-accent",
+                                            "transition-all duration-200",
+                                            "group"
+                                        )}
+                                    >
+                                        <Link href={ticket.url} onClick={handleLinkClick} className="w-full">
+                                            <div className="flex items-start gap-2 w-full">
+                                                <div className={cn(
+                                                    "size-1.5 rounded-full mt-1.5 shrink-0",
+                                                    statusConfig.dot
+                                                )} />
+                                                <span className={cn(
+                                                    "text-xs leading-snug line-clamp-2 flex-1 text-left",
+                                                    "text-sidebar-foreground/80 group-hover:text-sidebar-foreground transition-colors"
+                                                )}>
+                                                    {ticket.title}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </motion.div>
                             </SidebarMenuItem>
                         )
                     })
                 ) : (
                     <SidebarMenuItem>
-                        <div className="rounded-md bg-sidebar-accent/20 px-2.5 py-2 text-xs text-sidebar-foreground/60 text-center">
-                            Nenhum chamado atribuído
-                        </div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: 0.2 }}
+                        >
+                            <div className="rounded-md bg-sidebar-accent/20 px-2.5 py-2 text-xs text-sidebar-foreground/60 text-center">
+                                Nenhum chamado atribuído
+                            </div>
+                        </motion.div>
                     </SidebarMenuItem>
                 )}
             </SidebarMenu>
