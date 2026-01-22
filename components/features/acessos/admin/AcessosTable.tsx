@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils"
 interface AcessoExterno {
   id: string
   nome: string
+  usuario: string | null
   email: string | null
   senha: string | null
   departamento: string | null
@@ -105,7 +106,10 @@ export function AcessosTable({
               <thead className="bg-muted/50 border-b">
                 <tr>
                   <th className="text-left p-3 sm:p-4 text-xs font-semibold text-muted-foreground uppercase">
-                    Acesso
+                    Nome
+                  </th>
+                  <th className="text-left p-3 sm:p-4 text-xs font-semibold text-muted-foreground uppercase">
+                    Usuário
                   </th>
                   <th className="text-left p-3 sm:p-4 text-xs font-semibold text-muted-foreground uppercase">
                     Email
@@ -135,6 +139,9 @@ export function AcessosTable({
                         <Skeleton className="h-10 w-10 rounded-full" />
                         <Skeleton className="h-4 w-32" />
                       </div>
+                    </td>
+                    <td className="p-3 sm:p-4">
+                      <Skeleton className="h-4 w-20" />
                     </td>
                     <td className="p-3 sm:p-4">
                       <Skeleton className="h-4 w-24" />
@@ -211,6 +218,11 @@ export function AcessosTable({
                     <div className="font-medium text-sm text-foreground truncate">
                       {acesso.nome}
                     </div>
+                    {acesso.usuario && (
+                      <div className="text-xs text-muted-foreground truncate">
+                        @{acesso.usuario}
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 mt-0.5">
                       <Badge
                         variant={isActive ? "default" : "secondary"}
@@ -276,7 +288,10 @@ export function AcessosTable({
               <thead className="bg-muted/50 border-b">
                 <tr>
                   <th className="text-left p-3 sm:p-4 text-xs font-semibold text-muted-foreground uppercase">
-                    Acesso
+                    Nome
+                  </th>
+                  <th className="text-left p-3 sm:p-4 text-xs font-semibold text-muted-foreground uppercase">
+                    Usuário
                   </th>
                   <th className="text-left p-3 sm:p-4 text-xs font-semibold text-muted-foreground uppercase">
                     Email
@@ -316,6 +331,15 @@ export function AcessosTable({
                               {acesso.nome}
                             </div>
                           </div>
+                        </div>
+                      </td>
+                      <td className="p-3 sm:p-4">
+                        <div className="text-sm text-foreground">
+                          {acesso.usuario ? (
+                            <span className="text-muted-foreground">@{acesso.usuario}</span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
                         </div>
                       </td>
                       <td className="p-3 sm:p-4">

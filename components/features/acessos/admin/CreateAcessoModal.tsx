@@ -28,6 +28,7 @@ import { useEffect } from "react"
 
 const createAcessoSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
+  usuario: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   senha: z.string().optional(),
   departamento: z.string().optional(),
@@ -68,6 +69,7 @@ export function CreateAcessoModal({
     resolver: zodResolver(createAcessoSchema),
     defaultValues: {
       nome: "",
+      usuario: "",
       email: "",
       senha: "",
       departamento: "",
@@ -101,6 +103,7 @@ export function CreateAcessoModal({
       // Resetar formulário quando fechar
       reset({
         nome: "",
+        usuario: "",
         email: "",
         senha: "",
         departamento: "",
@@ -122,6 +125,7 @@ export function CreateAcessoModal({
         },
         body: JSON.stringify({
           nome: data.nome.trim(),
+          usuario: data.usuario?.trim() || null,
           email: data.email?.trim() || null,
           senha: data.senha?.trim() || null,
           departamento: data.departamento?.trim() || null,
@@ -175,6 +179,18 @@ export function CreateAcessoModal({
             {errors.nome && (
               <p className="text-xs sm:text-sm text-destructive">{errors.nome.message}</p>
             )}
+          </div>
+
+          {/* Usuário */}
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="usuario" className="text-xs sm:text-sm font-medium">Usuário</Label>
+            <Input
+              id="usuario"
+              {...register("usuario")}
+              placeholder="Nome de usuário (opcional)"
+              disabled={isSubmitting}
+              className="h-9 sm:h-10 text-sm sm:text-base"
+            />
           </div>
 
           {/* Email */}

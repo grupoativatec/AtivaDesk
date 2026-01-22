@@ -13,6 +13,7 @@ import { CategoriasDialog } from "@/components/features/acessos/admin/Categorias
 interface AcessoExterno {
   id: string
   nome: string
+  usuario: string | null
   email: string | null
   senha: string | null
   departamento: string | null

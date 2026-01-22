@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -45,6 +45,11 @@ export function AcessosToolbar({
   onClearFilters,
 }: AcessosToolbarProps) {
   const [isFiltrosDialogOpen, setIsFiltrosDialogOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   return (
     <>
@@ -61,42 +66,62 @@ export function AcessosToolbar({
         </div>
 
         {/* Botão de Filtros */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10 px-3 relative"
-            >
-              <Filter className="size-4 mr-2" />
-              <span className="hidden sm:inline">Filtros</span>
-              {activeFiltersCount > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="ml-2 h-5 min-w-5 px-1.5 text-[10px] absolute -top-1.5 -right-1.5"
-                >
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => setIsFiltrosDialogOpen(true)}>
-              <Filter className="mr-2 h-4 w-4" />
-              Filtrar por...
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1.5 text-[10px]">
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </DropdownMenuItem>
-            {activeFiltersCount > 0 && (
-              <DropdownMenuItem onClick={onClearFilters}>
-                Limpar filtros
+        {isMounted ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 px-3 relative"
+              >
+                <Filter className="size-4 mr-2" />
+                <span className="hidden sm:inline">Filtros</span>
+                {activeFiltersCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 h-5 min-w-5 px-1.5 text-[10px] absolute -top-1.5 -right-1.5"
+                  >
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setIsFiltrosDialogOpen(true)}>
+                <Filter className="mr-2 h-4 w-4" />
+                Filtrar por...
+                {activeFiltersCount > 0 && (
+                  <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1.5 text-[10px]">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
               </DropdownMenuItem>
+              {activeFiltersCount > 0 && (
+                <DropdownMenuItem onClick={onClearFilters}>
+                  Limpar filtros
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 px-3 relative"
+            disabled
+          >
+            <Filter className="size-4 mr-2" />
+            <span className="hidden sm:inline">Filtros</span>
+            {activeFiltersCount > 0 && (
+              <Badge
+                variant="secondary"
+                className="ml-2 h-5 min-w-5 px-1.5 text-[10px] absolute -top-1.5 -right-1.5"
+              >
+                {activeFiltersCount}
+              </Badge>
             )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </Button>
+        )}
 
         {/* Botão de Atualizar */}
         <Button

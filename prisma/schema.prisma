@@ -171,6 +171,9 @@ model User {
 
   // Equipes
   teamMemberships TeamMember[]
+
+  // Colaboradores Externos
+  colaboradoresExternosRegistrados ColaboradorExterno[] @relation("ColaboradorExternoRegistradoPor")
 }
 
 model Ticket {
@@ -573,9 +576,6 @@ model TeamMember {
   @@index([teamId])
 }
 
-model ColaboradorExterno {
-  id          String   @id @default(uuid())
-  nome        String
 model CategoriaColaborador {
   id          String   @id @default(uuid())
   nome        String   @unique
@@ -590,6 +590,7 @@ model CategoriaColaborador {
 model ColaboradorExterno {
   id          String   @id @default(uuid())
   nome        String
+  usuario     String?
   email       String?
   senha       String? // Senha de acesso
   departamento String?
@@ -611,3 +612,4 @@ model ColaboradorExterno {
   @@index([ativo])
   @@index([registradoPorId])
   @@index([categoriaId])
+}

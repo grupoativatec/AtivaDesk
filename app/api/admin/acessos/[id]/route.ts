@@ -88,10 +88,11 @@ export async function PATCH(
 
     const { id } = await params
     const body = await req.json()
-    const { nome, email, senha, departamento, categoriaId, ativo } = body
+    const { nome, usuario, email, senha, departamento, categoriaId, ativo } = body
 
     const updateData: any = {}
     if (nome !== undefined) updateData.nome = nome.trim()
+    if (usuario !== undefined) updateData.usuario = usuario?.trim() || null
     if (email !== undefined) updateData.email = email?.trim() || null
     if (senha !== undefined) updateData.senha = senha?.trim() ? encrypt(senha.trim()) : null
     if (departamento !== undefined) updateData.departamento = departamento?.trim() || null

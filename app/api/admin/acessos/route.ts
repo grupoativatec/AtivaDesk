@@ -52,10 +52,11 @@ export async function GET(req: Request) {
       where.categoriaId = categoriaId
     }
 
-    // Busca por nome, email ou departamento
+    // Busca por nome, usuario, email ou departamento
     if (search.trim()) {
       const searchConditions = [
         { nome: { contains: search, mode: "insensitive" } },
+        { usuario: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
         { departamento: { contains: search, mode: "insensitive" } },
       ]
@@ -140,7 +141,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { nome, email, senha, departamento, categoriaId } = body
+    const { nome, usuario, email, senha, departamento, categoriaId } = body
 
     if (!nome || nome.trim() === "") {
       return NextResponse.json(
@@ -158,6 +159,7 @@ export async function POST(req: Request) {
     const acesso = await prisma.colaboradorExterno.create({
       data: {
         nome: nome.trim(),
+        usuario: usuario?.trim() || null,
         email: email?.trim() || null,
         senha: senhaFinal ? encrypt(senhaFinal) : null,
         departamento: departamento?.trim() || null,
@@ -184,7 +186,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      acesso: colaborador,
+      acesso: acesso,
     })
   } catch (error: any) {
     console.error("Erro ao criar acesso externo:", error)

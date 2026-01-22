@@ -27,6 +27,7 @@ import { Loader2 } from "lucide-react"
 
 const editAcessoSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
+  usuario: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   senha: z.string().optional(),
   departamento: z.string().optional(),
@@ -38,6 +39,7 @@ type EditAcessoFormData = z.infer<typeof editAcessoSchema>
 interface AcessoExterno {
   id: string
   nome: string
+  usuario: string | null
   email: string | null
   senha: string | null
   departamento: string | null
@@ -109,6 +111,7 @@ export function EditAcessoModal({
     if (open && acesso) {
       reset({
         nome: acesso.nome,
+        usuario: acesso.usuario || "",
         email: acesso.email || "",
         senha: acesso.senha || "",
         departamento: acesso.departamento || "",
@@ -181,6 +184,18 @@ export function EditAcessoModal({
             {errors.nome && (
               <p className="text-xs sm:text-sm text-destructive">{errors.nome.message}</p>
             )}
+          </div>
+
+          {/* Usuário */}
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="usuario" className="text-xs sm:text-sm font-medium">Usuário</Label>
+            <Input
+              id="usuario"
+              {...register("usuario")}
+              placeholder="Nome de usuário (opcional)"
+              disabled={isSubmitting}
+              className="h-9 sm:h-10 text-sm sm:text-base"
+            />
           </div>
 
           {/* Email */}
