@@ -127,7 +127,7 @@ export async function GET(req: Request) {
         id: `task-done-${task.id}`,
         type: "TASK_COMPLETED",
         title: "Tarefa concluída",
-        description: `${task.title} - ${task.project.name}`,
+        description: task.project ? `${task.title} - ${task.project.name}` : task.title,
         entity: {
           type: "task",
           id: task.id,
@@ -158,7 +158,9 @@ export async function GET(req: Request) {
         id: `task-activity-${activity.id}`,
         type: "TASK_STATUS_CHANGED",
         title: "Status de tarefa alterado",
-        description: `${activity.task.title} - ${activity.task.project.name}`,
+        description: activity.task.project 
+          ? `${activity.task.title} - ${activity.task.project.name}` 
+          : activity.task.title,
         actor: activity.actor,
         entity: {
           type: "task",
