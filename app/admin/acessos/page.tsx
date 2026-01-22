@@ -109,7 +109,7 @@ export default function AcessosPage() {
       }
 
       params.append("page", page.toString())
-      params.append("pageSize", "10")
+      params.append("pageSize", "100")
 
       const res = await fetch(`/api/admin/acessos?${params.toString()}`)
       const data = await res.json()

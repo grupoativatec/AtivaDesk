@@ -191,84 +191,53 @@ export function AcessosTable({
     )
   }
 
-  // Versão mobile com lista organizada
+  // Versão mobile com lista minimalista
   if (isMobile) {
     return (
-      <div className="space-y-0 border rounded-lg overflow-hidden bg-card">
+      <div className="space-y-2">
         {acessos.map((acesso) => {
-          const isActive = acesso.ativo
-
           return (
             <div
               key={acesso.id}
               className={cn(
-                "px-4 py-3 border-b last:border-b-0",
-                "hover:bg-muted/30 transition-colors"
+                "px-4 py-3 border rounded-lg bg-card",
+                "hover:bg-muted/30 transition-colors shadow-sm"
               )}
             >
-              {/* Linha principal: Nome e Ações */}
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <Avatar className="h-9 w-9 shrink-0">
-                    <AvatarFallback className="text-xs">
-                      {getInitials(acesso.nome)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium text-sm text-foreground truncate">
-                      {acesso.nome}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  {/* Nome */}
+                  <div className="font-medium text-sm text-foreground truncate">
+                    {acesso.nome}
+                  </div>
+                  
+                  {/* Usuário */}
+                  {acesso.usuario && (
+                    <div className="text-xs text-muted-foreground truncate">
+                      @{acesso.usuario}
                     </div>
-                    {acesso.usuario && (
-                      <div className="text-xs text-muted-foreground truncate">
-                        @{acesso.usuario}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <Badge
-                        variant={isActive ? "default" : "secondary"}
-                        className={cn(
-                          "text-[10px] px-1.5 py-0 h-4",
-                          !isActive && "opacity-60"
-                        )}
-                      >
-                        {isActive ? "Ativo" : "Inativo"}
-                      </Badge>
-                      {acesso.categoria && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] px-1.5 py-0 h-4 border-muted-foreground/30"
-                        >
-                          {acesso.categoria.nome}
-                        </Badge>
-                      )}
+                  )}
+                  
+                  {/* Email */}
+                  {acesso.email && (
+                    <div className="text-xs text-muted-foreground truncate">
+                      {acesso.email}
                     </div>
+                  )}
+                  
+                  {/* Senha */}
+                  <div className="flex items-center gap-1.5 text-xs pt-0.5">
+                    <span className="text-muted-foreground shrink-0">Senha:</span>
+                    <PasswordReveal
+                      acessoId={acesso.id}
+                      hasPassword={!!acesso.senha}
+                    />
                   </div>
                 </div>
+                
+                {/* Ações */}
                 <div className="shrink-0">
                   <AcessosRowActions acesso={acesso} onSuccess={onRefresh} />
-                </div>
-              </div>
-
-              {/* Informações secundárias */}
-              <div className="ml-[2.25rem] space-y-1.5 text-xs">
-                {acesso.departamento && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Briefcase className="size-3 shrink-0" />
-                    <span className="truncate">{acesso.departamento}</span>
-                  </div>
-                )}
-                {acesso.email && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Mail className="size-3 shrink-0" />
-                    <span className="truncate">{acesso.email}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <span className="font-medium shrink-0">Senha:</span>
-                  <PasswordReveal
-                    acessoId={acesso.id}
-                    hasPassword={!!acesso.senha}
-                  />
                 </div>
               </div>
             </div>
@@ -388,7 +357,7 @@ export function AcessosTable({
       </Card>
 
       {/* Paginação */}
-      {pagination && pagination.totalPages > 1 && onPageChange && (
+      {pagination && pagination.total > 100 && pagination.totalPages > 1 && onPageChange && (
         <div className="flex items-center justify-between mt-4 bg-card rounded-lg border shadow-sm p-4">
           <div className="text-sm text-muted-foreground">
             Mostrando {((pagination.page - 1) * pagination.pageSize) + 1} a{" "}
