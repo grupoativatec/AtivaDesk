@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MessageList } from "@/components/features/tickets/shared/message-list"
@@ -468,7 +469,12 @@ export default function AdminTicketDetailPage() {
   const isUnassigned = !ticket.assignee
 
   return (
-    <div className="w-full flex flex-col h-full">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="w-full flex flex-col h-full"
+    >
       {/* Header Fixo */}
       <div className="border-b border-border/50 dark:border-border/20 bg-card dark:bg-background/50 shrink-0">
         <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5">
@@ -824,6 +830,6 @@ export default function AdminTicketDetailPage() {
         />
       ) : null}
 
-    </div>
+    </motion.div>
   )
 }

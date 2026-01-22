@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import { UsersToolbar } from "@/components/admin/users/UsersToolbar"
 import { UsersTable } from "@/components/admin/users/UsersTable"
 import { TeamsManagementDialog } from "@/components/admin/users/TeamsManagementDialog"
@@ -111,7 +112,12 @@ export default function UsersPage() {
   }, [roleFilter, statusFilter])
 
   return (
-    <div className="w-full flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="w-full flex flex-col"
+    >
       {/* Header */}
       <div className="border-b border-border dark:border-border/30 bg-card dark:bg-card/30 shadow-sm dark:shadow-none shrink-0">
         <div className="px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5">
@@ -177,6 +183,6 @@ export default function UsersPage() {
           />
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

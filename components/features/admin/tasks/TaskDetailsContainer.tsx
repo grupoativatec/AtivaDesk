@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import { TaskListItem } from "./task.types"
 import { TaskDetailsHeader } from "./TaskDetailsHeader"
 import { TaskDetailsShell } from "./TaskDetailsShell"
@@ -183,7 +184,12 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
 
   return (
     <>
-      <div className="w-full flex flex-col h-full">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full flex flex-col h-full"
+      >
         <TaskDetailsHeader
           task={taskView}
           isEditing={isEditing}
@@ -202,7 +208,7 @@ export function TaskDetailsContainer({ initialTask }: TaskDetailsContainerProps)
           onDraftChange={handleDraftChange}
           onTaskReload={reloadTask}
         />
-      </div>
+      </motion.div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>

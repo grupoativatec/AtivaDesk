@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { motion } from "framer-motion"
 import { ProjectHeader } from "./ProjectHeader"
 import { ProjectTasksPanel } from "./ProjectTasksPanel"
 import { ProjectSummaryPanel } from "./ProjectSummaryPanel"
@@ -177,7 +178,12 @@ export function ProjectDetailShell({
   }
 
   return (
-    <div className="w-full flex flex-col h-full">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="w-full flex flex-col h-full"
+    >
       <ProjectHeader
         project={project}
         onBack={handleBack}
@@ -205,6 +211,6 @@ export function ProjectDetailShell({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

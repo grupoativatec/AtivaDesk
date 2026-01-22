@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { motion } from "framer-motion"
 import { DocsShell } from "@/components/features/docs/DocsShell"
 import { DocCard } from "@/components/features/docs/DocCard"
 import { useDocsStore } from "@/lib/stores/docs-store"
@@ -45,6 +46,7 @@ export default function RecentDocsPage() {
           ))}
         </div>
       )}
+      </motion.div>
     </DocsShell>
   )
 }

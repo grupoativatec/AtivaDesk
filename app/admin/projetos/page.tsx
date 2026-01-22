@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { motion } from "framer-motion"
 import { ProjectListShell } from "@/components/features/projects/admin/ProjectListShell"
 import { CreateProjectModal } from "@/components/features/projects/admin/CreateProjectModal"
 import { EditProjectModal } from "@/components/features/projects/admin/EditProjectModal"
@@ -51,7 +52,12 @@ export default function AdminProjectsPage() {
   }
 
   return (
-    <div className="w-full flex flex-col h-full">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="w-full flex flex-col h-full"
+    >
       {/* Conteúdo principal */}
       <div className="flex-1 overflow-auto">
         <ProjectListShell
@@ -79,7 +85,7 @@ export default function AdminProjectsPage() {
         project={selectedProject}
         onSuccess={handleEditSuccess}
       />
-    </div>
+    </motion.div>
   )
 }
 

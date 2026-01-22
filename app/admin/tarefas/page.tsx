@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { motion } from "framer-motion"
 import { TaskListShell } from "@/components/features/admin/tasks/TaskListShell"
 import { CreateTaskModal } from "@/components/features/admin/tasks/CreateTaskModal"
 import { Button } from "@/components/ui/button"
@@ -10,7 +11,12 @@ export default function AdminTasksPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   return (
-    <div className="w-full flex flex-col h-full">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="w-full flex flex-col h-full"
+    >
       {/* Header da página */}
       <div className="border-b border-border dark:border-border/30 bg-card dark:bg-card/30 shadow-sm dark:shadow-none shrink-0">
         <div className="px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5">
@@ -49,6 +55,6 @@ export default function AdminTasksPage() {
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
       />
-    </div>
+    </motion.div>
   )
 }

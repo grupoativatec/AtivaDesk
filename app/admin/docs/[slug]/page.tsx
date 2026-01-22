@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { DocsShell } from "@/components/features/docs/DocsShell"
 import { MarkdownRenderer, type Heading } from "@/components/features/docs/MarkdownRenderer"
 import { DocTOC } from "@/components/features/docs/DocTOC"
@@ -360,13 +361,19 @@ export default function DocReadPage() {
         docMetadata={docMetadata}
         docActions={docActions}
       >
-        {/* Conteúdo Markdown */}
-        <div className="max-w-3xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          {/* Conteúdo Markdown */}
+          <div className="max-w-3xl">
           <MarkdownRenderer
             content={doc.content || ""}
             onHeadingsChange={setHeadings}
           />
         </div>
+        </motion.div>
       </DocsShell>
 
       {/* Dialog de arquivar (fora do DocsShell) */}

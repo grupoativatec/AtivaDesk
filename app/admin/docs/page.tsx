@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { DocsShell } from "@/components/features/docs/DocsShell"
 import { DocCard, type Doc } from "@/components/features/docs/DocCard"
 import { Card, CardContent } from "@/components/ui/card"
@@ -258,8 +259,13 @@ export default function DocsHubPage() {
       sidebarExtra={sidebarContent}
       searchInput={searchInput}
     >
-      {/* Resumo */}
-      <div className="mb-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        {/* Resumo */}
+        <div className="mb-4">
         <p className="text-xs sm:text-sm text-muted-foreground">
           <span className="font-semibold text-foreground">{docsCount}</span>{" "}
           documento{docsCount === 1 ? "" : "s"} encontrado{docsCount === 1 ? "" : "s"}
@@ -345,6 +351,7 @@ export default function DocsHubPage() {
           </div>
         </>
       )}
+      </motion.div>
     </DocsShell>
   )
 }

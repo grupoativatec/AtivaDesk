@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { motion } from "framer-motion"
 import { useKanbanStore } from "../store/useKanbanStore"
 import { KanbanFiltersBar } from "./KanbanFiltersBar"
 import { KanbanListView } from "./KanbanListView"
@@ -22,7 +23,12 @@ export function KanbanBoardShell({ boardId }: KanbanBoardShellProps) {
   }
 
   return (
-    <div className="flex flex-col h-screen w-full">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="flex flex-col h-screen w-full"
+    >
       <KanbanTopbar board={board} activeView={activeView} onViewChange={setActiveView} />
       <KanbanFiltersBar filters={filters} onFiltersChange={setFilters} />
       <div className="flex-1 overflow-hidden min-h-0">
@@ -32,6 +38,6 @@ export function KanbanBoardShell({ boardId }: KanbanBoardShellProps) {
           <KanbanBoard boardId={boardId} />
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }
