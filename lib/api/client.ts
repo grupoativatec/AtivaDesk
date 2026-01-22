@@ -51,7 +51,16 @@ const getBaseURL = async (): Promise<string> => {
     // Isso é normal em alguns casos, usar fallback
   }
   
-  // Fallback: usar localhost em desenvolvimento ou variável de ambiente
+  // Fallback: usar variável de ambiente APP_URL ou NEXT_PUBLIC_APP_URL
+  if (process.env.APP_URL) {
+    return process.env.APP_URL
+  }
+  
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL
+  }
+  
+  // Último fallback: usar localhost apenas em desenvolvimento
   const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
   const host = process.env.VERCEL_URL || 
                process.env.NEXT_PUBLIC_VERCEL_URL || 
@@ -63,9 +72,9 @@ const getBaseURL = async (): Promise<string> => {
  * Obtém headers padrão para requisições
  */
 async function getHeaders(customHeaders?: HeadersInit): Promise<HeadersInit> {
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...customHeaders,
+    ...(customHeaders as Record<string, string>),
   }
 
   // No servidor, passar cookies manualmente
