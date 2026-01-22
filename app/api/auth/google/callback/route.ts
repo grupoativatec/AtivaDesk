@@ -4,6 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { signAuthToken } from "@/lib/auth/jwt";
 import { AUTH_COOKIE_NAME, authCookieOptions } from "@/lib/auth/cookies";
 
+/**
+ * URL base da aplicação
+ */
+const APP_BASE_URL = "https://ativadesk.grupoativa.net:19831"
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -11,7 +16,7 @@ export async function GET(req: Request) {
 
     if (!code) {
       return NextResponse.redirect(
-        new URL("/login?error=missing_code", req.url)
+        new URL("/login?error=missing_code", APP_BASE_URL)
       );
     }
 
@@ -26,7 +31,7 @@ export async function GET(req: Request) {
 
     if (!userInfoResponse.ok) {
       return NextResponse.redirect(
-        new URL("/login?error=invalid_token", req.url)
+        new URL("/login?error=invalid_token", APP_BASE_URL)
       );
     }
 
@@ -35,7 +40,7 @@ export async function GET(req: Request) {
 
     if (!email || !name || !googleId) {
       return NextResponse.redirect(
-        new URL("/login?error=invalid_token", req.url)
+        new URL("/login?error=invalid_token", APP_BASE_URL)
       );
     }
 
@@ -44,7 +49,7 @@ export async function GET(req: Request) {
       return NextResponse.redirect(
         new URL(
           "/login?error=domain_not_allowed",
-          req.url
+          APP_BASE_URL
         )
       );
     }
@@ -87,7 +92,7 @@ export async function GET(req: Request) {
     // Redirecionar com cookie
     const redirectUrl = new URL(
       user.role === "ADMIN" ? "/admin/dashboard" : "/tickets",
-      req.url
+      APP_BASE_URL
     );
 
     const response = NextResponse.redirect(redirectUrl);
@@ -97,7 +102,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("Erro no callback do Google:", error);
     return NextResponse.redirect(
-      new URL("/login?error=oauth_error", req.url)
+      new URL("/login?error=oauth_error", APP_BASE_URL)
     );
   }
 }
