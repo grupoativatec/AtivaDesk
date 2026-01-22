@@ -49,12 +49,12 @@ export function TaskAssigneesMultiSelect({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="w-full justify-between text-left font-normal"
+          className="w-full justify-between text-left font-normal h-9 sm:h-10"
           disabled={disabled}
         >
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Users className="size-4 text-muted-foreground shrink-0" />
-            <span className="text-sm truncate">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+            <Users className="size-3.5 sm:size-4 text-muted-foreground shrink-0" />
+            <span className="text-xs sm:text-sm truncate">
               {assignees.length === 0
                 ? "Nenhum responsável"
                 : assignees.length === 1
@@ -62,15 +62,15 @@ export function TaskAssigneesMultiSelect({
                 : `${assignees.length} responsáveis`}
             </span>
           </div>
-          <ChevronDown className="size-4 text-muted-foreground shrink-0" />
+          <ChevronDown className="size-3.5 sm:size-4 text-muted-foreground shrink-0" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[280px] p-0" align="start">
-        <div className="p-2">
-          <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+      <PopoverContent className="w-[calc(100vw-4rem)] sm:w-[280px] p-0" align="start">
+        <div className="p-1.5 sm:p-2">
+          <div className="text-[10px] sm:text-xs font-medium text-muted-foreground px-2 py-1.5">
             Selecionar responsáveis
           </div>
-          <div className="max-h-[300px] overflow-y-auto">
+          <div className="max-h-[200px] sm:max-h-[300px] overflow-y-auto">
             {availableAssignees.map((assignee) => {
               const isSelected = assignees.some((a) => a.id === assignee.id)
               return (
@@ -79,16 +79,16 @@ export function TaskAssigneesMultiSelect({
                   type="button"
                   onClick={() => toggleAssignee(assignee)}
                   className={cn(
-                    "w-full flex items-center gap-2 px-2 py-2 text-sm rounded hover:bg-muted transition-colors",
+                    "w-full flex items-center gap-1.5 sm:gap-2 px-2 py-1.5 sm:py-2 text-xs sm:text-sm rounded hover:bg-muted transition-colors",
                     isSelected && "bg-muted"
                   )}
                 >
-                  <div className="size-6 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary shrink-0">
+                  <div className="size-5 sm:size-6 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-[10px] sm:text-xs font-semibold text-primary shrink-0">
                     {getInitials(assignee.name)}
                   </div>
-                  <span className="flex-1 text-left">{assignee.name}</span>
+                  <span className="flex-1 text-left truncate">{assignee.name}</span>
                   {isSelected && (
-                    <Check className="size-4 text-primary shrink-0" />
+                    <Check className="size-3.5 sm:size-4 text-primary shrink-0" />
                   )}
                 </button>
               )

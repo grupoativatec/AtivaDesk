@@ -16,7 +16,12 @@ export default function RecentDocsPage() {
 
   return (
     <DocsShell pageTitle="Recentes">
-      {recentDocs.length === 0 ? (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        {recentDocs.length === 0 ? (
         <Card>
           <CardContent className="py-16 flex flex-col items-center justify-center gap-4">
             <div className="rounded-full bg-muted p-4">

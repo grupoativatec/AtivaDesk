@@ -188,18 +188,18 @@ export function CreateTaskModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Nova Tarefa</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-1.5 sm:space-y-2">
+          <DialogTitle className="text-lg sm:text-xl">Nova Tarefa</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Preencha os dados para criar uma nova tarefa
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           {/* Título */}
-          <div className="space-y-2">
-            <Label htmlFor="title">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="title" className="text-xs sm:text-sm font-medium">
               Título <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -207,21 +207,22 @@ export function CreateTaskModal({
               {...register("title")}
               placeholder="Ex: Implementar integração X"
               disabled={isSubmitting}
+              className="h-9 sm:h-10 text-sm sm:text-base"
             />
             {errors.title && (
-              <p className="text-sm text-destructive">{errors.title.message}</p>
+              <p className="text-xs sm:text-sm text-destructive">{errors.title.message}</p>
             )}
           </div>
 
           {/* Projeto */}
-          <div className="space-y-2">
-            <Label htmlFor="projectId">Projeto</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="projectId" className="text-xs sm:text-sm font-medium">Projeto</Label>
             <Select
               value={selectedProjectId || "none"}
               onValueChange={(value) => setValue("projectId", value === "none" ? undefined : value)}
               disabled={isSubmitting}
             >
-              <SelectTrigger id="projectId">
+              <SelectTrigger id="projectId" className="h-9 sm:h-10 text-sm sm:text-base">
                 <SelectValue placeholder="Selecione um projeto (opcional)" />
               </SelectTrigger>
               <SelectContent>
@@ -234,16 +235,16 @@ export function CreateTaskModal({
               </SelectContent>
             </Select>
             {errors.projectId && (
-              <p className="text-sm text-destructive">
+              <p className="text-xs sm:text-sm text-destructive">
                 {errors.projectId.message}
               </p>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Unidade */}
-            <div className="space-y-2">
-              <Label htmlFor="unit">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="unit" className="text-xs sm:text-sm font-medium">
                 Unidade <span className="text-destructive">*</span>
               </Label>
               <Select
@@ -253,7 +254,7 @@ export function CreateTaskModal({
                 }
                 disabled={isSubmitting}
               >
-                <SelectTrigger id="unit">
+                <SelectTrigger id="unit" className="h-9 sm:h-10 text-sm sm:text-base">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -265,13 +266,13 @@ export function CreateTaskModal({
                 </SelectContent>
               </Select>
               {errors.unit && (
-                <p className="text-sm text-destructive">{errors.unit.message}</p>
+                <p className="text-xs sm:text-sm text-destructive">{errors.unit.message}</p>
               )}
             </div>
 
             {/* Prioridade */}
-            <div className="space-y-2">
-              <Label htmlFor="priority">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="priority" className="text-xs sm:text-sm font-medium">
                 Prioridade <span className="text-destructive">*</span>
               </Label>
               <Select
@@ -281,7 +282,7 @@ export function CreateTaskModal({
                 }
                 disabled={isSubmitting}
               >
-                <SelectTrigger id="priority">
+                <SelectTrigger id="priority" className="h-9 sm:h-10 text-sm sm:text-base">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -292,17 +293,17 @@ export function CreateTaskModal({
                 </SelectContent>
               </Select>
               {errors.priority && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs sm:text-sm text-destructive">
                   {errors.priority.message}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Status */}
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="status" className="text-xs sm:text-sm font-medium">Status</Label>
               <Select
                 value={selectedStatus}
                 onValueChange={(value) =>
@@ -310,7 +311,7 @@ export function CreateTaskModal({
                 }
                 disabled={isSubmitting}
               >
-                <SelectTrigger id="status">
+                <SelectTrigger id="status" className="h-9 sm:h-10 text-sm sm:text-base">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -322,15 +323,15 @@ export function CreateTaskModal({
                 </SelectContent>
               </Select>
               {errors.status && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs sm:text-sm text-destructive">
                   {errors.status.message}
                 </p>
               )}
             </div>
 
             {/* Horas Estimadas */}
-            <div className="space-y-2">
-              <Label htmlFor="estimatedHours">Horas Estimadas</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="estimatedHours" className="text-xs sm:text-sm font-medium">Horas Estimadas</Label>
               <Input
                 id="estimatedHours"
                 type="number"
@@ -338,9 +339,10 @@ export function CreateTaskModal({
                 step="1"
                 {...register("estimatedHours", { valueAsNumber: true })}
                 disabled={isSubmitting}
+                className="h-9 sm:h-10 text-sm sm:text-base"
               />
               {errors.estimatedHours && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs sm:text-sm text-destructive">
                   {errors.estimatedHours.message}
                 </p>
               )}
@@ -348,8 +350,8 @@ export function CreateTaskModal({
           </div>
 
           {/* Equipe */}
-          <div className="space-y-2">
-            <Label htmlFor="teamId">Equipe Responsável</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="teamId" className="text-xs sm:text-sm font-medium">Equipe Responsável</Label>
             {mounted ? (
               <Select
                 value={selectedTeamId || "none"}
@@ -358,7 +360,7 @@ export function CreateTaskModal({
                 }}
                 disabled={isSubmitting}
               >
-                <SelectTrigger id="teamId">
+                <SelectTrigger id="teamId" className="h-9 sm:h-10 text-sm sm:text-base">
                   <SelectValue placeholder="Selecione uma equipe (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
@@ -371,18 +373,18 @@ export function CreateTaskModal({
                 </SelectContent>
               </Select>
             ) : (
-              <div className="h-10 rounded-md border bg-background px-3 py-2 text-sm flex items-center text-muted-foreground">
+              <div className="h-9 sm:h-10 rounded-md border bg-background px-3 py-2 text-xs sm:text-sm flex items-center text-muted-foreground">
                 Carregando...
               </div>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
               Ao selecionar uma equipe, todos os membros serão automaticamente atribuídos como responsáveis.
             </p>
           </div>
 
           {/* Responsáveis */}
-          <div className="space-y-2">
-            <Label htmlFor="assignees">Responsáveis Individuais</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="assignees" className="text-xs sm:text-sm font-medium">Responsáveis Individuais</Label>
             <TaskAssigneesMultiSelect
               assignees={
                 (selectedAssigneeIds || [])
@@ -399,39 +401,45 @@ export function CreateTaskModal({
               }}
               disabled={isSubmitting}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
               Você pode adicionar responsáveis individuais além da equipe selecionada.
             </p>
           </div>
 
           {/* Descrição */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="description" className="text-xs sm:text-sm font-medium">Descrição</Label>
             <Textarea
               id="description"
               {...register("description")}
               placeholder="Descrição detalhada da tarefa (opcional)"
-              rows={4}
+              rows={3}
+              className="text-sm sm:text-base resize-none"
               disabled={isSubmitting}
             />
             {errors.description && (
-              <p className="text-sm text-destructive">
+              <p className="text-xs sm:text-sm text-destructive">
                 {errors.description.message}
               </p>
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 pt-2 sm:pt-0">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
+              className="w-full sm:w-auto h-9 sm:h-10 text-sm sm:text-base order-2 sm:order-1"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full sm:w-auto h-9 sm:h-10 text-sm sm:text-base order-1 sm:order-2"
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />}
               Criar Tarefa
             </Button>
           </DialogFooter>
