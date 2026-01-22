@@ -54,11 +54,11 @@ export function Notifications() {
         if (data.ok) {
           const newNotifications = data.notifications || []
           const previousIds = previousNotificationIdsRef.current
-          const newIds = new Set(newNotifications.map((n: Notification) => n.id))
+          const newIds = new Set<string>(newNotifications.map((n: Notification) => n.id))
           
           // Verificar se há novas notificações (IDs que não existiam antes)
           // Só toca se já havia notificações anteriores (não é a primeira carga)
-          const hasNewNotifications = Array.from(newIds).some(id => !previousIds.has(id))
+          const hasNewNotifications = [...newIds].some((id) => !previousIds.has(id))
           
           if (hasNewNotifications && previousIds.size > 0) {
             // Reproduzir som de notificação
@@ -97,7 +97,7 @@ export function Notifications() {
           
           // Se o contador aumentou, significa que chegou uma nova notificação
           // Só toca se já havia um contador anterior (não é a primeira carga)
-          if (newCount > previousCount && previousCount !== null) {
+          if (previousCount !== null && newCount > previousCount) {
             // Reproduzir som de notificação
             try {
               if (audioRef.current) {

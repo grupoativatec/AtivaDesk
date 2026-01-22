@@ -95,7 +95,6 @@ const RecentOpen = () => {
             transition: {
                 duration: 0.3,
                 delay: index * 0.05,
-                ease: "easeOut",
             },
         }),
     }

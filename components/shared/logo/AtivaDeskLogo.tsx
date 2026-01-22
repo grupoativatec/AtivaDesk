@@ -79,7 +79,7 @@ export function AtivaDeskLogo({
             fill="none"
             initial={animated ? { pathLength: 0, opacity: 0 } : {}}
             animate={animated ? { pathLength: 1, opacity: 1 } : {}}
-            transition={{ duration: 1, delay: 0.2, ease: "easeInOut" }}
+            transition={{ duration: 1, delay: 0.2 }}
           />
           {/* Loop esquerdo (superior) */}
           <motion.path
@@ -90,7 +90,7 @@ export function AtivaDeskLogo({
             fill="none"
             initial={animated ? { pathLength: 0, opacity: 0 } : {}}
             animate={animated ? { pathLength: 1, opacity: 1 } : {}}
-            transition={{ duration: 0.7, delay: 0.3, ease: "easeInOut" }}
+            transition={{ duration: 0.7, delay: 0.3 }}
           />
           {/* Loop direito (inferior) */}
           <motion.path
@@ -101,7 +101,7 @@ export function AtivaDeskLogo({
             fill="none"
             initial={animated ? { pathLength: 0, opacity: 0 } : {}}
             animate={animated ? { pathLength: 1, opacity: 1 } : {}}
-            transition={{ duration: 0.7, delay: 0.5, ease: "easeInOut" }}
+            transition={{ duration: 0.7, delay: 0.5 }}
           />
         </motion.g>
         
@@ -123,7 +123,6 @@ export function AtivaDeskLogo({
             transition={{
               duration: 3,
               repeat: Infinity,
-              ease: "easeInOut",
             }}
           />
         )}
@@ -152,7 +151,6 @@ export function AtivaDeskLogo({
             transition={{
               duration: 2.5,
               repeat: Infinity,
-              ease: "easeInOut",
             }}
           />
         )}

@@ -241,9 +241,9 @@ export async function POST(req: Request) {
     const parsed = documentSchema.safeParse(validatedData)
     if (!parsed.success) {
       console.error("Erro de validação Zod:", JSON.stringify(parsed.error, null, 2))
-      const errorMessage = parsed.error?.errors && parsed.error.errors.length > 0
-        ? parsed.error.errors[0].message
-        : parsed.error?.message || "Dados inválidos"
+      const errorMessage = parsed.error?.issues && parsed.error.issues.length > 0
+        ? parsed.error.issues[0].message
+        : "Dados inválidos"
       return NextResponse.json(
         { error: errorMessage },
         { status: 400 }

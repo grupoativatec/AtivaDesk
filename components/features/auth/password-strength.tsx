@@ -117,7 +117,6 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
               transition={{
                 duration: 0.3,
                 delay: index * 0.1,
-                ease: "easeOut",
               }}
               style={{ originX: 0 }}
             />

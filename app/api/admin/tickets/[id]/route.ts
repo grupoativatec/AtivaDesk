@@ -131,7 +131,7 @@ export async function PATCH(
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.errors[0].message },
+        { error: parsed.error.issues[0]?.message || "Dados inválidos" },
         { status: 400 }
       )
     }
@@ -258,10 +258,10 @@ export async function PATCH(
         
         updateData.timeSpentMinutes = diffMinutes
         
-        if (data.status === "RESOLVED" && ticket.status !== "RESOLVED") {
+        if (data.status === "RESOLVED") {
           updateData.resolvedAt = new Date()
         }
-        if (data.status === "CLOSED" && ticket.status !== "CLOSED") {
+        if (data.status === "CLOSED") {
           updateData.closedAt = new Date()
         }
       }

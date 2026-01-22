@@ -347,7 +347,6 @@ export function AdminTicketEdit({ ticket, onUpdate }: TicketEditProps) {
                 )}
               </Button>
             </div>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

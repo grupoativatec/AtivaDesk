@@ -100,10 +100,10 @@ export async function GET(req: Request) {
       title: task.title,
       status: task.status,
       priority: task.priority,
-      project: {
+      project: task.project ? {
         id: task.project.id,
         name: task.project.name,
-      },
+      } : null,
       assignees: task.assignees.map((ta) => ({
         id: ta.user.id,
         name: ta.user.name,

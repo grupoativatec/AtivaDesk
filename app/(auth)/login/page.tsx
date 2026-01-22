@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { GoogleButton } from "@/components/features/auth/google-button";
@@ -14,7 +14,7 @@ type LoginResponse =
     | { ok: true; user: { id: string; name: string; email: string; role: "USER" | "AGENT" | "ADMIN" } }
     | { error: string };
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -237,5 +237,25 @@ export default function LoginPage() {
                 </p>
             </motion.div>
         </motion.div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="space-y-8">
+                <div className="flex items-center justify-center mb-2">
+                    <AtivaDeskLogo size="lg" showText={true} animated={true} className="text-2xl" />
+                </div>
+                <div className="space-y-2.5">
+                    <h2 className="text-3xl font-bold tracking-tight">Bem-vindo de volta</h2>
+                    <p className="text-muted-foreground">
+                        Entre na sua conta para continuar
+                    </p>
+                </div>
+            </div>
+        }>
+            <LoginForm />
+        </Suspense>
     );
 }

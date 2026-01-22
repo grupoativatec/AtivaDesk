@@ -5,7 +5,12 @@ import { TaskStatus, TaskPriority, TaskUnit } from "./task.types"
  */
 export function parseStatus(value: string | null): TaskStatus | undefined {
   if (!value) return undefined
-  const validStatuses: TaskStatus[] = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"]
+  const validStatuses: TaskStatus[] = [
+    TaskStatus.BACKLOG,
+    TaskStatus.TODO,
+    TaskStatus.IN_PROGRESS,
+    TaskStatus.DONE,
+  ]
   return validStatuses.includes(value as TaskStatus) ? (value as TaskStatus) : undefined
 }
 
@@ -14,7 +19,12 @@ export function parseStatus(value: string | null): TaskStatus | undefined {
  */
 export function parsePriority(value: string | null): TaskPriority | undefined {
   if (!value) return undefined
-  const validPriorities: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"]
+  const validPriorities: TaskPriority[] = [
+    TaskPriority.LOW,
+    TaskPriority.MEDIUM,
+    TaskPriority.HIGH,
+    TaskPriority.URGENT,
+  ]
   return validPriorities.includes(value as TaskPriority) ? (value as TaskPriority) : undefined
 }
 
@@ -23,7 +33,13 @@ export function parsePriority(value: string | null): TaskPriority | undefined {
  */
 export function parseUnit(value: string | null): TaskUnit | undefined {
   if (!value) return undefined
-  const validUnits: TaskUnit[] = ["ITJ", "SFS", "FOZ", "DIO", "AOL"]
+  const validUnits: TaskUnit[] = [
+    TaskUnit.ITJ,
+    TaskUnit.SFS,
+    TaskUnit.FOZ,
+    TaskUnit.DIO,
+    TaskUnit.AOL,
+  ]
   return validUnits.includes(value as TaskUnit) ? (value as TaskUnit) : undefined
 }
 
