@@ -14,9 +14,10 @@ const getRedirectURI = (): string => {
     return `${baseUrl}/api/auth/google/callback`
   }
   
-  // Último fallback: localhost apenas em desenvolvimento
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-  return `${protocol}://localhost:3000/api/auth/google/callback`
+  // Se nenhuma URL estiver configurada, lançar erro
+  throw new Error(
+    "GOOGLE_REDIRECT_URI ou APP_URL/NEXT_PUBLIC_APP_URL deve estar configurado nas variáveis de ambiente"
+  )
 }
 
 export const googleOAuthClient = new OAuth2Client(

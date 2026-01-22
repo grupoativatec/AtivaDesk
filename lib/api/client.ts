@@ -51,7 +51,7 @@ const getBaseURL = async (): Promise<string> => {
     // Isso é normal em alguns casos, usar fallback
   }
   
-  // Fallback: usar variável de ambiente APP_URL ou NEXT_PUBLIC_APP_URL
+  // Usar variável de ambiente APP_URL ou NEXT_PUBLIC_APP_URL
   if (process.env.APP_URL) {
     return process.env.APP_URL
   }
@@ -60,12 +60,10 @@ const getBaseURL = async (): Promise<string> => {
     return process.env.NEXT_PUBLIC_APP_URL
   }
   
-  // Último fallback: usar localhost apenas em desenvolvimento
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-  const host = process.env.VERCEL_URL || 
-               process.env.NEXT_PUBLIC_VERCEL_URL || 
-               "localhost:3000"
-  return `${protocol}://${host}`
+  // Se nenhuma URL estiver configurada, lançar erro
+  throw new Error(
+    "APP_URL ou NEXT_PUBLIC_APP_URL deve estar configurado nas variáveis de ambiente"
+  )
 }
 
 /**
