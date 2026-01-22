@@ -440,6 +440,20 @@ async function importarAcessos() {
 
     console.log(`✅ Usando admin: ${adminUser.name} (${adminUser.email})`)
 
+    // ID da categoria Itajai existente no banco
+    const categoriaItajaiId = "c77a4519-8e25-4965-885e-87c502212f17"
+    
+    // Verificar se a categoria existe
+    const categoriaItajai = await prisma.categoriaColaborador.findUnique({
+      where: { id: categoriaItajaiId },
+    })
+
+    if (!categoriaItajai) {
+      throw new Error(`Categoria com ID ${categoriaItajaiId} não encontrada. Verifique se a categoria "Itajai" existe no banco.`)
+    }
+
+    console.log(`✅ Usando categoria: ${categoriaItajai.nome} (${categoriaItajai.id})`)
+
     let sucessos = 0
     let erros = 0
     const errosDetalhes: string[] = []
@@ -487,7 +501,7 @@ async function importarAcessos() {
             email: null,
             senha: senhaFinal,
             departamento: departamentoFinal,
-            categoriaId: categoriaItajai.id,
+            categoriaId: categoriaItajaiId,
             registradoPorId: adminUser.id,
             ativo,
           },
