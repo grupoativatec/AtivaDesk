@@ -572,3 +572,42 @@ model TeamMember {
   @@index([userId])
   @@index([teamId])
 }
+
+model ColaboradorExterno {
+  id          String   @id @default(uuid())
+  nome        String
+model CategoriaColaborador {
+  id          String   @id @default(uuid())
+  nome        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  colaboradores ColaboradorExterno[]
+
+  @@index([nome])
+}
+
+model ColaboradorExterno {
+  id          String   @id @default(uuid())
+  nome        String
+  email       String?
+  senha       String? // Senha de acesso
+  departamento String?
+  
+  // Categoria
+  categoriaId String?
+  categoria   CategoriaColaborador? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  
+  // Status
+  ativo       Boolean  @default(true)
+  
+  // Quem registrou
+  registradoPorId String?
+  registradoPor   User?   @relation("ColaboradorExternoRegistradoPor", fields: [registradoPorId], references: [id], onDelete: SetNull)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ativo])
+  @@index([registradoPorId])
+  @@index([categoriaId])
