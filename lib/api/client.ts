@@ -21,6 +21,11 @@ export class ApiClientError extends Error {
 }
 
 /**
+ * URL base da aplicação
+ */
+const APP_BASE_URL = "https://ativadesk.grupoativa.net:19831"
+
+/**
  * Configuração base da API
  */
 const getBaseURL = async (): Promise<string> => {
@@ -29,41 +34,8 @@ const getBaseURL = async (): Promise<string> => {
     return ""
   }
   
-  // Server-side: construir URL absoluta
-  // Se NEXT_PUBLIC_API_URL estiver definido, usar ele
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL
-  }
-  
-  // Tentar obter o host dos headers (Next.js 13+)
-  try {
-    const { headers } = await import("next/headers")
-    const headersList = await headers()
-    const host = headersList.get("host")
-    const protocol = headersList.get("x-forwarded-proto") || 
-                     (process.env.NODE_ENV === "production" ? "https" : "http")
-    
-    if (host) {
-      return `${protocol}://${host}`
-    }
-  } catch (error) {
-    // Se não conseguir importar headers (pode acontecer em alguns contextos)
-    // Isso é normal em alguns casos, usar fallback
-  }
-  
-  // Usar variável de ambiente APP_URL ou NEXT_PUBLIC_APP_URL
-  if (process.env.APP_URL) {
-    return process.env.APP_URL
-  }
-  
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL
-  }
-  
-  // Se nenhuma URL estiver configurada, lançar erro
-  throw new Error(
-    "APP_URL ou NEXT_PUBLIC_APP_URL deve estar configurado nas variáveis de ambiente"
-  )
+  // Server-side: usar URL definida diretamente no código
+  return APP_BASE_URL
 }
 
 /**
