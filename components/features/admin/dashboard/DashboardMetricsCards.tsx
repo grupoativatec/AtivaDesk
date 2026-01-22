@@ -86,9 +86,9 @@ export function DashboardMetricsCards({ metrics, loading }: DashboardMetricsCard
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full min-w-0">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="border-0 shadow-sm">
+          <Card key={i} className="border-0 shadow-sm min-w-0 overflow-hidden">
             <CardContent className="p-4 sm:p-6">
               <Skeleton className="h-8 w-8 rounded-lg mb-4" />
               <Skeleton className="h-8 w-20 mb-2" />
@@ -102,7 +102,7 @@ export function DashboardMetricsCards({ metrics, loading }: DashboardMetricsCard
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full min-w-0">
       {statCards.map((stat, index) => {
         const Icon = stat.icon
         const TrendIcon = stat.trendUp ? TrendingUp : TrendingDown
@@ -113,44 +113,46 @@ export function DashboardMetricsCards({ metrics, loading }: DashboardMetricsCard
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}
+            className="min-w-0 w-full"
           >
             <Card
               className={cn(
                 "group cursor-pointer border-0 shadow-sm transition-all duration-200",
                 "hover:shadow-md hover:-translate-y-0.5",
                 stat.hoverColor,
-                stat.highlight && "ring-2 ring-red-500/20"
+                stat.highlight && "ring-2 ring-red-500/20",
+                "w-full min-w-0 overflow-hidden"
               )}
               onClick={() => router.push(stat.route)}
             >
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={cn("p-2 rounded-lg", stat.color)}>
+              <CardContent className="p-4 sm:p-6 min-w-0">
+                <div className="flex items-start justify-between mb-4 min-w-0 gap-2">
+                  <div className={cn("p-2 rounded-lg shrink-0", stat.color)}>
                     <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <Badge
                     variant="secondary"
                     className={cn(
-                      "text-xs font-medium px-2 py-0.5",
+                      "text-xs font-medium px-1.5 sm:px-2 py-0.5 shrink-0",
                       stat.trendUp
                         ? "bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20"
                         : "bg-red-500/10 text-red-600 dark:text-red-500 border-red-500/20"
                     )}
                   >
-                    <TrendIcon className="h-3 w-3 mr-1" />
-                    {stat.trend}
+                    <TrendIcon className="h-3 w-3 mr-0.5 sm:mr-1" />
+                    <span className="text-[10px] sm:text-xs">{stat.trend}</span>
                   </Badge>
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight mb-1 break-words">
                   {stat.value}
                 </div>
-                <div className="text-sm font-medium text-muted-foreground mb-1">
+                <div className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 break-words">
                   {stat.label}
                 </div>
-                <div className="text-xs text-muted-foreground/80">
+                <div className="text-[10px] sm:text-xs text-muted-foreground/80 break-words line-clamp-2">
                   {stat.description}
                 </div>
-                <div className="text-xs text-muted-foreground/60 mt-0.5">
+                <div className="text-[10px] sm:text-xs text-muted-foreground/60 mt-0.5 break-words line-clamp-1">
                   {stat.subDescription}
                 </div>
               </CardContent>

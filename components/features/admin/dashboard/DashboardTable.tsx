@@ -133,11 +133,11 @@ export function DashboardTable({ tickets, loading }: DashboardTableProps) {
   }
 
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="border-0 shadow-sm overflow-hidden">
       <CardHeader className="pb-4">
         {/* Tabs */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-1 overflow-x-auto pb-2 -mx-1 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4">
+          <div className="flex items-center gap-1 overflow-x-auto pb-2 -mx-1 px-1 w-full sm:w-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {tabs.map((tab) => (
               <Button
                 key={tab.id}
@@ -159,7 +159,7 @@ export function DashboardTable({ tickets, loading }: DashboardTableProps) {
             ))}
           </div>
           
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm">
@@ -185,7 +185,7 @@ export function DashboardTable({ tickets, loading }: DashboardTableProps) {
         </div>
 
         {/* Table Header - Desktop */}
-        <div className="hidden lg:grid grid-cols-[40px_40px_2fr_120px_100px_100px_120px_150px_40px] gap-4 px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b">
+        <div className="hidden lg:grid grid-cols-[40px_40px_2fr_120px_100px_100px_120px_150px_40px] gap-4 px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b overflow-x-hidden">
           <div></div>
           <div></div>
           <div>Título</div>
@@ -198,20 +198,20 @@ export function DashboardTable({ tickets, loading }: DashboardTableProps) {
         </div>
       </CardHeader>
       
-      <CardContent className="p-0">
+      <CardContent className="p-0 overflow-x-hidden">
         {filteredTickets.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center px-4">
             <p className="text-sm text-muted-foreground">Nenhum chamado encontrado</p>
           </div>
         ) : (
-          <div className="space-y-0">
+          <div className="space-y-0 overflow-x-hidden">
             {filteredTickets.map((ticket) => (
               <div
                 key={ticket.id}
                 className={cn(
-                  "group grid grid-cols-[40px_40px_1fr] lg:grid-cols-[40px_40px_2fr_120px_100px_100px_120px_150px_40px] gap-2 lg:gap-4 px-4 py-3 lg:py-4",
+                  "group grid grid-cols-[40px_1fr_40px] lg:grid-cols-[40px_40px_2fr_120px_100px_100px_120px_150px_40px] gap-2 lg:gap-4 px-3 sm:px-4 py-3 lg:py-4",
                   "hover:bg-muted/50 transition-colors cursor-pointer border-b last:border-b-0",
-                  "items-center"
+                  "items-center min-w-0"
                 )}
                 onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
               >
@@ -220,8 +220,8 @@ export function DashboardTable({ tickets, loading }: DashboardTableProps) {
                   <GripVertical className="h-4 w-4 text-muted-foreground/50" />
                 </div>
                 
-                {/* Checkbox */}
-                <div className="flex items-center">
+                {/* Checkbox - Desktop */}
+                <div className="hidden lg:flex items-center">
                   <Checkbox
                     checked={selectedItems.has(ticket.id)}
                     onCheckedChange={(checked) => {
@@ -238,17 +238,24 @@ export function DashboardTable({ tickets, loading }: DashboardTableProps) {
                 </div>
                 
                 {/* Título */}
-                <div className="min-w-0">
-                  <div className="font-medium text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                <div className="min-w-0 overflow-hidden">
+                  <div className="font-medium text-xs sm:text-sm text-foreground line-clamp-2 sm:line-clamp-1 group-hover:text-primary transition-colors">
                     {ticket.title}
                   </div>
                   {/* Mobile: mostrar mais info */}
-                  <div className="lg:hidden mt-1 flex items-center gap-2 flex-wrap">
+                  <div className="lg:hidden mt-1.5 flex items-center gap-1.5 flex-wrap">
                     {getStatusBadge(ticket.status)}
-                    <span className={cn("text-xs font-medium", getPriorityColor(ticket.priority))}>
+                    <span className={cn("text-[10px] sm:text-xs font-medium", getPriorityColor(ticket.priority))}>
                       {ticket.priority}
                     </span>
-                    <span className="text-xs text-muted-foreground">{ticket.unit}</span>
+                    {ticket.unit && (
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">{ticket.unit}</span>
+                    )}
+                    {ticket.assignee && (
+                      <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                        {ticket.assignee.name}
+                      </span>
+                    )}
                   </div>
                 </div>
                 
@@ -308,13 +315,13 @@ export function DashboardTable({ tickets, loading }: DashboardTableProps) {
                 </div>
                 
                 {/* Menu - Mobile */}
-                <div className="lg:hidden flex items-center justify-end">
+                <div className="lg:hidden flex items-center justify-end shrink-0">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 shrink-0"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <MoreVertical className="h-4 w-4" />

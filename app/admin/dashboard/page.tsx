@@ -88,10 +88,10 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Container com max-width responsivo */}
-      <div className="mx-auto max-w-[1920px] px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16">
-        <div className="py-4 sm:py-6 md:py-8 lg:py-10 xl:py-12">
+      <div className="mx-auto max-w-[1920px] px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 overflow-x-hidden">
+        <div className="py-4 sm:py-6 md:py-8 lg:py-10 xl:py-12 overflow-x-hidden">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -99,19 +99,19 @@ export default function AdminDashboardPage() {
             className="space-y-6 sm:space-y-8 md:space-y-10"
           >
             {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight">
                   Dashboard
                 </h1>
-                <p className="text-sm sm:text-base text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm md:text-base text-muted-foreground mt-1">
                   Visão geral do sistema e métricas
                 </p>
               </div>
               <Button
                 onClick={() => router.push("/admin/tickets/new")}
                 size="sm"
-                className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm"
+                className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm shrink-0"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Novo Chamado</span>
@@ -120,12 +120,12 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Métricas Cards */}
-            <section>
+            <section className="w-full min-w-0 overflow-x-hidden">
               <DashboardMetricsCards metrics={metrics} loading={loading} />
             </section>
 
-            {/* Tabela de Chamados */}
-            <section>
+            {/* Tabela de Chamados - Ocultar no mobile */}
+            <section className="hidden md:block">
               <DashboardTable tickets={tickets.tickets} loading={loading} />
             </section>
           </motion.div>
