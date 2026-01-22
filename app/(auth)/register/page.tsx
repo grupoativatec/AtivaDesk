@@ -67,7 +67,6 @@ export default function RegisterPage() {
             y: 0,
             transition: {
                 duration: 0.5,
-                ease: "easeOut",
             },
         },
     };
@@ -207,7 +206,7 @@ export default function RegisterPage() {
                                 <span className="flex items-center gap-2">
                                     <motion.span
                                         animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                        transition={{ duration: 1, repeat: Infinity }}
                                         className="inline-block"
                                     >
                                         ⟳

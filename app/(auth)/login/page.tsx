@@ -199,7 +199,7 @@ export default function LoginPage() {
                                 <span className="flex items-center gap-2">
                                     <motion.span
                                         animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                        transition={{ duration: 1, repeat: Infinity }}
                                         className="inline-block"
                                     >
                                         ⟳
