@@ -28,9 +28,9 @@ export default async function AdminLayout({
         <AppSidebar />
         <SidebarInset className="flex flex-col h-full">
           <header className="flex h-16 md:hidden shrink-0 items-center gap-3 border-b px-4 md:px-6">
-            <SidebarTrigger className="-ml-1" />
             <AtivaDeskLogo size="md" showText={true} animated={false} />
             <div className="flex-1" />
+            <SidebarTrigger className="-mr-1" />
           </header>
           <div className="flex-1 overflow-auto w-full h-full">
             {children}
