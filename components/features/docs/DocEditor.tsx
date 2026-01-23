@@ -54,7 +54,7 @@ export function DocEditor({
     }
     
     // Validar tipo MIME específico
-    if (!allowedTypes.includes(file.type.toLowerCase())) {
+    if (!allowedTypes.includes(file.type)) {
       const extension = file.name.substring(file.name.lastIndexOf(".")).toLowerCase()
       if (!allowedExtensions.includes(extension)) {
         toast.error(`Formato não suportado. Use: PNG, JPG, GIF, WEBP, BMP ou SVG`)
@@ -75,19 +75,27 @@ export function DocEditor({
       const formData = new FormData()
       formData.append("file", file)
 
+      console.log("Iniciando upload:", { name: file.name, type: file.type, size: file.size })
+
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       })
 
       const data = await res.json()
+      console.log("Resposta do upload:", { ok: res.ok, data })
 
       if (!res.ok) {
         throw new Error(data.error || "Erro ao fazer upload da imagem")
       }
 
+      if (!data.url) {
+        throw new Error("URL não retornada pelo servidor")
+      }
+
       // Inserir imagem no Markdown na posição do cursor
       const imageMarkdown = `![${file.name}](${data.url})`
+      console.log("Inserindo imagem no markdown:", imageMarkdown)
       insertTextAtCursor(imageMarkdown)
       
       toast.success("Imagem adicionada com sucesso!")

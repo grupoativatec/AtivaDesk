@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { cn } from "@/lib/utils"
@@ -44,6 +44,14 @@ export function MarkdownRenderer({
   onHeadingsChange,
 }: MarkdownRendererProps) {
   const contentRef = useRef<HTMLDivElement>(null)
+  const [baseUrl, setBaseUrl] = useState<string>("")
+
+  // Obter URL base do navegador (apenas no cliente)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setBaseUrl(window.location.origin)
+    }
+  }, [])
 
   useEffect(() => {
     if (!contentRef.current || !onHeadingsChange) return
@@ -122,31 +130,26 @@ export function MarkdownRenderer({
               return null
             }
             
-            // Se for uma URL externa ou relativa, usar img normal
-            if (src.startsWith("http") || src.startsWith("/")) {
-              return (
-                <img
-                  {...props}
-                  src={src}
-                  alt={props.alt || ""}
-                  className="rounded-lg my-4 max-w-full h-auto"
-                  loading="lazy"
-                  onError={(e) => {
-                    // Fallback para imagem quebrada
-                    const target = e.target as HTMLImageElement
-                    target.style.display = "none"
-                  }}
-                />
-              )
+            // Converter URL relativa para absoluta se necessário
+            let imageSrc = src
+            if (src.startsWith("/") && baseUrl) {
+              // Em produção, garantir que URLs relativas sejam absolutas
+              imageSrc = `${baseUrl}${src}`
             }
             
             return (
               <img
                 {...props}
-                src={src}
+                src={imageSrc}
                 alt={props.alt || ""}
                 className="rounded-lg my-4 max-w-full h-auto"
                 loading="lazy"
+                onError={(e) => {
+                  // Fallback para imagem quebrada - log para debug
+                  console.error("Erro ao carregar imagem:", imageSrc)
+                  const target = e.target as HTMLImageElement
+                  target.style.display = "none"
+                }}
               />
             )
           },

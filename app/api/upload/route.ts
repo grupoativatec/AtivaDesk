@@ -162,10 +162,20 @@ export async function POST(req: Request) {
     // Verificar magic bytes conhecidos
     const isValidMagicBytes = validateMagicBytes(magicBytes, extension, file.type)
     if (!isValidMagicBytes) {
-      return NextResponse.json(
-        { error: "Arquivo corrompido ou tipo inválido detectado" },
-        { status: 400 }
-      )
+      console.warn("Magic bytes não correspondem:", {
+        extension,
+        mimeType: file.type,
+        magicBytes: Array.from(magicBytes).map(b => b.toString(16).padStart(2, '0')).join(' '),
+        filename: file.name
+      })
+      // Para imagens, ainda permitir se a extensão e MIME type estão corretos
+      // (alguns formatos podem ter variações nos magic bytes)
+      if (!file.type.startsWith("image/")) {
+        return NextResponse.json(
+          { error: "Arquivo corrompido ou tipo inválido detectado" },
+          { status: 400 }
+        )
+      }
     }
 
     // Criar diretório de uploads se não existir
@@ -210,8 +220,9 @@ export async function POST(req: Request) {
     })
   } catch (error: any) {
     console.error("Erro ao fazer upload:", error)
+    console.error("Stack trace:", error.stack)
     return NextResponse.json(
-      { error: "Erro interno ao fazer upload" },
+      { error: error.message || "Erro interno ao fazer upload" },
       { status: 500 }
     )
   }
