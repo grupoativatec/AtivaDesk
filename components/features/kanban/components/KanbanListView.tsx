@@ -296,7 +296,7 @@ export function KanbanListView({ boardId }: KanbanListViewProps) {
                   ))}
                 </div>
               )}
-            </div>
+            </motion.div>
           )
         })}
       </div>

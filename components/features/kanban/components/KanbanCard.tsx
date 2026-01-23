@@ -42,25 +42,13 @@ export function KanbanCard({ boardId, card }: KanbanCardProps) {
 
   const handleDelete = async () => {
     setShowDeleteDialog(false)
-    setIsDeletingCard(true)
     
     try {
-      // Aguardar animação antes de deletar (600ms)
-      await new Promise(resolve => setTimeout(resolve, 600))
-      
       await deleteCard(boardId, card.id)
-      
-      // Aguardar mais um pouco para a animação de saída completar
-      await new Promise(resolve => setTimeout(resolve, 300))
     } catch (error) {
-      setIsDeletingCard(false)
       // Erro já foi tratado no store (rollback automático)
       // Em produção, pode mostrar uma notificação de erro aqui
       console.error("Erro ao deletar card:", error)
-    } finally {
-      setTimeout(() => {
-        setIsDeletingCard(false)
-      }, 300)
     }
   }
 
@@ -199,7 +187,7 @@ export function KanbanCard({ boardId, card }: KanbanCardProps) {
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Dialog de confirmação de exclusão */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
