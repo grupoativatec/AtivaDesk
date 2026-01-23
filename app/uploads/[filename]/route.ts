@@ -24,7 +24,6 @@ export async function GET(
 
     // Verificar se o arquivo existe
     if (!existsSync(filepath)) {
-      console.error("Arquivo não encontrado:", filepath)
       return NextResponse.json(
         { error: "Arquivo não encontrado" },
         { status: 404 }
