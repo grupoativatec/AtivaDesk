@@ -182,6 +182,7 @@ export async function POST(req: Request) {
     const uploadsDir = join(process.cwd(), "public", "uploads")
     if (!existsSync(uploadsDir)) {
       await mkdir(uploadsDir, { recursive: true })
+      console.log("Diretório de uploads criado:", uploadsDir)
     }
 
     // Sanitizar nome do arquivo (remover caracteres perigosos)
@@ -206,7 +207,19 @@ export async function POST(req: Request) {
     }
 
     // Salvar arquivo (usar o buffer já criado anteriormente)
+    console.log("Salvando arquivo:", { filepath, filename, size: buffer.length })
     await writeFile(filepath, buffer)
+    
+    // Verificar se o arquivo foi salvo corretamente
+    const fileExists = existsSync(filepath)
+    if (!fileExists) {
+      console.error("Erro: Arquivo não foi salvo corretamente", filepath)
+      return NextResponse.json(
+        { error: "Erro ao salvar arquivo no servidor" },
+        { status: 500 }
+      )
+    }
+    console.log("Arquivo salvo com sucesso:", filepath)
 
     // Retornar URL
     const url = `/uploads/${filename}`
