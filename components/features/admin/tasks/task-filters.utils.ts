@@ -6,7 +6,6 @@ import { TaskStatus, TaskPriority, TaskUnit } from "./task.types"
 export function parseStatus(value: string | null): TaskStatus | undefined {
   if (!value) return undefined
   const validStatuses: TaskStatus[] = [
-    TaskStatus.BACKLOG,
     TaskStatus.TODO,
     TaskStatus.IN_PROGRESS,
     TaskStatus.DONE,

@@ -51,7 +51,6 @@ enum TicketUnit {
 }
 
 enum TaskStatus {
-  BACKLOG
   TODO
   IN_PROGRESS
   DONE
@@ -324,7 +323,7 @@ model Task {
   description String? // para sua tab "Resumo"
   acceptance  String? // critérios de aceite (futuro)
   unit        TaskUnit
-  status      TaskStatus   @default(BACKLOG)
+  status      TaskStatus   @default(TODO)
   priority    TaskPriority @default(MEDIUM)
 
   estimatedHours Int @default(0) // inteiro no DB; se quiser 0.5h, use Decimal

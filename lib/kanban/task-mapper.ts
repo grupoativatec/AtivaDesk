@@ -6,7 +6,6 @@ import type { KanbanStatus } from "@/components/features/kanban/types/kanban.typ
  */
 export function mapTaskStatusToKanbanStatus(taskStatus: TaskStatus): KanbanStatus {
   const mapping: Record<TaskStatus, KanbanStatus> = {
-    BACKLOG: "TODO",
     TODO: "TODO",
     IN_PROGRESS: "IN_PROGRESS",
     DONE: "DONE",

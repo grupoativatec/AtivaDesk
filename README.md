@@ -234,7 +234,6 @@ Rotas que não requerem autenticação:
    - Tarefas têm status, prioridade, unidade e horas estimadas
 
 2. **Status de Tarefas**
-   - `BACKLOG`: Tarefa no backlog
    - `TODO`: Tarefa a fazer
    - `IN_PROGRESS`: Tarefa em progresso
    - `DONE`: Tarefa concluída
@@ -375,7 +374,7 @@ Rotas que não requerem autenticação:
 - **TicketStatus**: OPEN, IN_PROGRESS, RESOLVED, CLOSED
 - **TicketPriority**: LOW, MEDIUM, HIGH, URGENT
 - **TicketCategory**: HARDWARE, SOFTWARE, NETWORK, EMAIL, ACCESS, OTHER
-- **TaskStatus**: BACKLOG, TODO, IN_PROGRESS, DONE
+- **TaskStatus**: TODO, IN_PROGRESS, DONE
 - **KanbanStatus**: TODO, IN_PROGRESS, REVIEW, DONE
 
 ## 🚀 Instalação e Execução

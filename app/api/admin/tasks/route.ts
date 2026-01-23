@@ -20,7 +20,7 @@ const createTaskSchema = z.object({
   projectId: z.string().optional(),
   unit: z.nativeEnum(TaskUnit),
   priority: z.nativeEnum(TaskPriority),
-  status: z.nativeEnum(TaskStatus).default(TaskStatus.BACKLOG),
+  status: z.nativeEnum(TaskStatus).default(TaskStatus.TODO),
   assigneeIds: z.array(z.string().min(1)).default([]),
   teamId: z.string().optional().nullable(), // Equipe responsável
   estimatedHours: z.number().int().min(0).default(0),

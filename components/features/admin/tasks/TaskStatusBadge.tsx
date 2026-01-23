@@ -11,11 +11,6 @@ const STATUS_CONFIG: Record<
     icon?: React.ComponentType<{ className?: string }>
   }
 > = {
-  BACKLOG: {
-    label: "Backlog",
-    color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950/10 dark:text-gray-400/60 dark:border-gray-900/20",
-    icon: Circle,
-  },
   TODO: {
     label: "A Fazer",
     color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/10 dark:text-blue-500/60 dark:border-blue-900/20",
@@ -58,7 +53,6 @@ export function TaskStatusBadge({ status, className }: TaskStatusBadgeProps) {
 }
 
 export const statusLabelMap: Record<TaskStatus, string> = {
-  BACKLOG: "Backlog",
   TODO: "A Fazer",
   IN_PROGRESS: "Em Andamento",
   DONE: "Concluída",

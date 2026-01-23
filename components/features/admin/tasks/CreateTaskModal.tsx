@@ -37,7 +37,7 @@ const createTaskSchema = z.object({
   projectId: z.string().optional(),
   unit: z.nativeEnum(TaskUnit),
   priority: z.nativeEnum(TaskPriority),
-  status: z.nativeEnum(TaskStatus).default(TaskStatus.BACKLOG),
+  status: z.nativeEnum(TaskStatus).default(TaskStatus.TODO),
   assigneeIds: z.array(z.string()).default([]),
   teamId: z.string().optional().nullable(), // Equipe responsável
   estimatedHours: z.number().int().min(0).default(0),
@@ -82,7 +82,7 @@ export function CreateTaskModal({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
       projectId: defaultProjectId || undefined,
-      status: TaskStatus.BACKLOG,
+      status: TaskStatus.TODO,
       priority: TaskPriority.MEDIUM,
       unit: TaskUnit.ITJ,
       assigneeIds: [],
@@ -315,7 +315,6 @@ export function CreateTaskModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={TaskStatus.BACKLOG}>Backlog</SelectItem>
                   <SelectItem value={TaskStatus.TODO}>A Fazer</SelectItem>
                   <SelectItem value={TaskStatus.IN_PROGRESS}>
                     Em Progresso

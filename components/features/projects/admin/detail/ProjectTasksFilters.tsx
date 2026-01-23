@@ -65,7 +65,7 @@ export function ProjectTasksFilters({
 export function getStatusFilterFromTab(tab: TaskFilterTab): TaskStatus[] | undefined {
   switch (tab) {
     case "todo":
-      return [TaskStatus.BACKLOG, TaskStatus.TODO]
+      return [TaskStatus.TODO]
     case "in_progress":
       return [TaskStatus.IN_PROGRESS]
     case "done":

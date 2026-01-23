@@ -409,7 +409,6 @@ export async function PATCH(
       // Status mudou
       if (updateData.status !== undefined && updateData.status !== currentTask.status) {
         const statusLabels: Record<TaskStatus, string> = {
-          BACKLOG: "Backlog",
           TODO: "A Fazer",
           IN_PROGRESS: "Em Progresso",
           DONE: "Concluída",
@@ -561,7 +560,6 @@ export async function PATCH(
     // Notificar mudança de status
     if (updateData.status !== undefined && updateData.status !== currentTask.status) {
       const statusLabels: Record<TaskStatus, string> = {
-        BACKLOG: "Backlog",
         TODO: "A Fazer",
         IN_PROGRESS: "Em Progresso",
         DONE: "Concluída",
