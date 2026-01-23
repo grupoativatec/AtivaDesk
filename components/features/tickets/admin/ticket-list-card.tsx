@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import {
   Calendar,
@@ -14,12 +15,21 @@ import {
   Network,
   Mail,
   Lock,
-  FileText
+  FileText,
+  Trash2,
+  MoreVertical
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type TicketWithRelations = {
   id: string
@@ -43,6 +53,7 @@ type TicketWithRelations = {
 
 interface TicketListCardProps {
   ticket: TicketWithRelations
+  onDelete?: (ticketId: string) => void
 }
 
 const STATUS_CONFIG = {
@@ -116,7 +127,7 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: any; color: string 
   },
 }
 
-export function TicketListCard({ ticket }: TicketListCardProps) {
+export function TicketListCard({ ticket, onDelete, isDeleting = false }: TicketListCardProps) {
   const router = useRouter()
   const statusConfig = STATUS_CONFIG[ticket.status]
   const priorityConfig = PRIORITY_CONFIG[ticket.priority]
@@ -147,9 +158,25 @@ export function TicketListCard({ ticket }: TicketListCardProps) {
   }
 
   return (
-    <div
-      className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-5 sm:p-6 hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer h-full flex flex-col min-w-0"
-      onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
+    <motion.div
+      layout
+      initial={{ opacity: 1, scale: 1 }}
+      animate={
+        isDeleting
+          ? { opacity: 0.3, scale: 0.95, x: -20 }
+          : { opacity: 1, scale: 1, x: 0 }
+      }
+      exit={{ opacity: 0, scale: 0.8, x: -100 }}
+      transition={{ duration: 0.3 }}
+      className={cn(
+        "bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-5 sm:p-6 hover:shadow-md dark:hover:shadow-none transition-all h-full flex flex-col min-w-0",
+        isDeleting ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"
+      )}
+      onClick={() => {
+        if (!isDeleting) {
+          router.push(`/admin/tickets/${ticket.id}`)
+        }
+      }}
     >
       {/* Header: ID, Categoria e Prioridade */}
       <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
@@ -166,16 +193,44 @@ export function TicketListCard({ ticket }: TicketListCardProps) {
             <span className="sm:hidden">{categoryConfig.label.substring(0, 3)}</span>
           </Badge>
         </div>
-        {ticket.priority === "URGENT" && (
-          <Badge
-            variant="outline"
-            className="bg-red-50 text-red-600 border-red-200 dark:bg-red-950/10 dark:text-red-500/60 dark:border-red-900/20 text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 shrink-0"
-          >
-            <AlertTriangle className="size-3 mr-1" />
-            <span className="hidden sm:inline">{priorityConfig.label}</span>
-            <span className="sm:hidden">Urg</span>
-          </Badge>
-        )}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {ticket.priority === "URGENT" && (
+            <Badge
+              variant="outline"
+              className="bg-red-50 text-red-600 border-red-200 dark:bg-red-950/10 dark:text-red-500/60 dark:border-red-900/20 text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 shrink-0"
+            >
+              <AlertTriangle className="size-3 mr-1" />
+              <span className="hidden sm:inline">{priorityConfig.label}</span>
+              <span className="sm:hidden">Urg</span>
+            </Badge>
+          )}
+          {onDelete && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 cursor-pointer"
+                >
+                  <MoreVertical className="size-3.5 sm:size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete(ticket.id)
+                  }}
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
 
       {/* Título */}
@@ -190,7 +245,7 @@ export function TicketListCard({ ticket }: TicketListCardProps) {
 
       {/* Footer: Responsável, Data e Status */}
       <div className="pt-3 border-t border-border/50 dark:border-border/20">
-        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground mb-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <UserCheck className="size-3 shrink-0" />
             <span className={cn(
@@ -214,6 +269,6 @@ export function TicketListCard({ ticket }: TicketListCardProps) {
           </Badge>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

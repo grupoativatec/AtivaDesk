@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -25,8 +25,26 @@ import {
   Filter,
   Ticket as TicketIcon,
   Grid3x3,
-  List
+  List,
+  Trash2,
+  MoreVertical
 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -160,6 +178,9 @@ export default function AdminTicketsPage() {
   const [viewMode, setViewMode] = useState<"list" | "cards">("cards")
   const [sortField, setSortField] = useState<SortField>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deletingTicketId, setDeletingTicketId] = useState<string | null>(null)
 
   const fetchUser = async () => {
     try {
@@ -281,6 +302,51 @@ export default function AdminTicketsPage() {
     } else {
       setSortField(field)
       setSortDirection("desc")
+    }
+  }
+
+  const handleDeleteTicket = async () => {
+    if (!ticketToDelete) return
+
+    const ticketIdToDelete = ticketToDelete
+    
+    try {
+      setIsDeleting(true)
+      setDeletingTicketId(ticketIdToDelete)
+      setTicketToDelete(null)
+      
+      // Aguardar animação antes de deletar (600ms para o usuário ver a animação)
+      await new Promise(resolve => setTimeout(resolve, 600))
+      
+      const res = await fetch(`/api/admin/tickets/${ticketIdToDelete}`, {
+        method: "DELETE",
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        // Se der erro, recarregar a lista para reverter a mudança
+        throw new Error(data.error || "Erro ao excluir ticket")
+      }
+
+      // Aguardar mais um pouco para a animação de saída completar
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      // Remover o ticket da lista após animação
+      setTickets((prevTickets) => prevTickets.filter((ticket) => ticket.id !== ticketIdToDelete))
+      toast.success("Ticket excluído com sucesso")
+    } catch (error: any) {
+      console.error("Erro ao excluir ticket:", error)
+      // Reverter a mudança local em caso de erro
+      setDeletingTicketId(null)
+      fetchTickets()
+      toast.error(error.message || "Erro ao excluir ticket")
+    } finally {
+      setIsDeleting(false)
+      // Manter deletingTicketId até a animação completar
+      setTimeout(() => {
+        setDeletingTicketId(null)
+      }, 300)
     }
   }
 
@@ -433,10 +499,12 @@ export default function AdminTicketsPage() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="open">Abertos</SelectItem>
-                    <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                    <SelectItem value="OPEN">Apenas Abertos</SelectItem>
                     <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="open">Abertos</SelectItem>
+                    <SelectItem value="OPEN">Apenas Abertos</SelectItem>
+                    <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                    <SelectItem value="RESOLVED">Resolvido</SelectItem>
+                    <SelectItem value="CLOSED">Fechado</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -584,17 +652,34 @@ export default function AdminTicketsPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border dark:divide-border/20">
-                        {filteredTickets.map((ticket) => {
-                          const statusConfig = STATUS_CONFIG[ticket.status]
-                          const priorityConfig = PRIORITY_CONFIG[ticket.priority]
-                          const createdDate = new Date(ticket.createdAt)
-                          const timeAgo = formatDistanceToNow(createdDate, { addSuffix: true, locale: ptBR })
+                        <AnimatePresence mode="popLayout">
+                          {filteredTickets.map((ticket) => {
+                            const statusConfig = STATUS_CONFIG[ticket.status]
+                            const priorityConfig = PRIORITY_CONFIG[ticket.priority]
+                            const createdDate = new Date(ticket.createdAt)
+                            const timeAgo = formatDistanceToNow(createdDate, { addSuffix: true, locale: ptBR })
 
-                          return (
-                            <tr
+                            return (
+                              <motion.tr
                               key={ticket.id}
-                              className="hover:bg-muted/30 dark:hover:bg-muted/10 transition-colors cursor-pointer group"
-                              onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
+                              layout
+                              initial={{ opacity: 1, scale: 1 }}
+                              animate={
+                                deletingTicketId === ticket.id
+                                  ? { opacity: 0.3, scale: 0.95, x: -20 }
+                                  : { opacity: 1, scale: 1, x: 0 }
+                              }
+                              exit={{ opacity: 0, scale: 0.8, x: -100 }}
+                              transition={{ duration: 0.3 }}
+                              className={cn(
+                                "hover:bg-muted/30 dark:hover:bg-muted/10 transition-colors group",
+                                deletingTicketId === ticket.id ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"
+                              )}
+                              onClick={() => {
+                                if (deletingTicketId !== ticket.id) {
+                                  router.push(`/admin/tickets/${ticket.id}`)
+                                }
+                              }}
                             >
                               <td className="p-4">
                                 <Badge
@@ -606,8 +691,32 @@ export default function AdminTicketsPage() {
                               </td>
                               <td className="p-4">
                                 <div className="flex flex-col gap-1">
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center justify-between gap-2">
                                     <span className="text-xs font-mono text-muted-foreground">#{ticket.id.slice(0, 8)}</span>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                        >
+                                          <MoreVertical className="size-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenuItem
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setTicketToDelete(ticket.id)
+                                          }}
+                                          className="text-destructive focus:text-destructive cursor-pointer"
+                                        >
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Excluir
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   </div>
                                   <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
                                     {ticket.title}
@@ -652,9 +761,10 @@ export default function AdminTicketsPage() {
                                   </span>
                                 </div>
                               </td>
-                            </tr>
-                          )
-                        })}
+                              </motion.tr>
+                            )
+                          })}
+                        </AnimatePresence>
                       </tbody>
                     </table>
                   </div>
@@ -663,28 +773,71 @@ export default function AdminTicketsPage() {
 
               {/* Cards Mobile */}
               <div className="lg:hidden space-y-3 sm:space-y-4">
-                {filteredTickets.map((ticket) => {
-                  const statusConfig = STATUS_CONFIG[ticket.status]
-                  const priorityConfig = PRIORITY_CONFIG[ticket.priority]
-                  const createdDate = new Date(ticket.createdAt)
-                  const timeAgo = formatDistanceToNow(createdDate, { addSuffix: true, locale: ptBR })
+                <AnimatePresence mode="popLayout">
+                  {filteredTickets.map((ticket) => {
+                    const statusConfig = STATUS_CONFIG[ticket.status]
+                    const priorityConfig = PRIORITY_CONFIG[ticket.priority]
+                    const createdDate = new Date(ticket.createdAt)
+                    const timeAgo = formatDistanceToNow(createdDate, { addSuffix: true, locale: ptBR })
 
-                  return (
-                    <div
+                    return (
+                      <motion.div
                       key={ticket.id}
-                      className="bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-3 sm:p-4 shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer"
-                      onClick={() => router.push(`/admin/tickets/${ticket.id}`)}
+                      layout
+                      initial={{ opacity: 1, scale: 1 }}
+                      animate={
+                        deletingTicketId === ticket.id
+                          ? { opacity: 0.3, scale: 0.95, x: -20 }
+                          : { opacity: 1, scale: 1, x: 0 }
+                      }
+                      exit={{ opacity: 0, scale: 0.8, x: -100 }}
+                      transition={{ duration: 0.3 }}
+                      className={cn(
+                        "bg-card dark:bg-card/30 border border-border dark:border-border/30 rounded-lg p-3 sm:p-4 shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none transition-all",
+                        deletingTicketId === ticket.id ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"
+                      )}
+                      onClick={() => {
+                        if (deletingTicketId !== ticket.id) {
+                          router.push(`/admin/tickets/${ticket.id}`)
+                        }
+                      }}
                     >
                       <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
-                            <span className="text-[10px] sm:text-xs font-mono text-muted-foreground">#{ticket.id.slice(0, 8)}</span>
-                            <Badge
-                              variant="outline"
-                              className={cn("text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5", priorityConfig.color)}
-                            >
-                              {priorityConfig.label}
-                            </Badge>
+                          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <span className="text-[10px] sm:text-xs font-mono text-muted-foreground">#{ticket.id.slice(0, 8)}</span>
+                              <Badge
+                                variant="outline"
+                                className={cn("text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5", priorityConfig.color)}
+                              >
+                                {priorityConfig.label}
+                              </Badge>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="h-6 w-6 sm:h-7 sm:w-7 p-0 cursor-pointer"
+                                >
+                                  <MoreVertical className="size-3.5 sm:size-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setTicketToDelete(ticket.id)
+                                  }}
+                                  className="text-destructive focus:text-destructive cursor-pointer"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                           <h3 className="font-semibold text-xs sm:text-sm text-foreground mb-1.5 sm:mb-2 line-clamp-2">
                             {ticket.title}
@@ -718,23 +871,59 @@ export default function AdminTicketsPage() {
                           </span>
                         </div>
                       </div>
-                    </div>
-                  )
-                })}
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
               </div>
             </>
           ) : (
             <>
               {/* Visualização em Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-                {filteredTickets.map((ticket) => (
-                  <TicketListCard key={ticket.id} ticket={ticket} />
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {filteredTickets.map((ticket) => (
+                    <TicketListCard 
+                      key={ticket.id} 
+                      ticket={ticket}
+                      onDelete={(ticketId) => setTicketToDelete(ticketId)}
+                      isDeleting={deletingTicketId === ticket.id}
+                    />
+                  ))}
+                </AnimatePresence>
               </div>
             </>
           )}
         </div>
       </div>
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={!!ticketToDelete} onOpenChange={(open) => !open && setTicketToDelete(null)}>
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto sm:mx-0">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base sm:text-lg">Excluir ticket?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              Tem certeza que deseja excluir este ticket? Esta ação não pode ser desfeita.
+              {ticketToDelete && (
+                <span className="block mt-2 text-xs sm:text-sm font-mono text-muted-foreground">
+                  Ticket: #{ticketToDelete.slice(-8).toUpperCase()}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel disabled={isDeleting} className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTicket}
+              disabled={isDeleting}
+              className="w-full sm:w-auto bg-destructive text-white hover:bg-destructive/90"
+            >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   )
 }

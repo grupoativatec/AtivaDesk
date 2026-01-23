@@ -410,3 +410,60 @@ export async function PATCH(
     )
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Não autenticado" },
+        { status: 401 }
+      )
+    }
+
+    // Apenas admins podem excluir tickets
+    if (user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Acesso negado. Apenas administradores podem excluir tickets." },
+        { status: 403 }
+      )
+    }
+
+    const { id: ticketId } = await params
+
+    // Verificar se o ticket existe
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      select: {
+        id: true,
+        title: true,
+      },
+    })
+
+    if (!ticket) {
+      return NextResponse.json(
+        { error: "Ticket não encontrado" },
+        { status: 404 }
+      )
+    }
+
+    // Excluir ticket
+    // O Prisma vai excluir automaticamente os relacionamentos (messages, attachments, notifications)
+    // devido ao onDelete: Cascade no schema
+    await prisma.ticket.delete({
+      where: { id: ticketId },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error("Erro ao excluir ticket:", error)
+    return NextResponse.json(
+      { error: "Erro interno ao excluir ticket" },
+      { status: 500 }
+    )
+  }
+}
