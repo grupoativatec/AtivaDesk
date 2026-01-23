@@ -76,9 +76,8 @@ export async function GET(req: Request) {
     // Contar total (com filtros)
     const total = await prisma.colaboradorExterno.count({ where })
 
-    // Buscar acessos (com paginação)
-    const skip = (page - 1) * pageSize
-    const colaboradores = await prisma.colaboradorExterno.findMany({
+    // Buscar TODOS os acessos que correspondem aos filtros (sem paginação ainda)
+    const todosColaboradores = await prisma.colaboradorExterno.findMany({
       where,
       include: {
         categoria: {
@@ -95,12 +94,22 @@ export async function GET(req: Request) {
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip,
-      take: pageSize,
     })
+
+    // Ordenar alfabeticamente por nome (case-insensitive)
+    const colaboradoresOrdenados = todosColaboradores.sort((a, b) => {
+      const nomeA = String(a.nome || "").trim().toLowerCase()
+      const nomeB = String(b.nome || "").trim().toLowerCase()
+      return nomeA.localeCompare(nomeB, "pt-BR", { 
+        sensitivity: "base",
+        numeric: true,
+        ignorePunctuation: true
+      })
+    })
+
+    // Aplicar paginação manualmente após ordenação
+    const skip = (page - 1) * pageSize
+    const colaboradores = colaboradoresOrdenados.slice(skip, skip + pageSize)
 
     return NextResponse.json({
       ok: true,
