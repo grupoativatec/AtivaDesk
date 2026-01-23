@@ -3,6 +3,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth/get-current-user"
 import { notifyNewTicket } from "@/lib/notifications"
+import { sendNewTicketEmail } from "@/lib/email"
 
 const createTicketSchema = z.object({
   title: z.string().min(5, "Título deve ter pelo menos 5 caracteres"),
@@ -158,12 +159,36 @@ export async function POST(req: Request) {
             email: true,
           },
         },
+        attachments: {
+          select: {
+            id: true,
+            filename: true,
+            url: true,
+            mimeType: true,
+            size: true,
+          },
+        },
       },
     })
 
     // Criar notificação para todos os admins (em background, não bloqueia a resposta)
     notifyNewTicket(ticket.id, ticket.title, ticket.openedBy.name).catch((err) => {
       console.error("Erro ao criar notificação de novo ticket:", err)
+    })
+
+    // Enviar email de notificação (em background, não bloqueia a resposta)
+    sendNewTicketEmail({
+      ticketId: ticket.id,
+      ticketTitle: ticket.title,
+      openedByName: ticket.openedBy.name,
+      openedByEmail: ticket.openedBy.email,
+      category: ticket.category,
+      priority: ticket.priority,
+      unit: ticket.unit ? String(ticket.unit) : null,
+      description: ticket.description,
+      attachments: ticket.attachments,
+    }).catch((err) => {
+      console.error("Erro ao enviar email de novo ticket:", err)
     })
 
     return NextResponse.json({
