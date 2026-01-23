@@ -1,6 +1,9 @@
 -- Atualizar todas as tarefas com status BACKLOG para TODO
 UPDATE "Task" SET "status" = 'TODO' WHERE "status" = 'BACKLOG';
 
+-- Remover o default da coluna temporariamente
+ALTER TABLE "Task" ALTER COLUMN "status" DROP DEFAULT;
+
 -- Remover BACKLOG do enum TaskStatus
 -- Primeiro, criar um novo enum sem BACKLOG
 DO $$ BEGIN
@@ -17,3 +20,6 @@ DROP TYPE "TaskStatus";
 
 -- Renomear o novo enum para o nome original
 ALTER TYPE "TaskStatus_new" RENAME TO "TaskStatus";
+
+-- Adicionar o novo default (TODO)
+ALTER TABLE "Task" ALTER COLUMN "status" SET DEFAULT 'TODO';
