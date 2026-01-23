@@ -53,7 +53,7 @@ export function KanbanCardMenu({ onEdit, onDelete }: KanbanCardMenuProps) {
               onDelete()
               setOpen(false)
             }}
-            className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-destructive/10 hover:text-destructive transition-colors text-destructive"
+            className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-blue-50 dark:hover:bg-blue-950/10 hover:text-blue-600 dark:hover:text-blue-500 transition-colors text-blue-600 dark:text-blue-500 cursor-pointer"
           >
             <Trash2 className="h-4 w-4" />
             <span>Excluir</span>

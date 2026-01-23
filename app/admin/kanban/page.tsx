@@ -1,7 +1,7 @@
 "use client"
 
 import { KanbanBoardListItem } from "@/components/features/kanban/types/kanban.types"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Plus, FolderKanban } from "lucide-react"
@@ -46,6 +46,10 @@ export default function KanbanListPage() {
   useEffect(() => {
     loadBoards()
   }, [])
+
+  const handleDeleteBoard = (boardId: string) => {
+    setBoards((prevBoards) => prevBoards.filter((board) => board.id !== boardId))
+  }
 
   return (
     <motion.div
@@ -128,13 +132,16 @@ export default function KanbanListPage() {
             </div>
           ) : (
             <div className="grid gap-3 sm:gap-4 md:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {boards.map((board) => (
-                <KanbanBoardCard
-                  key={board.id}
-                  board={board}
-                  onUpdate={loadBoards}
-                />
-              ))}
+              <AnimatePresence mode="popLayout">
+                {boards.map((board) => (
+                  <KanbanBoardCard
+                    key={board.id}
+                    board={board}
+                    onUpdate={loadBoards}
+                    onDelete={handleDeleteBoard}
+                  />
+                ))}
+              </AnimatePresence>
             </div>
           )}
         </div>

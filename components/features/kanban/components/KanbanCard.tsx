@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { motion } from "framer-motion"
 import { KanbanCard as KanbanCardType } from "../types/kanban.types"
 import { cn } from "@/lib/utils"
 import { Calendar } from "lucide-react"
@@ -41,12 +42,25 @@ export function KanbanCard({ boardId, card }: KanbanCardProps) {
 
   const handleDelete = async () => {
     setShowDeleteDialog(false)
+    setIsDeletingCard(true)
+    
     try {
+      // Aguardar animação antes de deletar (600ms)
+      await new Promise(resolve => setTimeout(resolve, 600))
+      
       await deleteCard(boardId, card.id)
+      
+      // Aguardar mais um pouco para a animação de saída completar
+      await new Promise(resolve => setTimeout(resolve, 300))
     } catch (error) {
+      setIsDeletingCard(false)
       // Erro já foi tratado no store (rollback automático)
       // Em produção, pode mostrar uma notificação de erro aqui
       console.error("Erro ao deletar card:", error)
+    } finally {
+      setTimeout(() => {
+        setIsDeletingCard(false)
+      }, 300)
     }
   }
 
@@ -185,20 +199,20 @@ export function KanbanCard({ boardId, card }: KanbanCardProps) {
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Dialog de confirmação de exclusão */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto sm:mx-0" onClick={(e) => e.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir card?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Excluir card?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
               Esta ação não pode ser desfeita. O card "{card.title}" será
               permanentemente removido.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel onClick={(e) => e.stopPropagation()} className="w-full sm:w-auto">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
@@ -206,7 +220,7 @@ export function KanbanCard({ boardId, card }: KanbanCardProps) {
                 e.stopPropagation()
                 handleDelete()
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="w-full sm:w-auto bg-destructive text-white hover:bg-destructive/90"
             >
               Excluir
             </AlertDialogAction>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 import { FolderKanban, Calendar, Pencil, Trash2, Link2, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,14 +29,16 @@ import { cn } from "@/lib/utils"
 interface KanbanBoardCardProps {
   board: KanbanBoardListItem
   onUpdate: () => void
+  onDelete?: (boardId: string) => void
 }
 
-export function KanbanBoardCard({ board, onUpdate }: KanbanBoardCardProps) {
+export function KanbanBoardCard({ board, onUpdate, onDelete }: KanbanBoardCardProps) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [editedName, setEditedName] = useState(board.name)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeletingConfirm, setIsDeletingConfirm] = useState(false)
+  const [isDeletingBoard, setIsDeletingBoard] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
 
@@ -83,23 +86,52 @@ export function KanbanBoardCard({ board, onUpdate }: KanbanBoardCardProps) {
   const handleDelete = async () => {
     try {
       setIsDeleting(true)
+      setIsDeletingBoard(true)
+      setIsDeletingConfirm(false)
+      
+      // Aguardar animação antes de deletar (600ms)
+      await new Promise(resolve => setTimeout(resolve, 600))
+      
       await persistDeleteBoard({ boardId: board.id })
+      
+      // Aguardar mais um pouco para a animação de saída completar
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
       toast.success("Board excluído com sucesso")
-      onUpdate()
+      
+      // Remover da lista localmente sem recarregar
+      if (onDelete) {
+        onDelete(board.id)
+      } else {
+        onUpdate()
+      }
     } catch (error: any) {
+      setIsDeletingBoard(false)
       toast.error(error.message || "Erro ao excluir board")
     } finally {
       setIsDeleting(false)
-      setIsDeletingConfirm(false)
+      setTimeout(() => {
+        setIsDeletingBoard(false)
+      }, 300)
     }
   }
 
   return (
     <>
-      <div
+      <motion.div
+        layout
+        initial={{ opacity: 1, scale: 1 }}
+        animate={
+          isDeletingBoard
+            ? { opacity: 0.3, scale: 0.95, x: -20 }
+            : { opacity: 1, scale: 1, x: 0 }
+        }
+        exit={{ opacity: 0, scale: 0.8, x: -100 }}
+        transition={{ duration: 0.3 }}
         className={cn(
           "group relative rounded-lg border bg-card p-4 sm:p-5 md:p-6 shadow-sm transition-all hover:shadow-md",
-          board.projectId && "border-primary/20 bg-primary/5"
+          board.projectId && "border-primary/20 bg-primary/5",
+          isDeletingBoard && "cursor-not-allowed pointer-events-none"
         )}
       >
 
@@ -153,8 +185,14 @@ export function KanbanBoardCard({ board, onUpdate }: KanbanBoardCardProps) {
 
         {/* Conteúdo do card */}
         <div
-          onClick={() => router.push(`/admin/kanban/${board.id}`)}
-          className="cursor-pointer"
+          onClick={() => {
+            if (!isDeletingBoard) {
+              router.push(`/admin/kanban/${board.id}`)
+            }
+          }}
+          className={cn(
+            isDeletingBoard ? "cursor-not-allowed" : "cursor-pointer"
+          )}
         >
           <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
             <div className={cn(
@@ -222,23 +260,23 @@ export function KanbanBoardCard({ board, onUpdate }: KanbanBoardCardProps) {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Dialog de confirmação de exclusão */}
       <AlertDialog open={isDeletingConfirm} onOpenChange={setIsDeletingConfirm}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto sm:mx-0">
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Board</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Excluir Board</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
               Tem certeza que deseja excluir o board "{board.name}"? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel disabled={isDeleting} className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               {isDeleting ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>

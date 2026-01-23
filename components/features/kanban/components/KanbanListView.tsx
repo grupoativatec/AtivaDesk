@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { useKanbanStore } from "../store/useKanbanStore"
 import { KanbanEmptyState } from "./KanbanEmptyState"
 import { KanbanCardEdit } from "./KanbanCardEdit"
@@ -119,7 +120,8 @@ export function KanbanListView({ boardId }: KanbanListViewProps) {
         </div>
 
         {/* Lista de cards */}
-        {filteredCards.map((card) => {
+        <AnimatePresence mode="popLayout">
+          {filteredCards.map((card) => {
           const column = board.columns.find((col) => col.cardIds.includes(card.id))
           const status = column?.status || card.status
           const overdue = isOverdue(card.dueDate, status)
@@ -136,13 +138,25 @@ export function KanbanListView({ boardId }: KanbanListViewProps) {
             )
           }
 
+          const isDeleting = deletingCards.has(card.id)
+
           return (
-            <div
+            <motion.div
               key={card.id}
+              layout
+              initial={{ opacity: 1, scale: 1 }}
+              animate={
+                isDeleting
+                  ? { opacity: 0.3, scale: 0.95, x: -20 }
+                  : { opacity: 1, scale: 1, x: 0 }
+              }
+              exit={{ opacity: 0, scale: 0.8, x: -100 }}
+              transition={{ duration: 0.3 }}
               className={cn(
                 "group relative rounded-lg border border-border/60 bg-card p-3 sm:p-4",
                 "hover:shadow-md hover:border-border transition-all duration-200",
-                "grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-center"
+                "grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-center",
+                isDeleting && "cursor-not-allowed pointer-events-none"
               )}
             >
               {/* Menu de ações (aparece no hover) */}
@@ -290,31 +304,51 @@ export function KanbanListView({ boardId }: KanbanListViewProps) {
       {/* Dialog de confirmação de exclusão */}
       {deletingCardId && (
         <AlertDialog open={!!deletingCardId} onOpenChange={(open) => !open && setDeletingCardId(null)}>
-          <AlertDialogContent>
+          <AlertDialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto sm:mx-0">
             <AlertDialogHeader>
-              <AlertDialogTitle>Excluir card?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-base sm:text-lg">Excluir card?</AlertDialogTitle>
+              <AlertDialogDescription className="text-sm">
                 Esta ação não pode ser desfeita. O card será permanentemente removido.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setDeletingCardId(null)}>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+              <AlertDialogCancel onClick={() => setDeletingCardId(null)} className="w-full sm:w-auto">
                 Cancelar
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={async () => {
                   if (deletingCardId) {
+                    const cardIdToDelete = deletingCardId
+                    setDeletingCards((prev) => new Set(prev).add(cardIdToDelete))
+                    setDeletingCardId(null)
+                    
                     try {
-                      await deleteCard(boardId, deletingCardId)
-                      setDeletingCardId(null)
+                      // Aguardar animação antes de deletar (600ms)
+                      await new Promise(resolve => setTimeout(resolve, 600))
+                      
+                      await deleteCard(boardId, cardIdToDelete)
+                      
+                      // Aguardar mais um pouco para a animação de saída completar
+                      await new Promise(resolve => setTimeout(resolve, 300))
+                      
+                      setDeletingCards((prev) => {
+                        const newSet = new Set(prev)
+                        newSet.delete(cardIdToDelete)
+                        return newSet
+                      })
                     } catch (error) {
+                      setDeletingCards((prev) => {
+                        const newSet = new Set(prev)
+                        newSet.delete(cardIdToDelete)
+                        return newSet
+                      })
                       // Erro já foi tratado no store (rollback automático)
                       // Em produção, pode mostrar uma notificação de erro aqui
                       console.error("Erro ao deletar card:", error)
                     }
                   }
                 }}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="w-full sm:w-auto bg-destructive text-white hover:bg-destructive/90"
               >
                 Excluir
               </AlertDialogAction>
