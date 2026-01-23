@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
-import { Plus, FileText, HelpCircle, ChevronRight, Star, Clock, MoreVertical, Copy, History, Archive, Edit, Save, Globe, X, Menu } from "lucide-react"
+import { Plus, FileText, HelpCircle, ChevronRight, Star, MoreVertical, Copy, History, Archive, Edit, Save, Globe, X, Menu } from "lucide-react"
 
 interface BreadcrumbItem {
   label: string
@@ -141,19 +141,6 @@ export function DocsShell({
           >
             <Star className="size-4" />
             <span>Favoritos</span>
-          </Link>
-          <Link
-            href="/admin/docs/recent"
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-              pathname === "/admin/docs/recent"
-                ? "bg-primary/10 text-primary shadow-sm"
-                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-            )}
-            onClick={() => isMobile && setMobileMenuOpen(false)}
-          >
-            <Clock className="size-4" />
-            <span>Recentes</span>
           </Link>
         </nav>
       </div>

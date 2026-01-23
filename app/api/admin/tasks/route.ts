@@ -8,7 +8,6 @@ import {
 } from "@/lib/generated/prisma/enums";
 import { z } from "zod";
 import {
-  notifyTaskCreated,
   notifyProjectTaskAdded,
   notifyTaskAssigned,
 } from "@/lib/notifications";
@@ -458,33 +457,18 @@ export async function POST(req: Request) {
     // Criar notificações (fora da transação para não bloquear)
     const notificationPromises: Promise<any>[] = [];
 
-    // Notificar o criador da tarefa sobre a criação (apenas se houver projeto)
-    if (project) {
+    // Notificar criador do projeto sobre nova tarefa (apenas se diferente do criador da tarefa)
+    if (project && project.createdById && project.createdById !== user.id) {
       notificationPromises.push(
-        notifyTaskCreated(
-          task.id,
-          task.title,
+        notifyProjectTaskAdded(
           project.id,
           project.name,
-          user.id,
-          user.name,
-          project.createdById
+          task.id,
+          task.title,
+          project.createdById,
+          user.id
         )
       );
-
-      // Notificar criador do projeto sobre nova tarefa (apenas se diferente do criador da tarefa)
-      if (project.createdById && project.createdById !== user.id) {
-        notificationPromises.push(
-          notifyProjectTaskAdded(
-            project.id,
-            project.name,
-            task.id,
-            task.title,
-            project.createdById,
-            user.id
-          )
-        );
-      }
     }
 
     // Notificar assignees (apenas se não forem o criador da tarefa)
