@@ -171,7 +171,7 @@ export default function AdminTicketsPage() {
   const [tickets, setTickets] = useState<TicketWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [statusFilter, setStatusFilter] = useState<string>("open") // Filtro padrão: apenas abertos
+  const [statusFilter, setStatusFilter] = useState<string>("open") // Filtro padrão: abertos
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState<string>("")
@@ -501,7 +501,6 @@ export default function AdminTicketsPage() {
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="open">Abertos</SelectItem>
-                    <SelectItem value="OPEN">Apenas Abertos</SelectItem>
                     <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
                     <SelectItem value="RESOLVED">Resolvido</SelectItem>
                     <SelectItem value="CLOSED">Fechado</SelectItem>
