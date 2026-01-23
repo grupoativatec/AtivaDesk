@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { filterCards } from "../utils/kanban-filters.utils"
 import { KanbanStatus } from "../types/kanban.types"
-import { Calendar, User } from "lucide-react"
+import { Calendar } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -53,6 +53,7 @@ export function KanbanListView({ boardId }: KanbanListViewProps) {
   const deleteCard = useKanbanStore((state) => state.deleteCard)
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null)
+  const [deletingCards, setDeletingCards] = useState<Set<string>>(new Set())
 
   const allCards = useMemo(() => {
     if (!board) return []
@@ -299,6 +300,7 @@ export function KanbanListView({ boardId }: KanbanListViewProps) {
             </motion.div>
           )
         })}
+        </AnimatePresence>
       </div>
 
       {/* Dialog de confirmação de exclusão */}
