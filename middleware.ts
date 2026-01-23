@@ -17,6 +17,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Ignorar arquivos estáticos da pasta public (incluindo uploads)
+  if (pathname.startsWith("/uploads/")) {
+    return NextResponse.next();
+  }
+
   const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
 
   // ============================================
@@ -92,8 +97,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - uploads/ (uploaded files)
+     * - public folder files with common extensions
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|uploads/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|txt|pdf|doc|docx|xls|xlsx|csv)$).*)",
   ],
 };
