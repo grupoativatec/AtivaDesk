@@ -1,4 +1,15 @@
-import { Clock, LayoutDashboard, Ticket, ListTodo, FolderKanban, Columns3, FileText, Users, Key } from "lucide-react";
+import {
+  Clock,
+  LayoutDashboard,
+  Ticket,
+  ListTodo,
+  FolderKanban,
+  Columns3,
+  FileText,
+  Users,
+  Key,
+  Book,
+} from "lucide-react";
 
 export const data = {
   user: {
@@ -47,6 +58,11 @@ export const data = {
       title: "Acessos",
       url: "/admin/acessos",
       icon: Key,
+    },
+    {
+      title: "Trilhas",
+      url: "/admin/trilhas",
+      icon: Book,
     },
   ],
 

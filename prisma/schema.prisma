@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
@@ -11,6 +5,426 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id                               String               @id @default(uuid())
+  name                             String
+  email                            String               @unique
+  password                         String?
+  role                             UserRole             @default(USER)
+  createdAt                        DateTime             @default(now())
+  updatedAt                        DateTime             @updatedAt
+  googleId                         String?
+  tokenVersion                     Int                  @default(0)
+  deletedAt                        DateTime?
+  colaboradoresExternosRegistrados ColaboradorExterno[] @relation("ColaboradorExternoRegistradoPor")
+  createdKanbanBoards              KanbanBoard[]        @relation("KanbanBoardCreatedBy")
+  kanbanCardAssignments            KanbanCard[]
+  kanbanMemberships                KanbanMember[]
+  notifications                    Notification[]
+  createdProjects                  Project[]            @relation("ProjectCreatedBy")
+  createdTasks                     Task[]               @relation("TaskCreatedBy")
+  taskActivity                     TaskActivityEvent[]
+  taskAssignees                    TaskAssignee[]
+  teamMemberships                  TeamMember[]
+  assignedTickets                  Ticket[]             @relation("AssignedTickets")
+  openedTickets                    Ticket[]             @relation("OpenedTickets")
+  messages                         TicketMessage[]
+  timeEntries                      TimeEntry[]
+}
+
+model Ticket {
+  id                 String             @id @default(uuid())
+  title              String
+  description        String
+  status             TicketStatus       @default(OPEN)
+  priority           TicketPriority     @default(MEDIUM)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  resolvedAt         DateTime?
+  closedAt           DateTime?
+  openedById         String
+  assigneeId         String?
+  category           TicketCategory     @default(OTHER)
+  timerPaused        Boolean            @default(false)
+  timerPausedAt      DateTime?
+  totalPausedSeconds Int                @default(0)
+  inProgressAt       DateTime?
+  timeSpentMinutes   Int?
+  unit               TicketUnit?
+  teamId             String?
+  notifications      Notification[]
+  assignee           User?              @relation("AssignedTickets", fields: [assigneeId], references: [id])
+  openedBy           User               @relation("OpenedTickets", fields: [openedById], references: [id])
+  team               Team?              @relation(fields: [teamId], references: [id])
+  attachments        TicketAttachment[]
+  messages           TicketMessage[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([openedById])
+  @@index([assigneeId])
+  @@index([teamId])
+  @@index([category])
+  @@index([unit])
+}
+
+model TicketMessage {
+  id         String   @id @default(uuid())
+  ticketId   String
+  authorId   String
+  content    String
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  author     User     @relation(fields: [authorId], references: [id])
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+}
+
+model TicketAttachment {
+  id        String   @id @default(uuid())
+  ticketId  String
+  filename  String
+  url       String
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+model Notification {
+  id        String             @id @default(uuid())
+  userId    String
+  ticketId  String?
+  type      NotificationType
+  status    NotificationStatus @default(UNREAD)
+  title     String
+  message   String
+  metadata  Json?
+  createdAt DateTime           @default(now())
+  readAt    DateTime?
+  taskId    String?
+  projectId String?
+  project   Project?           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task      Task?              @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  ticket    Ticket?            @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([ticketId])
+  @@index([taskId])
+  @@index([projectId])
+  @@index([status])
+}
+
+model Project {
+  id            String         @id @default(uuid())
+  name          String
+  code          String?        @unique
+  status        ProjectStatus  @default(ACTIVE)
+  unit          TaskUnit?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  createdById   String?
+  teamId        String?
+  kanbanBoards  KanbanBoard[]  @relation("KanbanBoardProject")
+  notifications Notification[]
+  createdBy     User?          @relation("ProjectCreatedBy", fields: [createdById], references: [id])
+  team          Team?          @relation(fields: [teamId], references: [id])
+  tasks         Task[]
+
+  @@index([status])
+  @@index([unit])
+  @@index([createdById])
+  @@index([teamId])
+}
+
+model Task {
+  id             String              @id @default(uuid())
+  title          String
+  description    String?
+  acceptance     String?
+  unit           TaskUnit
+  status         TaskStatus          @default(TODO)
+  priority       TaskPriority        @default(MEDIUM)
+  estimatedHours Int                 @default(0)
+  projectId      String?
+  createdById    String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  completedAt    DateTime?
+  teamId         String?
+  kanbanCards    KanbanCard[]        @relation("KanbanCardTask")
+  notifications  Notification[]
+  createdBy      User?               @relation("TaskCreatedBy", fields: [createdById], references: [id])
+  project        Project?            @relation(fields: [projectId], references: [id])
+  team           Team?               @relation(fields: [teamId], references: [id])
+  activity       TaskActivityEvent[]
+  assignees      TaskAssignee[]
+  timeEntries    TimeEntry[]
+
+  @@index([projectId])
+  @@index([teamId])
+  @@index([status])
+  @@index([priority])
+  @@index([unit])
+  @@index([updatedAt])
+}
+
+model TaskAssignee {
+  taskId String
+  userId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, userId])
+  @@index([userId])
+}
+
+model TimeEntry {
+  id        String        @id @default(uuid())
+  taskId    String
+  userId    String
+  date      DateTime
+  hours     Decimal       @db.Decimal(5, 2)
+  type      TimeEntryType
+  note      String?
+  createdAt DateTime      @default(now())
+  task      Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, date])
+  @@index([userId, date])
+}
+
+model TaskActivityEvent {
+  id        String           @id @default(uuid())
+  taskId    String
+  type      TaskActivityType
+  actorId   String
+  message   String
+  meta      Json?
+  createdAt DateTime         @default(now())
+  actor     User             @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  task      Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+  @@index([actorId])
+}
+
+model KanbanBoard {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  projectId   String?
+  createdById String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  createdBy   User           @relation("KanbanBoardCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  project     Project?       @relation("KanbanBoardProject", fields: [projectId], references: [id])
+  cards       KanbanCard[]
+  columns     KanbanColumn[]
+  members     KanbanMember[]
+
+  @@index([projectId])
+  @@index([createdById])
+  @@index([updatedAt])
+}
+
+model KanbanColumn {
+  id        String       @id @default(uuid())
+  boardId   String
+  status    KanbanStatus
+  title     String
+  order     Int
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  cards     KanbanCard[]
+  board     KanbanBoard  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@unique([boardId, status])
+  @@index([boardId, order])
+}
+
+model KanbanCard {
+  id          String        @id @default(uuid())
+  boardId     String
+  columnId    String
+  taskId      String?
+  title       String
+  description String?
+  priority    TaskPriority?
+  dueDate     DateTime?
+  tags        String[]      @default([])
+  assigneeId  String?
+  order       Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  assignee    User?         @relation(fields: [assigneeId], references: [id])
+  board       KanbanBoard   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  column      KanbanColumn  @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  task        Task?         @relation("KanbanCardTask", fields: [taskId], references: [id])
+
+  @@unique([boardId, taskId])
+  @@index([boardId, columnId, order])
+  @@index([taskId])
+  @@index([assigneeId])
+}
+
+model KanbanMember {
+  boardId   String
+  userId    String
+  role      KanbanMemberRole @default(EDITOR)
+  createdAt DateTime         @default(now())
+  board     KanbanBoard      @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([boardId, userId])
+  @@index([userId])
+}
+
+model Document {
+  id        String      @id @default(uuid())
+  title     String
+  slug      String      @unique
+  summary   String
+  content   String      @default("")
+  category  DocCategory @default(GERAL)
+  status    DocStatus   @default(DRAFT)
+  tags      String[]    @default([])
+  views     Int         @default(0)
+  archived  Boolean     @default(false)
+  authorId  String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([category])
+  @@index([status])
+  @@index([archived])
+  @@index([updatedAt])
+  @@index([status, archived, updatedAt])
+}
+
+model DocFavorite {
+  docId     String
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@id([docId, userId])
+  @@index([userId])
+  @@index([docId])
+}
+
+model Team {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  projects    Project[]
+  tasks       Task[]
+  members     TeamMember[]
+  tickets     Ticket[]
+
+  @@index([name])
+}
+
+model TeamMember {
+  teamId    String
+  userId    String
+  createdAt DateTime @default(now())
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@index([userId])
+  @@index([teamId])
+}
+
+model CategoriaColaborador {
+  id            String               @id @default(uuid())
+  nome          String               @unique
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  colaboradores ColaboradorExterno[]
+
+  @@index([nome])
+}
+
+model ColaboradorExterno {
+  id              String                @id @default(uuid())
+  nome            String
+  email           String?
+  senha           String?
+  departamento    String?
+  categoriaId     String?
+  ativo           Boolean               @default(true)
+  registradoPorId String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  usuario         String?
+  categoria       CategoriaColaborador? @relation(fields: [categoriaId], references: [id])
+  registradoPor   User?                 @relation("ColaboradorExternoRegistradoPor", fields: [registradoPorId], references: [id])
+
+  @@index([ativo])
+  @@index([registradoPorId])
+  @@index([categoriaId])
+}
+
+model UpdateCategory {
+  id        String       @id @default(uuid())
+  name      String       @unique
+  slug      String       @unique
+  color     String?
+  order     Int          @default(0)
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  posts     UpdatePost[]
+
+  @@index([order])
+  @@index([isActive])
+}
+
+model UpdatePost {
+  id      String           @id @default(uuid())
+  title   String
+  slug    String           @unique
+  excerpt String
+  content String
+  status  UpdatePostStatus @default(DRAFT)
+
+  // ✅ FK + RELATION (isso que está faltando no seu client)
+  categoryId String
+  category   UpdateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  pinned Boolean @default(false)
+  views  Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attachments UpdatePostAttachment[]
+}
+
+model UpdatePostAttachment {
+  id     String     @id @default(uuid())
+  postId String
+  post   UpdatePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  filename String
+  url      String
+  mimeType String
+  size     Int
+
+  createdAt DateTime @default(now())
 }
 
 enum UserRole {
@@ -132,483 +546,14 @@ enum DocStatus {
   PUBLISHED
 }
 
-model User {
-  id       String   @id @default(uuid())
-  name     String
-  email    String   @unique
-  password String? // hash (bcrypt/argon2), opcional para usuários OAuth
-  googleId String?  @unique // ID do Google OAuth
-  role     UserRole @default(USER)
-
-  tokenVersion Int @default(0)
-
-  deletedAt DateTime? // Soft delete
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  createdTasks    Task[]              @relation("TaskCreatedBy")
-  createdProjects Project[]           @relation("ProjectCreatedBy")
-  taskAssignees   TaskAssignee[]
-  timeEntries     TimeEntry[]
-  taskActivity    TaskActivityEvent[]
-
-  // Relacionamentos
-  openedTickets   Ticket[]        @relation("OpenedTickets")
-  assignedTickets Ticket[]        @relation("AssignedTickets")
-  messages        TicketMessage[]
-  notifications   Notification[]
-
-  // Kanban
-  createdKanbanBoards   KanbanBoard[]  @relation("KanbanBoardCreatedBy")
-  kanbanCardAssignments KanbanCard[]
-  kanbanMemberships     KanbanMember[]
-
-  // Documentação
-  createdDocs  Document[]    @relation("DocCreatedBy")
-  favoriteDocs DocFavorite[]
-
-  // Equipes
-  teamMemberships TeamMember[]
-
-  // Colaboradores Externos
-  colaboradoresExternosRegistrados ColaboradorExterno[] @relation("ColaboradorExternoRegistradoPor")
-}
-
-model Ticket {
-  id          String         @id @default(uuid())
-  title       String
-  description String
-  category    TicketCategory @default(OTHER)
-  unit        TicketUnit?
-
-  status   TicketStatus   @default(OPEN)
-  priority TicketPriority @default(MEDIUM)
-
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  resolvedAt DateTime?
-  closedAt   DateTime?
-
-  // Cronometragem de tempo dedicado
-  inProgressAt       DateTime? // Quando o admin assumiu o ticket (status mudou para IN_PROGRESS)
-  timeSpentMinutes   Int? // Tempo total dedicado em minutos (calculado quando resolvido/fechado)
-  timerPaused        Boolean   @default(false) // Se o timer está pausado
-  timerPausedAt      DateTime? // Quando o timer foi pausado pela última vez
-  totalPausedSeconds Int       @default(0) // Total de segundos pausados acumulados
-
-  // Quem abriu
-  openedById String
-  openedBy   User   @relation("OpenedTickets", fields: [openedById], references: [id])
-
-  // Responsável (pode ser nulo enquanto ninguém assumiu)
-  assigneeId String?
-  assignee   User?   @relation("AssignedTickets", fields: [assigneeId], references: [id])
-
-  // Equipe responsável
-  teamId String?
-  team  Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
-
-  // Chat/comentários
-  messages TicketMessage[]
-
-  // Anexos
-  attachments TicketAttachment[]
-
-  // Notificações
-  notifications Notification[]
-
-  @@index([status])
-  @@index([priority])
-  @@index([openedById])
-  @@index([assigneeId])
-  @@index([teamId])
-  @@index([category])
-  @@index([unit])
-}
-
-model TicketMessage {
-  id       String @id @default(uuid())
-  ticketId String
-  authorId String
-
-  content    String
-  isInternal Boolean @default(false) // opcional: notas internas da TI (não aparecem p/ usuário)
-
-  createdAt DateTime @default(now())
-
-  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  author User   @relation(fields: [authorId], references: [id])
-
-  @@index([ticketId, createdAt])
-}
-
-model TicketAttachment {
-  id       String @id @default(uuid())
-  ticketId String
-  filename String
-  url      String // URL do arquivo (pode ser path local ou URL externa)
-  mimeType String
-  size     Int // tamanho em bytes
-
-  createdAt DateTime @default(now())
-
-  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-
-  @@index([ticketId])
-}
-
-model Notification {
-  id        String  @id @default(uuid())
-  userId    String // Usuário que receberá a notificação
-  ticketId  String? // Ticket relacionado (opcional para flexibilidade futura)
-  taskId    String? // Tarefa relacionada (opcional)
-  projectId String? // Projeto relacionado (opcional)
-
-  type   NotificationType
-  status NotificationStatus @default(UNREAD)
-
-  title    String // Título da notificação
-  message  String // Mensagem descritiva
-  metadata Json? // Dados adicionais (ex: nome do autor, prioridade, etc)
-
-  createdAt DateTime  @default(now())
-  readAt    DateTime? // Quando foi marcada como lida
-
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ticket  Ticket?  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  task    Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([userId, status])
-  @@index([userId, createdAt])
-  @@index([ticketId])
-  @@index([taskId])
-  @@index([projectId])
-  @@index([status])
-}
-
-model Project {
-  id     String        @id @default(uuid())
-  name   String
-  code   String?       @unique
-  status ProjectStatus @default(ACTIVE)
-
-  // opcional: se quiser projeto “por unidade”
-  unit TaskUnit?
-
-  createdById String?
-  createdBy   User?   @relation("ProjectCreatedBy", fields: [createdById], references: [id])
-
-  // Equipe responsável
-  teamId String?
-  team  Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tasks         Task[]
-  notifications Notification[]
-  kanbanBoards  KanbanBoard[]  @relation("KanbanBoardProject")
-
-  @@index([status])
-  @@index([unit])
-  @@index([createdById])
-  @@index([teamId])
-}
-
-model Task {
-  id          String       @id @default(uuid())
-  title       String
-  description String? // para sua tab "Resumo"
-  acceptance  String? // critérios de aceite (futuro)
-  unit        TaskUnit
-  status      TaskStatus   @default(TODO)
-  priority    TaskPriority @default(MEDIUM)
-
-  estimatedHours Int @default(0) // inteiro no DB; se quiser 0.5h, use Decimal
-  // loggedHours NÃO precisa persistir; calcule via TimeEntry (ou mantenha materializado depois)
-
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-
-  // Equipe responsável
-  teamId String?
-  team  Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
-
-  createdById String?
-  createdBy   User?   @relation("TaskCreatedBy", fields: [createdById], references: [id])
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  completedAt DateTime?
-
-  assignees     TaskAssignee[]
-  timeEntries   TimeEntry[]
-  activity      TaskActivityEvent[]
-  notifications Notification[]
-  kanbanCards   KanbanCard[]        @relation("KanbanCardTask")
-
-  @@index([projectId])
-  @@index([teamId])
-  @@index([status])
-  @@index([priority])
-  @@index([unit])
-  @@index([updatedAt])
-}
-
-model TaskAssignee {
-  taskId String
-  userId String
-
-  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([taskId, userId])
-  @@index([userId])
-}
-
-model TimeEntry {
-  id     String @id @default(uuid())
-  taskId String
-  userId String
-
-  date  DateTime // armazene como DateTime (no front você manda YYYY-MM-DD)
-  hours Decimal       @db.Decimal(5, 2) // suporta 0.5, 1.5, etc.
-  type  TimeEntryType
-  note  String?
-
-  createdAt DateTime @default(now())
-
-  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([taskId, date])
-  @@index([userId, date])
-}
-
-model TaskActivityEvent {
-  id        String           @id @default(uuid())
-  taskId    String
-  type      TaskActivityType
-  actorId   String
-  message   String
-  meta      Json?
-  createdAt DateTime         @default(now())
-
-  task  Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  actor User @relation(fields: [actorId], references: [id], onDelete: Cascade)
-
-  @@index([taskId, createdAt])
-  @@index([actorId])
-}
-
-model KanbanBoard {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  projectId   String?
-  project     Project? @relation("KanbanBoardProject", fields: [projectId], references: [id], onDelete: SetNull)
-
-  createdById String
-  createdBy   User   @relation("KanbanBoardCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  columns KanbanColumn[]
-  cards   KanbanCard[]
-  members KanbanMember[]
-
-  @@index([projectId])
-  @@index([createdById])
-  @@index([updatedAt])
-}
-
-model KanbanColumn {
-  id      String      @id @default(uuid())
-  boardId String
-  board   KanbanBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
-
-  status KanbanStatus
-  title  String
-  order  Int
-
-  cards KanbanCard[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([boardId, status]) // um status por board (no seu modelo atual)
-  @@index([boardId, order])
-}
-
-model KanbanCard {
-  id String @id @default(uuid())
-
-  boardId String
-  board   KanbanBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
-
-  columnId String
-  column   KanbanColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
-
-  // vínculo opcional com Task (para puxar tarefa de Project)
-  taskId String?
-  task   Task?   @relation("KanbanCardTask", fields: [taskId], references: [id], onDelete: SetNull)
-
-  title       String
-  description String?
-  priority    TaskPriority? // reaproveita enum existente (LOW/MEDIUM/HIGH/URGENT)
-  dueDate     DateTime?
-  tags        String[]      @default([])
-
-  // assignee "rápido" (opcional): como você já tem assignees em Task, aqui pode ser simples
-  assigneeId String?
-  assignee   User?   @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
-
-  order Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([boardId, taskId]) // impede vincular a mesma task duas vezes no mesmo board
-  @@index([boardId, columnId, order])
-  @@index([taskId])
-  @@index([assigneeId])
+enum UpdatePostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
 enum KanbanMemberRole {
   VIEWER
   EDITOR
   ADMIN
-}
-
-model KanbanMember {
-  boardId String
-  userId  String
-  role    KanbanMemberRole @default(EDITOR)
-
-  board KanbanBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@id([boardId, userId])
-  @@index([userId])
-}
-
-model Document {
-  id       String      @id @default(uuid())
-  title    String
-  slug     String      @unique
-  summary  String
-  content  String      @default("")
-  category DocCategory @default(GERAL)
-  status   DocStatus   @default(DRAFT)
-  tags     String[]    @default([])
-  views    Int         @default(0)
-  archived Boolean     @default(false)
-
-  // Autor
-  authorId String
-  author   User   @relation("DocCreatedBy", fields: [authorId], references: [id], onDelete: Restrict)
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Favoritos (many-to-many com User)
-  favoritedBy DocFavorite[]
-
-  @@index([slug])
-  @@index([authorId])
-  @@index([category])
-  @@index([status])
-  @@index([archived])
-  @@index([updatedAt])
-  @@index([status, archived, updatedAt]) // Para queries comuns: documentos ativos ordenados por data
-}
-
-model DocFavorite {
-  docId  String
-  userId String
-  doc    Document @relation(fields: [docId], references: [id], onDelete: Cascade)
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@id([docId, userId])
-  @@index([userId])
-  @@index([docId])
-}
-
-model Team {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Membros da equipe (apenas ADMINs podem ser membros)
-  members TeamMember[]
-
-  // Projetos, tarefas e tickets atribuídos à equipe
-  projects Project[]
-  tasks    Task[]
-  tickets  Ticket[]
-
-  @@index([name])
-}
-
-model TeamMember {
-  teamId String
-  userId String
-
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@id([teamId, userId])
-  @@index([userId])
-  @@index([teamId])
-}
-
-model CategoriaColaborador {
-  id          String   @id @default(uuid())
-  nome        String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  colaboradores ColaboradorExterno[]
-
-  @@index([nome])
-}
-
-model ColaboradorExterno {
-  id          String   @id @default(uuid())
-  nome        String
-  usuario     String?
-  email       String?
-  senha       String? // Senha de acesso
-  departamento String?
-  
-  // Categoria
-  categoriaId String?
-  categoria   CategoriaColaborador? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
-  
-  // Status
-  ativo       Boolean  @default(true)
-  
-  // Quem registrou
-  registradoPorId String?
-  registradoPor   User?   @relation("ColaboradorExternoRegistradoPor", fields: [registradoPorId], references: [id], onDelete: SetNull)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([ativo])
-  @@index([registradoPorId])
-  @@index([categoriaId])
 }
