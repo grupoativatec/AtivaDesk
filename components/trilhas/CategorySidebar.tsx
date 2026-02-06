@@ -26,27 +26,45 @@ export default function CategorySidebar({
 
     return (
         <aside className="space-y-4">
-            <div className="rounded-xl bg-white p-1 shadow-sm ring-1 ring-black/5">
-                <nav className="flex flex-col">
+            {/* Lista */}
+            <div className="relative overflow-hidden rounded-xl bg-white p-1 shadow-sm ring-1 ring-black/5">
+                {/* textura MUITO sutil no card */}
+                <div
+                    className="pointer-events-none absolute inset-0 opacity-[0.10]"
+                    style={{
+                        backgroundImage: `
+              linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(0,0,0,0.06) 1px, transparent 1px)
+            `,
+                        backgroundSize: "90px 90px",
+                    }}
+                />
+
+                <nav className="relative flex flex-col">
                     <Link
                         href={buildHref(undefined)}
                         className={cn(
                             "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                             !activeCategory
-                                ? "bg-slate-50 text-sky-600"
-                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                ? "text-red-700"
+                                : "text-slate-600 hover:bg-red-50/50 hover:text-slate-900"
                         )}
                     >
                         {!activeCategory && (
                             <motion.div
                                 layoutId="active-category"
-                                className="absolute inset-0 rounded-lg bg-slate-100"
+                                className="absolute inset-0 rounded-lg bg-red-50/60 ring-1 ring-red-200/60"
                                 initial={false}
                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                 style={{ zIndex: -1 }}
                             />
                         )}
-                        <span className={cn("h-2 w-2 rounded-full", !activeCategory ? "bg-sky-500" : "bg-slate-300")} />
+                        <span
+                            className={cn(
+                                "h-2 w-2 rounded-full",
+                                !activeCategory ? "bg-red-600" : "bg-slate-300"
+                            )}
+                        />
                         Todas as categorias
                     </Link>
 
@@ -59,22 +77,27 @@ export default function CategorySidebar({
                                 className={cn(
                                     "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                                     active
-                                        ? "text-sky-600"
-                                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                        ? "text-red-700"
+                                        : "text-slate-600 hover:bg-red-50/50 hover:text-slate-900"
                                 )}
                             >
                                 {active && (
                                     <motion.div
                                         layoutId="active-category"
-                                        className="absolute inset-0 rounded-lg bg-slate-100"
+                                        className="absolute inset-0 rounded-lg bg-red-50/60 ring-1 ring-red-200/60"
                                         initial={false}
                                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                         style={{ zIndex: -1 }}
                                     />
                                 )}
+
                                 <span
                                     className="h-2 w-2 rounded-full"
-                                    style={{ backgroundColor: active ? (cat.color ?? "#0ea5e9") : (cat.color ?? "#cbd5e1") }}
+                                    style={{
+                                        backgroundColor: active
+                                            ? (cat.color ?? "#dc2626") // red-600 fallback
+                                            : "#cbd5e1", // slate-300
+                                    }}
                                 />
                                 {cat.name}
                             </Link>
@@ -83,14 +106,6 @@ export default function CategorySidebar({
                 </nav>
             </div>
 
-            {/* Banner promocional ou dica extra (opcional) */}
-            <div className="rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 p-6 text-white shadow-md">
-                <p className="font-semibold">Tem uma sugestão?</p>
-                <p className="mt-2 text-xs text-indigo-100">
-                    Envie suas ideias de conteúdo para nós!
-                </p>
-            </div>
         </aside>
     )
 }
-

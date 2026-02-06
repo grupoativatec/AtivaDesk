@@ -30,7 +30,7 @@ export default function SearchBar() {
                         if (e.key === "Enter") applyQuery(value)
                     }}
                     placeholder="Search..."
-                    className="w-full bg-transparent text-sm outline-none"
+                    className="w-full bg-transparent text-sm outline-none dark:text-black"
                 />
 
                 <div className="h-7 w-px bg-slate-200" />

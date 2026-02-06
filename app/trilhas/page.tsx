@@ -20,7 +20,7 @@ export default async function TrilhasPage({
     ])
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen overflow-hidden bg-slate-50">
             <Hero />
 
             <div className="mx-auto w-full max-w-7xl px-4">
