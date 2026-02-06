@@ -9,6 +9,25 @@ export type ListPostsFilters = {
     pinned?: boolean
 }
 
+export type CreateCategoryData = {
+  name: string
+  slug?: string
+  color?: string
+  order?: number
+  isActive?: boolean
+}
+
+function slugify(input: string) {
+  return input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
+
 export type CreatePostData = {
     title: string
     excerpt: string
@@ -151,6 +170,49 @@ export const TrilhasService = {
             where: { id }
         })
     },
+
+    async createCategory(data: CreateCategoryData) {
+        const name = data.name?.trim()
+        if (!name) throw new Error("Informe o nome da categoria")
+
+        const slug = (data.slug?.trim() || slugify(name))
+        if (!slug) throw new Error("Slug inválido")
+
+        // checa slug duplicado
+        const existing = await prisma.updateCategory.findUnique({
+            where: { slug },
+            select: { id: true },
+        })
+        if (existing) throw new Error("Slug already in use")
+
+        // define próxima ordem se não vier
+        let order = data.order
+        if (order === undefined || order === null) {
+            const last = await prisma.updateCategory.findFirst({
+            orderBy: { order: "desc" },
+            select: { order: true },
+            })
+            order = (last?.order ?? 0) + 1
+        }
+
+        return prisma.updateCategory.create({
+            data: {
+            name,
+            slug,
+            color: data.color ?? "#64748b", // defaultzinho (ajuste se quiser)
+            order,
+            isActive: data.isActive ?? true,
+            },
+            select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            order: true,
+            },
+        })
+    },
+
 
     async listCategories() {
         return prisma.updateCategory.findMany({
