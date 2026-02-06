@@ -16,6 +16,7 @@ import SidebarFooterContent from "./sidebar-footer"
 import { Notifications } from "./notifications"
 import { AtivaDeskLogo } from "@/components/shared/logo/AtivaDeskLogo"
 import { motion } from "framer-motion"
+import Image from "next/image"
 
 
 const AppSidebar = () => {
@@ -63,7 +64,14 @@ const AppSidebar = () => {
               "
             >
               <div className="flex items-center gap-2.5 w-full">
-                <AtivaDeskLogo size="md" showText={true} animated={true} className="text-sidebar-foreground" />
+                <Image
+                  src="/logo-white.png"
+                  alt="Logo"
+                  width={180}
+                  height={50}
+                  className="h-12 w-auto object-contain"
+                  priority
+                />
               </div>
             </SidebarMenuButton>
           </motion.div>

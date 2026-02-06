@@ -19,10 +19,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { TrilhasEditor } from "@/components/features/admin/trilhas/TrilhasEditor"
-import { TrilhasPreview } from "@/components/features/admin/trilhas/TrilhasPreview"
-import { TrilhasMetadataPanel, type TrilhasStatus } from "@/components/features/admin/trilhas/TrilhasMetadataPanel"
-import { TrilhasAdminShell } from "@/components/features/admin/trilhas/TrilhasAdminShell"
+import { TrilhasEditor } from "@/components/features/admin/trilhas/forms/TrilhasEditor"
+import { TrilhasPreview } from "@/components/features/admin/trilhas/preview/TrilhasPreview"
+import { TrilhasMetadataPanel, type TrilhasStatus } from "@/components/features/admin/trilhas/forms/TrilhasMetadataPanel"
+import { TrilhasAdminShell } from "@/components/features/admin/trilhas/shell/TrilhasAdminShell"
 import { fetchJson } from "@/lib/http"
 
 type Category = { id: string; name: string; slug: string; color: string | null }
@@ -48,7 +48,7 @@ export default function NewTrilhasPostPage() {
     const [content, setContent] = useState("")
     const [slug, setSlug] = useState("")
     const [categorySlug, setCategorySlug] = useState("")
-    const [status, setStatus] = useState<TrilhasStatus>("DRAFT")
+    const [status, setStatus] = useState<TrilhasStatus>("PUBLISHED")
     const [pinned, setPinned] = useState(false)
 
     const [isSaving, setIsSaving] = useState(false)
@@ -203,11 +203,14 @@ export default function NewTrilhasPostPage() {
                 pinned,
             }
 
-            router.push(`/admin/trilhas/${data.post.slug}`)
+            toast.success("Post criado com sucesso!")
+
+            // ✅ Redirecionar para listagem
+            router.push("/admin/trilhas")
         } catch (e: any) {
+            console.error(e)
             toast.error(e.message || "Erro ao criar post")
-        } finally {
-            setIsSaving(false)
+            setIsSaving(false) // só libera se der erro
         }
     }
 

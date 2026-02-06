@@ -61,20 +61,13 @@ export function TrilhasMetadataPanel(props: {
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="DRAFT">DRAFT</SelectItem>
-                        <SelectItem value="PUBLISHED">PUBLISHED</SelectItem>
-                        <SelectItem value="ARCHIVED">ARCHIVED</SelectItem>
+                        <SelectItem value="DRAFT">Rascunho</SelectItem>
+                        <SelectItem value="PUBLISHED">Publicado</SelectItem>
+                        <SelectItem value="ARCHIVED">Arquivado</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
 
-            <div className="flex items-center justify-between rounded-md border border-border/50 p-3">
-                <div>
-                    <p className="text-sm font-medium text-foreground">Fixar post</p>
-                    <p className="text-xs text-muted-foreground">Fica no topo da listagem</p>
-                </div>
-                <Switch checked={pinned} onCheckedChange={onPinnedChange} />
-            </div>
         </div>
     )
 }

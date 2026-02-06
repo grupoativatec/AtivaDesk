@@ -7,6 +7,7 @@ import Image from "@tiptap/extension-image"
 import Link from "@tiptap/extension-link"
 import Underline from "@tiptap/extension-underline"
 import Placeholder from "@tiptap/extension-placeholder"
+import { EditorToolbar } from "./EditorToolbar"
 
 type Props = {
     title: string
@@ -33,9 +34,21 @@ export function TrilhasEditor(props: Props) {
     const lastHtmlRef = useRef<string>(content || "")
 
     const editor = useEditor({
-        immediatelyRender: false, // ✅ evita hydration mismatch no Next
+        immediatelyRender: false,
         extensions: [
-            StarterKit,
+            StarterKit.configure({
+                heading: {
+                    levels: [1, 2, 3],
+                },
+                // ✅ Desabilita hardBreak (Shift+Enter vira <br>) para forçar parágrafos
+                hardBreak: false,
+                // ✅ Configura o parágrafo
+                paragraph: {
+                    HTMLAttributes: {
+                        class: 'my-2',
+                    },
+                },
+            }),
             Underline,
             Link.configure({
                 openOnClick: false,
@@ -54,7 +67,7 @@ export function TrilhasEditor(props: Props) {
         editorProps: {
             attributes: {
                 class:
-                    "prose prose-sm dark:prose-invert max-w-none min-h-[280px] focus:outline-none",
+                    "prose prose-sm dark:prose-invert max-w-none focus:outline-none",
             },
             handlePaste: (view, event) => {
                 const clipboard = event.clipboardData
@@ -135,12 +148,13 @@ export function TrilhasEditor(props: Props) {
 
             <div className="space-y-2">
                 <label className="text-sm font-medium">Conteúdo</label>
-                <div className="rounded-md border bg-background p-3">
-                    <EditorContent editor={editor} />
+                <div className="rounded-md border bg-background">
+                    <EditorToolbar editor={editor} />
+                    <EditorContent editor={editor} className="p-3 min-h-[350px]" />
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                    Dica: cole prints com <kbd>Ctrl</kbd>+<kbd>V</kbd> ou arraste uma imagem para dentro do editor.
+                    Dica: pressione <kbd>Enter</kbd> para novo parágrafo. Cole prints com <kbd>Ctrl</kbd>+<kbd>V</kbd>.
                 </p>
             </div>
         </div>

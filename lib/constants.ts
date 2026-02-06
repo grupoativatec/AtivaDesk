@@ -45,6 +45,11 @@ export const data = {
       icon: Columns3,
     },
     {
+      title: "Trilhas",
+      url: "/admin/trilhas",
+      icon: Book,
+    },
+    {
       title: "Documentação",
       url: "/admin/docs",
       icon: FileText,
@@ -58,11 +63,6 @@ export const data = {
       title: "Acessos",
       url: "/admin/acessos",
       icon: Key,
-    },
-    {
-      title: "Trilhas",
-      url: "/admin/trilhas",
-      icon: Book,
     },
   ],
 

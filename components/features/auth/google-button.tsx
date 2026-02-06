@@ -33,7 +33,7 @@ export function GoogleButton() {
       onClick={handleGoogleLogin}
       disabled={loading}
       variant="outline"
-      className="w-full"
+      className="w-full cursor-pointer"
       size="lg"
     >
       {loading ? (

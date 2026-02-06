@@ -1,5 +1,9 @@
+"use client"
+
 import { TrilhasPostListItem } from "@/lib/trilhas/type"
 import Link from "next/link"
+import { motion } from "framer-motion"
+import { Calendar, ArrowRight } from "lucide-react"
 
 function relativeDays(date: Date) {
     const now = new Date()
@@ -11,28 +15,40 @@ function relativeDays(date: Date) {
 
 export default function PostCard({ post }: { post: TrilhasPostListItem }) {
     return (
-        <article className="rounded-2xl bg-white px-8 py-7 shadow-sm ring-1 ring-black/5">
-            <div className="mb-4 flex items-center justify-between">
-                <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
-                    {post.category.name}
-                </span>
-
-                <span className="text-xs text-slate-400">{relativeDays(post.updatedAt)}</span>
+        <motion.article
+            whileHover={{ y: -4 }}
+            className="group relative flex flex-col justify-between rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 transition-shadow hover:shadow-lg sm:p-8"
+        >
+            <div>
+                <div className="flex items-center gap-x-4 text-xs capitalize">
+                    <time dateTime={new Date(post.updatedAt).toISOString()} className="text-gray-500 flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {relativeDays(post.updatedAt)}
+                    </time>
+                    <span
+                        className="relative z-10 rounded-full bg-sky-50 px-3 py-1.5 font-medium text-sky-600 hover:bg-sky-100 transition-colors"
+                        style={{ backgroundColor: post.category.color ? `${post.category.color}20` : undefined, color: post.category.color ?? undefined }}
+                    >
+                        {post.category.name}
+                    </span>
+                </div>
+                <div className="group relative max-w-xl">
+                    <h3 className="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-sky-600 transition-colors">
+                        <Link href={`/trilhas/${post.slug}`}>
+                            <span className="absolute inset-0" />
+                            {post.title}
+                        </Link>
+                    </h3>
+                    <p className="mt-5 text-sm leading-6 text-gray-600 line-clamp-3">
+                        {post.excerpt}
+                    </p>
+                </div>
             </div>
 
-            <h2 className="text-2xl font-semibold leading-snug tracking-tight text-sky-600">
-                <Link href={`/trilhas/${post.slug}`} className="hover:underline">
-                    {post.title}
-                </Link>
-            </h2>
-
-            <p className="mt-4 text-[15px] leading-7 text-slate-700">{post.excerpt}</p>
-
-            <div className="mt-6 flex justify-center">
-                <Link href={`/trilhas/${post.slug}`} className="inline-flex items-center gap-1 text-sm font-medium text-sky-600 hover:underline">
-                    MAIS <span aria-hidden>↓</span>
-                </Link>
+            <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-sky-600 opacity-0 transition-opacity group-hover:opacity-100">
+                Ler mais <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </div>
-        </article>
+        </motion.article>
     )
 }
+

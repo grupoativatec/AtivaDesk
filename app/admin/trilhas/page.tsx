@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import { Search, Filter, ArrowUpDown, Folder, CheckCircle2, Pin } from "lucide-react"
-import { TrilhasPostCard } from "@/components/features/admin/trilhas/TrilhasPostCard"
-import { TrilhasAdminShell } from "@/components/features/admin/trilhas/TrilhasAdminShell"
+import { TrilhasPostCard } from "@/components/features/admin/trilhas/cards/TrilhasPostCard"
+import { TrilhasAdminShell } from "@/components/features/admin/trilhas/shell/TrilhasAdminShell"
 import { fetchJson } from "@/lib/http"
-import { CreateCategoryDialog } from "@/components/features/admin/trilhas/CreateCategoryDialog"
+import { CreateCategoryDialog } from "@/components/features/admin/trilhas/forms/CreateCategoryDialog"
 
 type SortOption = "recent" | "oldest" | "az"
 type StatusFilter = "all" | "DRAFT" | "PUBLISHED" | "ARCHIVED"
@@ -180,9 +180,9 @@ export default function AdminTrilhasPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">Todos</SelectItem>
-                                <SelectItem value="DRAFT">DRAFT</SelectItem>
-                                <SelectItem value="PUBLISHED">PUBLISHED</SelectItem>
-                                <SelectItem value="ARCHIVED">ARCHIVED</SelectItem>
+                                <SelectItem value="DRAFT">Rascunho</SelectItem>
+                                <SelectItem value="PUBLISHED">Publicado</SelectItem>
+                                <SelectItem value="ARCHIVED">Arquivado</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

@@ -19,13 +19,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { TrilhasEditor } from "@/components/features/admin/trilhas/TrilhasEditor";
-import { TrilhasPreview } from "@/components/features/admin/trilhas/TrilhasPreview";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TrilhasEditor } from "@/components/features/admin/trilhas/forms/TrilhasEditor"
+import { TrilhasPreview } from "@/components/features/admin/trilhas/preview/TrilhasPreview"
 import {
     TrilhasMetadataPanel,
     type TrilhasStatus,
-} from "@/components/features/admin/trilhas/TrilhasMetadataPanel";
-import { TrilhasAdminShell } from "@/components/features/admin/trilhas/TrilhasAdminShell";
+} from "@/components/features/admin/trilhas/forms/TrilhasMetadataPanel"
+import { TrilhasAdminShell } from "@/components/features/admin/trilhas/shell/TrilhasAdminShell";
 import { fetchJson } from "@/lib/http";
 
 type Category = {
@@ -278,10 +279,58 @@ export default function EditTrilhasPostPage() {
         }
     };
 
+
+    const handleDelete = async () => {
+        if (!postId) return
+
+        setIsSaving(true)
+        try {
+            await fetchJson(`/api/admin/trilhas/by-id/${encodeURIComponent(postId)}`, {
+                method: "DELETE",
+            })
+            toast.success("Post excluído com sucesso")
+            router.replace("/admin/trilhas")
+        } catch (e: any) {
+            toast.error(e.message || "Erro ao excluir post")
+            setIsSaving(false)
+        }
+    }
+
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
     if (isLoading) {
         return (
             <TrilhasAdminShell pageTitle="Carregando..." breadcrumbItems={[]}>
-                <Card className="p-6">Carregando post…</Card>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className="p-4 space-y-6">
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-20 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-64 w-full" />
+                        </div>
+                    </Card>
+                    <Card className="p-4 space-y-6">
+                        <div className="flex items-center gap-4">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-4 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-32 w-full" />
+                        </div>
+                    </Card>
+                </div>
             </TrilhasAdminShell>
         );
     }
@@ -301,6 +350,7 @@ export default function EditTrilhasPostPage() {
                     onCancel: handleCancel,
                     onSaveDraft: () => handleSave("DRAFT"),
                     onPublish: () => handleSave("PUBLISHED"),
+                    onDelete: () => setShowDeleteDialog(true),
                 }}
             >
                 {isMobile ? (
@@ -420,6 +470,23 @@ export default function EditTrilhasPostPage() {
                             }
                         >
                             Sair sem salvar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir post</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Tem certeza que deseja excluir este post? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive  text-white hover:bg-destructive/90">
+                            Excluir
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

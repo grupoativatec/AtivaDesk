@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { ArrowLeft, CircleUser, MessageSquareText, NotebookText } from "lucide-react"
+import Image from "next/image"
 
 export default function TrilhasTopNav() {
     return (
@@ -8,19 +9,20 @@ export default function TrilhasTopNav() {
                 {/* ESQUERDA */}
                 <div className="flex items-center gap-6">
                     {/* Ícone/Logo */}
-                    <div className="grid h-9 w-9 place-items-center rounded-full bg-sky-500 text-white">
-                        <NotebookText className="h-5 w-5" />
-                    </div>
+                    <Link
+                        href="/trilhas"
+                        className="text-slate-500 hover:text-slate-900"
+                    >
+                        <Image
+                            src="/logo-horizontal.png"
+                            alt="Logo"
+                            width={180}
+                            height={60}
+                            className="h-10 w-auto object-contain"
+                            priority
+                        />
+                    </Link>
 
-                    {/* Links */}
-                    <nav className="flex items-center gap-5 text-sm">
-                        <Link
-                            href="/feedback"
-                            className="text-slate-500 hover:text-slate-900"
-                        >
-                            Home
-                        </Link>
-                    </nav>
                 </div>
 
                 {/* DIREITA */}

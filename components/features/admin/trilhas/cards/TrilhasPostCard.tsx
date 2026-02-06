@@ -34,7 +34,9 @@ export function TrilhasPostCard({ post }: { post: TrilhasPostCardItem }) {
 
                 <div className="flex flex-wrap gap-2">
                     {post.category?.name ? <Badge variant="outline">{post.category.name}</Badge> : null}
-                    {post.status ? <Badge variant="secondary">{post.status}</Badge> : null}
+                    {post.status && post.status === "PUBLISHED" ? <Badge variant="default">Publicado</Badge> : null}
+                    {post.status && post.status === "DRAFT" ? <Badge variant="secondary">Rascunho</Badge> : null}
+                    {post.status && post.status === "ARCHIVED" ? <Badge variant="destructive">Arquivado</Badge> : null}
                 </div>
 
                 <p className="text-xs text-muted-foreground pt-3 border-t border-border/50">

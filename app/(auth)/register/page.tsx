@@ -9,7 +9,7 @@ import { GoogleButton } from "@/components/features/auth/google-button";
 import { PasswordStrength } from "@/components/features/auth/password-strength";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AtivaDeskLogo } from "@/components/shared/logo/AtivaDeskLogo";
+import Image from "next/image";
 
 type RegisterResponse = { ok: true } | { error: string };
 
@@ -79,11 +79,18 @@ export default function RegisterPage() {
             className="space-y-8"
         >
             {/* Logo/Brand */}
-            <motion.div 
+            <motion.div
                 variants={itemVariants}
-                className="flex items-center justify-center mb-2"
+                className="flex items-center justify-start mb-5"
             >
-                <AtivaDeskLogo size="lg" showText={true} animated={true} className="text-2xl" />
+                <Image
+                    src="/logo-horizontal.png"
+                    alt="Logo"
+                    width={180}
+                    height={50}
+                    className="h-12 w-auto object-contain"
+                    priority
+                />
             </motion.div>
 
             {/* Header */}
@@ -228,8 +235,8 @@ export default function RegisterPage() {
             >
                 <p className="text-center text-sm text-muted-foreground">
                     Já tem uma conta?{" "}
-                    <Link 
-                        href="/login" 
+                    <Link
+                        href="/login"
                         className="text-primary font-semibold hover:text-primary/80 underline-offset-4 transition-colors inline-flex items-center gap-1"
                     >
                         Entrar

@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { GoogleButton } from "@/components/features/auth/google-button";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AtivaDeskLogo } from "@/components/shared/logo/AtivaDeskLogo";
+import Image from "next/image";
 
 type LoginResponse =
     | { ok: true; user: { id: string; name: string; email: string; role: "USER" | "AGENT" | "ADMIN" } }
@@ -56,11 +56,11 @@ function LoginForm() {
 
             // Redirect por role (cookie JWT já foi setado pelo backend)
             const role = (data as { user: { role: "USER" | "AGENT" | "ADMIN" } }).user.role;
-            
+
             // Verifica se há um redirect na URL
             const redirectParam = searchParams.get("redirect");
             const redirectTo = redirectParam || (role === "ADMIN" ? "/admin/dashboard" : "/tickets");
-            
+
             router.push(redirectTo);
         } catch {
             toast.error("Erro de rede ao tentar logar.");
@@ -99,11 +99,18 @@ function LoginForm() {
             className="space-y-8"
         >
             {/* Logo/Brand */}
-            <motion.div 
+            <motion.div
                 variants={itemVariants}
-                className="flex items-center justify-center mb-2"
+                className="flex items-center justify-start mb-5"
             >
-                <AtivaDeskLogo size="lg" showText={true} animated={true} className="text-2xl" />
+                <Image
+                    src="/logo-horizontal.png"
+                    alt="Logo"
+                    width={180}
+                    height={50}
+                    className="h-12 w-auto object-contain"
+                    priority
+                />
             </motion.div>
 
             {/* Header */}
@@ -221,8 +228,8 @@ function LoginForm() {
             >
                 <p className="text-center text-sm text-muted-foreground">
                     Não tem uma conta?{" "}
-                    <Link 
-                        href="/register" 
+                    <Link
+                        href="/register"
                         className="text-primary font-semibold hover:text-primary/80 underline-offset-4 transition-colors inline-flex items-center gap-1"
                     >
                         Criar conta
@@ -244,8 +251,15 @@ export default function LoginPage() {
     return (
         <Suspense fallback={
             <div className="space-y-8">
-                <div className="flex items-center justify-center mb-2">
-                    <AtivaDeskLogo size="lg" showText={true} animated={true} className="text-2xl" />
+                <div className="flex items-center justify-start mb-2">
+                    <Image
+                        src="/logo-horizontal.png"
+                        alt="Logo"
+                        width={180}
+                        height={50}
+                        className="h-12 w-auto object-contain"
+                        priority
+                    />
                 </div>
                 <div className="space-y-2.5">
                     <h2 className="text-3xl font-bold tracking-tight">Bem-vindo de volta</h2>

@@ -2,6 +2,7 @@ import CategorySidebar from "@/components/trilhas/CategorySidebar"
 import { notFound } from "next/navigation"
 import TrilhasTopNav from "@/components/trilhas/TrilhasTopNav"
 import { getTrilhasCategories, getTrilhasPostBySlug } from "@/lib/trilhas/queries"
+import { FadeIn } from "@/components/trilhas/FadeIn"
 
 function relativeDays(date: Date) {
     const now = new Date()
@@ -33,33 +34,38 @@ export default async function PostPage({
         <div className="min-h-screen bg-slate-50">
             <TrilhasTopNav />
 
-            <div className="mx-auto w-full max-w-6xl px-4 py-10">
+            <div className="mx-auto w-full max-w-7xl px-4 py-10">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_260px]">
-                    <article className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-black/5">
-                        <div className="mb-4 flex items-center justify-between">
-                            <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
-                                {post.category.name}
-                            </span>
+                    <FadeIn>
+                        <article className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-black/5">
+                            <div className="mb-4 flex items-center justify-between">
+                                <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+                                    {post.category.name}
+                                </span>
 
-                            <span className="text-xs text-slate-400">
-                                {relativeDays(post.updatedAt)}
-                            </span>
-                        </div>
+                                <span className="text-xs text-slate-400">
+                                    {relativeDays(post.updatedAt)}
+                                </span>
+                            </div>
 
-                        <h1 className="text-3xl font-semibold tracking-tight text-sky-600">
-                            {post.title}
-                        </h1>
+                            <h1 className="text-3xl font-semibold tracking-tight text-sky-600">
+                                {post.title}
+                            </h1>
 
-                        {/* ✅ render HTML do TipTap */}
-                        <div
-                            className="prose prose-slate mt-6 max-w-none"
-                            dangerouslySetInnerHTML={{ __html: post.content }}
-                        />
-                    </article>
+                            {/* ✅ render HTML do TipTap */}
+                            <div
+                                className="prose prose-slate mt-6 max-w-none"
+                                dangerouslySetInnerHTML={{ __html: post.content }}
+                            />
+                        </article>
+                    </FadeIn>
+
 
                     <div className="md:pt-1">
                         <div className="sticky top-6">
-                            <CategorySidebar categories={categories} activeCategory={activeCategory} />
+                            <FadeIn delay={0.2}>
+                                <CategorySidebar categories={categories} activeCategory={activeCategory} />
+                            </FadeIn>
                         </div>
                     </div>
                 </div>

@@ -24,7 +24,7 @@ export function AtivaDeskLogo({
 }: AtivaDeskLogoProps) {
   const iconSize = sizeMap[size].icon
   const textSize = sizeMap[size].text
-  
+
   // Extrai classes de cor do className para aplicar ao texto
   const textColorClass = className?.match(/text-\S+/)?.[0] || "text-foreground"
   const containerClasses = className?.replace(/text-\S+/g, "").trim() || ""
@@ -32,7 +32,7 @@ export function AtivaDeskLogo({
   const InfinityIcon = () => {
     const gradientId = `infinityGradient-${size}`
     const filterId = `glow-${size}`
-    
+
     return (
       <svg
         width={iconSize}
@@ -59,7 +59,7 @@ export function AtivaDeskLogo({
             </filter>
           )}
         </defs>
-        
+
         {/* Símbolo de infinito moderno e minimalista */}
         <motion.g
           filter={animated ? `url(#${filterId})` : undefined}
@@ -104,7 +104,7 @@ export function AtivaDeskLogo({
             transition={{ duration: 0.7, delay: 0.5 }}
           />
         </motion.g>
-        
+
         {/* Efeito de brilho pulsante sutil */}
         {animated && (
           <motion.circle

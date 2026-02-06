@@ -14,6 +14,7 @@ type EditorActions = {
     onCancel?: () => void
     onSaveDraft?: () => void
     onPublish?: () => void
+    onDelete?: () => void
 }
 
 export function TrilhasAdminShell(props: {
@@ -87,16 +88,30 @@ export function TrilhasAdminShell(props: {
 
                                 <Button
                                     type="button"
-                                    variant="secondary"
-                                    onClick={editorActions.onSaveDraft}
+                                    onClick={editorActions.onPublish}
                                     disabled={editorActions.isSaving}
+                                    className="min-w-[100px]"
                                 >
-                                    Salvar rascunho
+                                    {editorActions.isSaving ? (
+                                        <>
+                                            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                            Salvando...
+                                        </>
+                                    ) : (
+                                        "Publicar"
+                                    )}
                                 </Button>
 
-                                <Button type="button" onClick={editorActions.onPublish} disabled={editorActions.isSaving}>
-                                    Publicar
-                                </Button>
+                                {editorActions.onDelete ? (
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        onClick={editorActions.onDelete}
+                                        disabled={editorActions.isSaving}
+                                    >
+                                        Excluir
+                                    </Button>
+                                ) : null}
                             </div>
                         ) : null}
                     </div>
