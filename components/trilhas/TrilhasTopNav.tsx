@@ -44,6 +44,6 @@ export default function TrilhasTopNav() {
 
                 </div>
             </div>
-        </header>
+        </motion.header>
     )
 }
