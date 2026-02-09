@@ -45,7 +45,7 @@ export default function FeedbackForm({ postId }: FeedbackFormProps) {
 
     if (submitted) {
         return (
-            <div className="rounded-xl bg-sky-50 p-6 text-center ring-1 ring-sky-100">
+            <div id="feedback-form" className="mt-12 rounded-xl bg-sky-50 p-6 text-center ring-1 ring-sky-100">
                 <h3 className="text-lg font-semibold text-sky-900">Obrigado pelo seu feedback!</h3>
                 <p className="mt-1 text-sm text-sky-700">Sua opinião é muito importante para nós.</p>
             </div>

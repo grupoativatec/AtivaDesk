@@ -27,8 +27,8 @@ export default function TrailTimeline({ steps }: TrailTimelineProps) {
                 })
             },
             {
-                rootMargin: "-20% 0% -35% 0%", // Detectar quando estiver "mais ou menos" no meio/topo
-                threshold: 0.5,
+                rootMargin: "-10% 0% -20% 0%",
+                threshold: 0.1, // Menor threshold para garantir que pegue o Feedback form
             }
         )
 
@@ -83,10 +83,7 @@ export default function TrailTimeline({ steps }: TrailTimelineProps) {
                             return (
                                 <div
                                     key={step.id}
-                                    className={cn(
-                                        "group relative flex items-start gap-4 transition-all duration-300",
-                                        step.level > 2 ? "ml-4" : "" // Indentação para subtítulos
-                                    )}
+                                    className="group relative flex items-start gap-4 transition-all duration-300"
                                 >
                                     {/* Icone / Dot */}
                                     <div className="relative z-10 flex h-6 w-6 shrink-0 items-center justify-center">
@@ -99,7 +96,10 @@ export default function TrailTimeline({ steps }: TrailTimelineProps) {
                                     </div>
 
                                     {/* Conteúdo */}
-                                    <div className="min-w-0 flex-1 pt-0.5">
+                                    <div className={cn(
+                                        "min-w-0 flex-1 pt-0.5",
+                                        step.level > 2 ? "ml-4" : "" // Indentação apenas no texto
+                                    )}>
                                         <a
                                             href={`#${step.id}`}
                                             className={cn(
@@ -124,7 +124,7 @@ export default function TrailTimeline({ steps }: TrailTimelineProps) {
                         })}
 
                         {/* Passo fixo de Feedback */}
-                        <div className="group relative flex items-start gap-4">
+                        <div className="group relative flex items-start gap-4 transition-all duration-300">
                             <div className="relative z-10 flex h-6 w-6 shrink-0 items-center justify-center">
                                 <div className={cn(
                                     "h-2.5 w-2.5 rounded-full border-2 transition-all duration-300",
