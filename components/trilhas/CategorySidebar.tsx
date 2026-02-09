@@ -41,66 +41,78 @@ export default function CategorySidebar({
                 />
 
                 <nav className="relative flex flex-col">
-                    <Link
-                        href={buildHref(undefined)}
-                        className={cn(
-                            "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                            !activeCategory
-                                ? "text-red-700"
-                                : "text-slate-600 hover:bg-red-50/50 hover:text-slate-900"
-                        )}
+                    <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
                     >
-                        {!activeCategory && (
-                            <motion.div
-                                layoutId="active-category"
-                                className="absolute inset-0 rounded-lg bg-red-50/60 ring-1 ring-red-200/60"
-                                initial={false}
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                style={{ zIndex: -1 }}
-                            />
-                        )}
-                        <span
+                        <Link
+                            href={buildHref(undefined)}
                             className={cn(
-                                "h-2 w-2 rounded-full",
-                                !activeCategory ? "bg-red-600" : "bg-slate-300"
+                                "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                                !activeCategory
+                                    ? "text-red-700"
+                                    : "text-slate-600 hover:bg-red-50/50 hover:text-slate-900"
                             )}
-                        />
-                        Todas as categorias
-                    </Link>
+                        >
+                            {!activeCategory && (
+                                <motion.div
+                                    layoutId="active-category"
+                                    className="absolute inset-0 rounded-lg bg-red-50/60 ring-1 ring-red-200/60"
+                                    initial={false}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    style={{ zIndex: -1 }}
+                                />
+                            )}
+                            <span
+                                className={cn(
+                                    "h-2 w-2 rounded-full",
+                                    !activeCategory ? "bg-red-600" : "bg-slate-300"
+                                )}
+                            />
+                            Todas as categorias
+                        </Link>
+                    </motion.div>
 
-                    {categories.map((cat) => {
+                    {categories.map((cat, idx) => {
                         const active = activeCategory === cat.slug
                         return (
-                            <Link
+                            <motion.div
                                 key={cat.id}
-                                href={buildHref(cat.slug)}
-                                className={cn(
-                                    "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                                    active
-                                        ? "text-red-700"
-                                        : "text-slate-600 hover:bg-red-50/50 hover:text-slate-900"
-                                )}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.15 + (idx * 0.05) }}
                             >
-                                {active && (
-                                    <motion.div
-                                        layoutId="active-category"
-                                        className="absolute inset-0 rounded-lg bg-red-50/60 ring-1 ring-red-200/60"
-                                        initial={false}
-                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                        style={{ zIndex: -1 }}
-                                    />
-                                )}
+                                <Link
+                                    href={buildHref(cat.slug)}
+                                    className={cn(
+                                        "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                                        active
+                                            ? "text-red-700"
+                                            : "text-slate-600 hover:bg-red-50/50 hover:text-slate-900"
+                                    )}
+                                >
+                                    {active && (
+                                        <motion.div
+                                            layoutId="active-category"
+                                            className="absolute inset-0 rounded-lg bg-red-50/60 ring-1 ring-red-200/60"
+                                            initial={false}
+                                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            style={{ zIndex: -1 }}
+                                        />
+                                    )}
 
-                                <span
-                                    className="h-2 w-2 rounded-full"
-                                    style={{
-                                        backgroundColor: active
-                                            ? (cat.color ?? "#dc2626") // red-600 fallback
-                                            : "#cbd5e1", // slate-300
-                                    }}
-                                />
-                                {cat.name}
-                            </Link>
+                                    <span
+                                        className="h-2 w-2 rounded-full"
+                                        style={{
+                                            backgroundColor: active
+                                                ? (cat.color ?? "#dc2626") // red-600 fallback
+                                                : "#cbd5e1", // slate-300
+                                        }}
+                                    />
+                                    {cat.name}
+                                </Link>
+                            </motion.div>
                         )
                     })}
                 </nav>

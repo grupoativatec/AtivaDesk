@@ -16,6 +16,8 @@ function relativeDays(date: Date) {
 export default function PostCard({ post }: { post: TrilhasPostListItem }) {
     return (
         <motion.article
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4 }}
             className="group relative flex flex-col justify-between rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 transition-shadow hover:shadow-lg sm:p-8"
         >
