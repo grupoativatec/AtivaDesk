@@ -68,7 +68,7 @@ export default function FeedbackForm({ postId }: FeedbackFormProps) {
                             <button
                                 key={star}
                                 type="button"
-                                className="group relative"
+                                className="group relative cursor-pointer"
                                 onMouseEnter={() => setHover(star)}
                                 onMouseLeave={() => setHover(0)}
                                 onClick={() => setRating(star)}
