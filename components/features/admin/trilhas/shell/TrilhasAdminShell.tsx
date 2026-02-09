@@ -77,11 +77,26 @@ export function TrilhasAdminShell(props: {
 
                         {editorActions ? (
                             <div className="flex items-center gap-2">
+
+                                {editorActions.onDelete && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={editorActions.onDelete}
+                                        disabled={editorActions.isSaving}
+                                        size="sm"
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    >
+                                        Excluir
+                                    </Button>
+                                )}
+
                                 {editorActions.viewLiveUrl && (
                                     <Button
                                         type="button"
                                         variant="ghost"
                                         asChild
+                                        size="sm"
                                         className="text-sky-600 hover:text-sky-700 hover:bg-sky-50"
                                     >
                                         <Link href={editorActions.viewLiveUrl} target="_blank">
@@ -90,42 +105,26 @@ export function TrilhasAdminShell(props: {
                                         </Link>
                                     </Button>
                                 )}
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={editorActions.onCancel}
-                                    disabled={editorActions.isSaving}
-                                >
-                                    <ArrowLeft className="size-4 mr-2" />
-                                    Voltar
-                                </Button>
+
+                                <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
+
 
                                 <Button
                                     type="button"
                                     onClick={editorActions.onPublish}
                                     disabled={editorActions.isSaving}
+                                    size="sm"
                                     className="min-w-[100px]"
                                 >
                                     {editorActions.isSaving ? (
                                         <>
-                                            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                            <span className="mr-2 h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                                             Salvando...
                                         </>
                                     ) : (
                                         "Publicar"
                                     )}
                                 </Button>
-
-                                {editorActions.onDelete ? (
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        onClick={editorActions.onDelete}
-                                        disabled={editorActions.isSaving}
-                                    >
-                                        Excluir
-                                    </Button>
-                                ) : null}
                             </div>
                         ) : null}
                     </div>

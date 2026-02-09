@@ -325,7 +325,7 @@ export default function NewTrilhasPostPage() {
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="max-w-2xl"
+                                className="w-full"
                             >
                                 <Card className="p-6 space-y-4">
                                     <Label className="text-base font-semibold mb-6 block border-b pb-2">

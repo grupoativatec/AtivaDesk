@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { Edit, Eye, Settings } from "lucide-react";
+import { Edit, Eye, Settings, MessageSquare, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import {
     AlertDialog,
@@ -58,7 +58,7 @@ function generateSlug(title: string): string {
         .replace(/^-+|-+$/g, "");
 }
 
-type EditorTab = "edit" | "preview" | "metadata";
+type EditorTab = "edit" | "preview" | "metadata" | "feedbacks";
 
 export default function EditTrilhasPostPage() {
     const router = useRouter();
@@ -97,6 +97,8 @@ export default function EditTrilhasPostPage() {
     const hasEditErrors = !title.trim() || !excerpt.trim();
     const hasMetadataErrors = !slug.trim() || !categorySlug.trim() || !!slugError;
     const [activeTab, setActiveTab] = useState<EditorTab>("edit");
+    const [postFeedbacks, setPostFeedbacks] = useState<any[]>([]);
+    const [isLoadingFeedbacks, setIsLoadingFeedbacks] = useState(false);
 
     const initialRef = useRef({
         title: "",
@@ -131,6 +133,16 @@ export default function EditTrilhasPostPage() {
                 toast.error(e.message || "Erro ao carregar categorias")
             );
     }, []);
+
+    useEffect(() => {
+        if (activeTab === "feedbacks" && postId) {
+            setIsLoadingFeedbacks(true);
+            fetchJson<{ feedbacks: any[] }>(`/api/admin/trilhas/feedbacks?postId=${postId}`)
+                .then((d) => setPostFeedbacks(d.feedbacks || []))
+                .catch((e) => toast.error(e.message || "Erro ao carregar feedbacks"))
+                .finally(() => setIsLoadingFeedbacks(false));
+        }
+    }, [activeTab, postId]);
 
     /* =============================
      * carregar post (slug)
@@ -394,6 +406,15 @@ export default function EditTrilhasPostPage() {
                                 <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
                             )}
                         </Button>
+                        <Button
+                            variant={activeTab === "feedbacks" ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setActiveTab("feedbacks")}
+                            className={cn("h-9 px-3 text-sm shrink-0", activeTab === "feedbacks" && "font-semibold")}
+                        >
+                            <MessageSquare className="size-4 mr-2" />
+                            Feedbacks
+                        </Button>
                     </div>
 
                     <div className="min-h-[500px]">
@@ -432,7 +453,7 @@ export default function EditTrilhasPostPage() {
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="max-w-2xl"
+                                className="w-full"
                             >
                                 <Card className="p-6">
                                     <Label className="text-base font-semibold mb-6 block border-b pb-2">
@@ -450,6 +471,87 @@ export default function EditTrilhasPostPage() {
                                         onCategorySlugChange={setCategorySlug}
                                         categories={categories}
                                     />
+                                </Card>
+                            </motion.div>
+                        )}
+
+                        {activeTab === "feedbacks" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <Card className="p-6">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900">Feedbacks da Trilha</h3>
+                                            <p className="text-sm text-slate-500">Acompanhe as avaliações dos usuários para este conteúdo.</p>
+                                        </div>
+                                    </div>
+
+                                    {isLoadingFeedbacks ? (
+                                        <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+                                            {[1, 2, 3, 4].map((i) => (
+                                                <Skeleton key={i} className="h-32 w-full rounded-xl" />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="mt-2">
+                                            {/* Reuse existing component or implement post-specific view */}
+                                            {/* Since FeedbackList is designed for global, it might show redundant info, 
+                                                but for now it's better than nothing. */}
+                                            <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+                                                {postFeedbacks.length === 0 ? (
+                                                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                                                        <MessageSquare className="h-12 w-12 text-slate-200 mb-4" />
+                                                        <h3 className="text-lg font-medium text-slate-900">Nenhum feedback ainda</h3>
+                                                        <p className="text-sm text-slate-500 max-w-xs mt-1">
+                                                            Ainda não há avaliações para esta trilha específica.
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    postFeedbacks.map((f, i) => (
+                                                        <motion.div
+                                                            key={f.id}
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ delay: i * 0.05 }}
+                                                        >
+                                                            <Card className="h-full border-border/50 hover:border-border transition-colors">
+                                                                <CardContent className="p-5 flex flex-col h-full">
+                                                                    <div className="flex items-start justify-between mb-3">
+                                                                        <div className="flex gap-0.5">
+                                                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                                                <Star
+                                                                                    key={s}
+                                                                                    className={`h-3.5 w-3.5 ${s <= f.rating
+                                                                                        ? "fill-yellow-400 text-yellow-400"
+                                                                                        : "text-slate-200"
+                                                                                        }`}
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+                                                                        <div className="text-[10px] text-slate-400 font-medium bg-slate-50 px-2 py-0.5 rounded border">
+                                                                            {new Date(f.createdAt).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {f.comment ? (
+                                                                        <div className="mt-1 text-sm text-slate-600 bg-slate-50 rounded-lg p-3 italic flex-1 border border-slate-100">
+                                                                            "{f.comment}"
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="mt-1 text-xs text-slate-400 bg-slate-50/50 rounded-lg p-3 border border-dashed flex-1 flex items-center justify-center">
+                                                                            Apenas avaliação por estrelas
+                                                                        </div>
+                                                                    )}
+                                                                </CardContent>
+                                                            </Card>
+                                                        </motion.div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </Card>
                             </motion.div>
                         )}

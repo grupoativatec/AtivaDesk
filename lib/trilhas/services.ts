@@ -71,7 +71,7 @@ export const TrilhasService = {
             ]
         }
 
-        return prisma.updatePost.findMany({
+        const posts = await prisma.updatePost.findMany({
             where,
             orderBy: [{ pinned: "desc" }, { updatedAt: "desc" }],
             select: {
@@ -83,7 +83,26 @@ export const TrilhasService = {
                 status: true,
                 pinned: true,
                 category: { select: { name: true, slug: true, color: true } },
+                feedbacks: {
+                    select: { rating: true }
+                }
             },
+        })
+
+        return posts.map(post => {
+            const feedbackCount = post.feedbacks.length
+            const avgRating = feedbackCount > 0 
+                ? post.feedbacks.reduce((acc, f) => acc + f.rating, 0) / feedbackCount
+                : 0
+
+            const { feedbacks, ...rest } = post
+            return {
+                ...rest,
+                stats: {
+                    avgRating,
+                    feedbackCount
+                }
+            }
         })
     },
 
@@ -244,8 +263,9 @@ export const TrilhasService = {
         })
     },
 
-    async listFeedbacks() {
+    async listFeedbacks(postId?: string) {
         return prisma.updatePostFeedback.findMany({
+            where: postId ? { postId } : undefined,
             include: {
                 post: {
                     select: {

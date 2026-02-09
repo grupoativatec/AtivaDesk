@@ -31,6 +31,10 @@ type Post = {
     pinned: boolean
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED"
     category: { name: string; slug: string; color: string | null }
+    stats?: {
+        avgRating: number
+        feedbackCount: number
+    }
 }
 type Feedback = {
     id: string
@@ -272,19 +276,22 @@ export default function AdminTrilhasPage() {
                             </div>
 
                             {isLoading ? (
-                                <div className="grid gap-4 md:grid-cols-2">
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     {Array.from({ length: 6 }).map((_, i) => (
-                                        <Card key={i} className="h-full">
-                                            <CardContent className="pt-6 space-y-4">
-                                                <Skeleton className="h-5 w-3/4" />
-                                                <Skeleton className="h-4 w-full" />
-                                                <Skeleton className="h-4 w-5/6" />
-                                                <div className="flex gap-2 pt-2">
-                                                    <Skeleton className="h-6 w-20 rounded-full" />
-                                                    <Skeleton className="h-6 w-24 rounded-full" />
+                                        <Card key={i} className="h-[160px]">
+                                            <CardContent className="p-4 space-y-3">
+                                                <div className="flex justify-between items-start">
+                                                    <Skeleton className="h-3 w-20" />
+                                                    <Skeleton className="h-5 w-16" />
                                                 </div>
-                                                <div className="pt-3 border-t">
-                                                    <Skeleton className="h-3 w-1/2" />
+                                                <Skeleton className="h-5 w-3/4" />
+                                                <Skeleton className="h-3 w-full" />
+                                                <div className="flex justify-between items-center pt-3 border-t">
+                                                    <div className="flex gap-2">
+                                                        <Skeleton className="h-5 w-10 rounded" />
+                                                        <Skeleton className="h-5 w-8 rounded" />
+                                                    </div>
+                                                    <Skeleton className="h-3 w-16" />
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -319,7 +326,7 @@ export default function AdminTrilhasPage() {
                                     </CardContent>
                                 </Card>
                             ) : (
-                                <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                                     {posts.map((p) => (
                                         <TrilhasPostCard key={p.id} post={p} />
                                     ))}
