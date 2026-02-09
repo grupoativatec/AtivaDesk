@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronRight, ArrowLeft } from "lucide-react"
+import { ChevronRight, ArrowLeft, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type BreadcrumbItem = { label: string; href?: string }
@@ -15,6 +15,7 @@ type EditorActions = {
     onSaveDraft?: () => void
     onPublish?: () => void
     onDelete?: () => void
+    viewLiveUrl?: string
 }
 
 export function TrilhasAdminShell(props: {
@@ -76,6 +77,19 @@ export function TrilhasAdminShell(props: {
 
                         {editorActions ? (
                             <div className="flex items-center gap-2">
+                                {editorActions.viewLiveUrl && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        asChild
+                                        className="text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+                                    >
+                                        <Link href={editorActions.viewLiveUrl} target="_blank">
+                                            <ExternalLink className="size-4 mr-2" />
+                                            Ver no Site
+                                        </Link>
+                                    </Button>
+                                )}
                                 <Button
                                     type="button"
                                     variant="outline"

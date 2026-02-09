@@ -96,10 +96,7 @@ export default function TrailTimeline({ steps }: TrailTimelineProps) {
                                     </div>
 
                                     {/* Conteúdo */}
-                                    <div className={cn(
-                                        "min-w-0 flex-1 pt-0.5",
-                                        step.level > 2 ? "ml-4" : "" // Indentação apenas no texto
-                                    )}>
+                                    <div className="min-w-0 flex-1 pt-0.5">
                                         <a
                                             href={`#${step.id}`}
                                             className={cn(
@@ -136,7 +133,7 @@ export default function TrailTimeline({ steps }: TrailTimelineProps) {
                                 <a
                                     href="#feedback-form"
                                     className={cn(
-                                        "text-xs font-medium transition-colors",
+                                        "text-xs font-medium transition-colors line-clamp-1",
                                         isFeedbackActive ? "text-sky-600 font-semibold" : "text-slate-500 hover:text-slate-700"
                                     )}
                                     onClick={(e) => {

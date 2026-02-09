@@ -3,7 +3,8 @@ import { notFound } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth/get-current-user"
 import AppSidebar from "@/components/features/admin/sidebar"
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
-import { AtivaDeskLogo } from "@/components/shared/logo/AtivaDeskLogo"
+import Image from "next/image"
+import Link from "next/link"
 
 export default async function AdminLayout({
   children,
@@ -27,9 +28,17 @@ export default async function AdminLayout({
       <div className="flex h-screen w-full">
         <AppSidebar />
         <SidebarInset className="flex flex-col h-full">
-          <header className="flex h-16 md:hidden shrink-0 items-center gap-3 border-b px-4 md:px-6">
-            <AtivaDeskLogo size="md" showText={true} animated={false} />
-            <div className="flex-1" />
+          <header className="flex h-16 md:hidden shrink-0 items-center justify-between border-b px-4">
+            <Link href="/admin/dashboard" className="flex items-center">
+              <Image
+                src="/logo-horizontal.png"
+                alt="AtivaDesk"
+                width={140}
+                height={40}
+                className="h-10 w-auto object-contain"
+                priority
+              />
+            </Link>
             <SidebarTrigger className="-mr-1" />
           </header>
           <div className="flex-1 overflow-auto w-full h-full">

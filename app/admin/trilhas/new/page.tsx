@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Edit, Eye, Settings } from "lucide-react"
+import { motion } from "framer-motion"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -56,6 +57,10 @@ export default function NewTrilhasPostPage() {
     const [showUnsavedDialog, setShowUnsavedDialog] = useState(false)
     const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
     const [activeTab, setActiveTab] = useState<EditorTab>("edit")
+
+    // Validações para indicadores nas abas
+    const hasEditErrors = !title.trim() || !excerpt.trim()
+    const hasMetadataErrors = !slug.trim() || !categorySlug.trim() || !!slugError
 
     // ✅ controla se o usuário editou o slug manualmente
     const [slugTouched, setSlugTouched] = useState(false)
@@ -247,41 +252,50 @@ export default function NewTrilhasPostPage() {
                     onPublish: () => handleSave("PUBLISHED"),
                 }}
             >
-                {isMobile ? (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-1 overflow-x-auto pb-2 -mx-1 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                            <Button
-                                variant={activeTab === "edit" ? "default" : "ghost"}
-                                size="sm"
-                                onClick={() => setActiveTab("edit")}
-                                className={cn("h-9 px-3 text-sm shrink-0", activeTab === "edit" && "font-semibold")}
-                            >
-                                <Edit className="size-4 mr-2" />
-                                Editar
-                            </Button>
-                            <Button
-                                variant={activeTab === "preview" ? "default" : "ghost"}
-                                size="sm"
-                                onClick={() => setActiveTab("preview")}
-                                className={cn("h-9 px-3 text-sm shrink-0", activeTab === "preview" && "font-semibold")}
-                            >
-                                <Eye className="size-4 mr-2" />
-                                Prévia
-                            </Button>
-                            <Button
-                                variant={activeTab === "metadata" ? "default" : "ghost"}
-                                size="sm"
-                                onClick={() => setActiveTab("metadata")}
-                                className={cn("h-9 px-3 text-sm shrink-0", activeTab === "metadata" && "font-semibold")}
-                            >
-                                <Settings className="size-4 mr-2" />
-                                Metadados
-                            </Button>
-                        </div>
+                <div className="space-y-6">
+                    <div className="flex items-center gap-1 overflow-x-auto pb-2 -mx-1 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                        <Button
+                            variant={activeTab === "edit" ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setActiveTab("edit")}
+                            className={cn("h-9 px-3 text-sm shrink-0 relative", activeTab === "edit" && "font-semibold")}
+                        >
+                            <Edit className="size-4 mr-2" />
+                            Editar Conteúdo
+                            {hasEditErrors && (
+                                <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                            )}
+                        </Button>
+                        <Button
+                            variant={activeTab === "preview" ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setActiveTab("preview")}
+                            className={cn("h-9 px-3 text-sm shrink-0", activeTab === "preview" && "font-semibold")}
+                        >
+                            <Eye className="size-4 mr-2" />
+                            Prévia Realista
+                        </Button>
+                        <Button
+                            variant={activeTab === "metadata" ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setActiveTab("metadata")}
+                            className={cn("h-9 px-3 text-sm shrink-0 relative", activeTab === "metadata" && "font-semibold")}
+                        >
+                            <Settings className="size-4 mr-2" />
+                            Configurações & SEO
+                            {hasMetadataErrors && (
+                                <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                            )}
+                        </Button>
+                    </div>
 
-                        <div className="min-h-[400px]">
-                            {activeTab === "edit" && (
-                                <Card className="p-4">
+                    <div className="min-h-[500px]">
+                        {activeTab === "edit" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <Card className="p-0 sm:p-6 border-none sm:border shadow-none sm:shadow-sm">
                                     <TrilhasEditor
                                         title={title}
                                         excerpt={excerpt}
@@ -291,23 +305,38 @@ export default function NewTrilhasPostPage() {
                                         onContentChange={setContent}
                                     />
                                 </Card>
-                            )}
+                            </motion.div>
+                        )}
 
-                            {activeTab === "preview" && (
-                                <Card className="p-4">
-                                    <TrilhasPreview title={title} content={content} />
+                        {activeTab === "preview" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <Card className="p-6">
+                                    <div className="max-w-7xl mx-auto">
+                                        <TrilhasPreview title={title} content={content} />
+                                    </div>
                                 </Card>
-                            )}
+                            </motion.div>
+                        )}
 
-                            {activeTab === "metadata" && (
-                                <Card className="p-4 space-y-4">
-                                    <Label className="text-sm font-medium">Configurações</Label>
+                        {activeTab === "metadata" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="max-w-2xl"
+                            >
+                                <Card className="p-6 space-y-4">
+                                    <Label className="text-base font-semibold mb-6 block border-b pb-2">
+                                        Configurações da Publicação
+                                    </Label>
                                     <TrilhasMetadataPanel
                                         slug={slug}
                                         onSlugChange={(v) => {
                                             const next = v
                                             setSlug(next)
-                                            setSlugTouched(!!next.trim()) // se apagar, volta auto
+                                            setSlugTouched(!!next.trim())
                                         }}
                                         slugError={slugError}
                                         status={status}
@@ -319,51 +348,10 @@ export default function NewTrilhasPostPage() {
                                         categories={categories}
                                     />
                                 </Card>
-                            )}
-                        </div>
+                            </motion.div>
+                        )}
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="space-y-6">
-                            <Card className="p-4">
-                                <TrilhasEditor
-                                    title={title}
-                                    excerpt={excerpt}
-                                    content={content}
-                                    onTitleChange={setTitle}
-                                    onExcerptChange={setExcerpt}
-                                    onContentChange={setContent}
-                                />
-                            </Card>
-
-                            <Card className="p-4">
-                                <Label className="text-sm font-medium mb-3 block">Metadados</Label>
-                                <TrilhasMetadataPanel
-                                    slug={slug}
-                                    onSlugChange={(v) => {
-                                        const next = v
-                                        setSlug(next)
-                                        setSlugTouched(!!next.trim())
-                                    }}
-                                    slugError={slugError}
-                                    status={status}
-                                    onStatusChange={setStatus}
-                                    pinned={pinned}
-                                    onPinnedChange={setPinned}
-                                    categorySlug={categorySlug}
-                                    onCategorySlugChange={setCategorySlug}
-                                    categories={categories}
-                                />
-                            </Card>
-                        </div>
-
-                        <div>
-                            <Card className="sticky top-6 p-4">
-                                <TrilhasPreview title={title} content={content} />
-                            </Card>
-                        </div>
-                    </div>
-                )}
+                </div>
             </TrilhasAdminShell>
 
             <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>

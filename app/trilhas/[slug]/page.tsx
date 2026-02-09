@@ -14,6 +14,8 @@ function relativeDays(date: Date) {
     return `há ${diff} dias`
 }
 
+import { processContentHeadings } from "@/lib/trilhas/utils"
+
 export default async function PostPage({
     params,
     searchParams,
@@ -32,28 +34,8 @@ export default async function PostPage({
 
     if (!post) return notFound()
 
-    // Extrair headings para o TOC
-    const headings: { id: string; title: string; level: number }[] = []
-    let processedContent = post.content
-
-    // Regex para encontrar h1, h2, h3, h4
-    // Captura o nível, atributos (se houver) e o conteúdo
-    const headingRegex = /<(h[1-4])(.*?)>(.*?)<\/h[1-4]>/gi
-    let match
-    let counter = 0
-
-    const newContent = post.content.replace(headingRegex, (match, tag, attrs, content) => {
-        const title = content.replace(/<[^>]*>?/gm, "") // remove tags internas
-        const id = `section-${counter++}-${title.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "")}`
-
-        headings.push({
-            id,
-            title,
-            level: parseInt(tag.substring(1))
-        })
-
-        return `<${tag}${attrs} id="${id}">${content}</${tag}>`
-    })
+    // Extrair headings e processar conteúdo usando utilitário compartilhado
+    const { processedContent, headings } = processContentHeadings(post.content)
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -80,7 +62,7 @@ export default async function PostPage({
                             {/* ✅ render HTML do TipTap processado com IDs */}
                             <div
                                 className="prose prose-slate mt-6 max-w-none"
-                                dangerouslySetInnerHTML={{ __html: newContent }}
+                                dangerouslySetInnerHTML={{ __html: processedContent }}
                             />
 
                             <FeedbackForm postId={post.id} />
