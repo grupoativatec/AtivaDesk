@@ -3,6 +3,8 @@ import { notFound } from "next/navigation"
 import TrilhasTopNav from "@/components/trilhas/TrilhasTopNav"
 import { getTrilhasCategories, getTrilhasPostBySlug } from "@/lib/trilhas/queries"
 import { FadeIn } from "@/components/trilhas/FadeIn"
+import FeedbackForm from "@/components/trilhas/FeedbackForm"
+import TrailTimeline from "@/components/trilhas/TrailTimeline"
 
 function relativeDays(date: Date) {
     const now = new Date()
@@ -30,6 +32,29 @@ export default async function PostPage({
 
     if (!post) return notFound()
 
+    // Extrair headings para o TOC
+    const headings: { id: string; title: string; level: number }[] = []
+    let processedContent = post.content
+
+    // Regex para encontrar h1, h2, h3, h4
+    // Captura o nível, atributos (se houver) e o conteúdo
+    const headingRegex = /<(h[1-4])(.*?)>(.*?)<\/h[1-4]>/gi
+    let match
+    let counter = 0
+
+    const newContent = post.content.replace(headingRegex, (match, tag, attrs, content) => {
+        const title = content.replace(/<[^>]*>?/gm, "") // remove tags internas
+        const id = `section-${counter++}-${title.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "")}`
+
+        headings.push({
+            id,
+            title,
+            level: parseInt(tag.substring(1))
+        })
+
+        return `<${tag}${attrs} id="${id}">${content}</${tag}>`
+    })
+
     return (
         <div className="min-h-screen bg-slate-50">
             <TrilhasTopNav />
@@ -52,19 +77,27 @@ export default async function PostPage({
                                 {post.title}
                             </h1>
 
-                            {/* ✅ render HTML do TipTap */}
+                            {/* ✅ render HTML do TipTap processado com IDs */}
                             <div
                                 className="prose prose-slate mt-6 max-w-none"
-                                dangerouslySetInnerHTML={{ __html: post.content }}
+                                dangerouslySetInnerHTML={{ __html: newContent }}
                             />
+
+                            <FeedbackForm postId={post.id} />
                         </article>
                     </FadeIn>
 
 
                     <div className="md:pt-1">
-                        <div className="sticky top-6">
+                        <div className="sticky top-6 flex flex-col gap-6">
                             <FadeIn delay={0.2}>
                                 <CategorySidebar categories={categories} activeCategory={activeCategory} />
+                            </FadeIn>
+
+                            <FadeIn delay={0.3}>
+                                <TrailTimeline
+                                    steps={headings}
+                                />
                             </FadeIn>
                         </div>
                     </div>

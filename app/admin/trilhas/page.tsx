@@ -15,6 +15,8 @@ import { TrilhasPostCard } from "@/components/features/admin/trilhas/cards/Trilh
 import { TrilhasAdminShell } from "@/components/features/admin/trilhas/shell/TrilhasAdminShell"
 import { fetchJson } from "@/lib/http"
 import { CreateCategoryDialog } from "@/components/features/admin/trilhas/forms/CreateCategoryDialog"
+import { FeedbackList } from "@/components/features/admin/trilhas/FeedbackList"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type SortOption = "recent" | "oldest" | "az"
 type StatusFilter = "all" | "DRAFT" | "PUBLISHED" | "ARCHIVED"
@@ -30,11 +32,24 @@ type Post = {
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED"
     category: { name: string; slug: string; color: string | null }
 }
+type Feedback = {
+    id: string
+    rating: number
+    comment: string | null
+    createdAt: string
+    post: {
+        title: string
+        slug: string
+        category: { name: string; color: string | null }
+    }
+}
 
 export default function AdminTrilhasPage() {
     const [categories, setCategories] = useState<Category[]>([])
     const [posts, setPosts] = useState<Post[]>([])
+    const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [isLoadingFeedbacks, setIsLoadingFeedbacks] = useState(false)
 
     const [searchQuery, setSearchQuery] = useState("")
     const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -100,6 +115,18 @@ export default function AdminTrilhasPage() {
 
         fetchPosts()
     }, [debouncedSearch, categoryFilter, statusFilter, onlyPinned, sortBy])
+
+    const fetchFeedbacks = async () => {
+        try {
+            setIsLoadingFeedbacks(true)
+            const data = await fetchJson<{ feedbacks: Feedback[] }>("/api/admin/trilhas/feedbacks")
+            setFeedbacks(data.feedbacks || [])
+        } catch (e: any) {
+            toast.error(e.message || "Erro ao carregar feedbacks")
+        } finally {
+            setIsLoadingFeedbacks(false)
+        }
+    }
 
     const postsCount = posts.length
 
@@ -221,73 +248,98 @@ export default function AdminTrilhasPage() {
     return (
         <>
             <TrilhasAdminShell pageTitle="Trilhas (Admin)" sidebarExtra={sidebarContent} searchInput={searchInput}>
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                            <span className="font-semibold text-foreground">{postsCount}</span>{" "}
-                            post{postsCount === 1 ? "" : "s"} encontrado{postsCount === 1 ? "" : "s"}
-                        </p>
+                <Tabs defaultValue="posts" onValueChange={(v) => v === "feedbacks" && fetchFeedbacks()}>
+                    <div className="flex items-center justify-between mb-6">
+                        <TabsList className="bg-background/50 border border-border/50">
+                            <TabsTrigger value="posts" className="px-6">Posts</TabsTrigger>
+                            <TabsTrigger value="feedbacks" className="px-6">Feedbacks</TabsTrigger>
+                        </TabsList>
 
-                        <Button asChild size="sm">
-                            <Link href="/admin/trilhas/new">Criar post</Link>
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button asChild size="sm">
+                                <Link href="/admin/trilhas/new">Criar post</Link>
+                            </Button>
+                        </div>
                     </div>
 
-                    {isLoading ? (
-                        <div className="grid gap-4 md:grid-cols-2">
-                            {Array.from({ length: 6 }).map((_, i) => (
-                                <Card key={i} className="h-full">
-                                    <CardContent className="pt-6 space-y-4">
-                                        <Skeleton className="h-5 w-3/4" />
-                                        <Skeleton className="h-4 w-full" />
-                                        <Skeleton className="h-4 w-5/6" />
-                                        <div className="flex gap-2 pt-2">
-                                            <Skeleton className="h-6 w-20 rounded-full" />
-                                            <Skeleton className="h-6 w-24 rounded-full" />
+                    <TabsContent value="posts" className="mt-0">
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+                            <div className="mb-4">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                    <span className="font-semibold text-foreground">{postsCount}</span>{" "}
+                                    post{postsCount === 1 ? "" : "s"} encontrado{postsCount === 1 ? "" : "s"}
+                                </p>
+                            </div>
+
+                            {isLoading ? (
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                        <Card key={i} className="h-full">
+                                            <CardContent className="pt-6 space-y-4">
+                                                <Skeleton className="h-5 w-3/4" />
+                                                <Skeleton className="h-4 w-full" />
+                                                <Skeleton className="h-4 w-5/6" />
+                                                <div className="flex gap-2 pt-2">
+                                                    <Skeleton className="h-6 w-20 rounded-full" />
+                                                    <Skeleton className="h-6 w-24 rounded-full" />
+                                                </div>
+                                                <div className="pt-3 border-t">
+                                                    <Skeleton className="h-3 w-1/2" />
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            ) : postsCount === 0 ? (
+                                <Card>
+                                    <CardContent className="py-16 flex flex-col items-center justify-center gap-4">
+                                        <div className="text-center space-y-2">
+                                            <h3 className="text-lg font-semibold text-foreground">Nenhum post encontrado</h3>
+                                            <p className="text-sm text-muted-foreground max-w-md">
+                                                Tente ajustar os filtros/busca, ou crie um novo post de trilha.
+                                            </p>
                                         </div>
-                                        <div className="pt-3 border-t">
-                                            <Skeleton className="h-3 w-1/2" />
+                                        <div className="flex gap-2 mt-2">
+                                            <Button asChild size="sm">
+                                                <Link href="/admin/trilhas/new">Criar post</Link>
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setSearchQuery("")
+                                                    setCategoryFilter("all")
+                                                    setStatusFilter("all")
+                                                    setOnlyPinned(false)
+                                                }}
+                                            >
+                                                Limpar filtros
+                                            </Button>
                                         </div>
                                     </CardContent>
                                 </Card>
-                            ))}
-                        </div>
-                    ) : postsCount === 0 ? (
-                        <Card>
-                            <CardContent className="py-16 flex flex-col items-center justify-center gap-4">
-                                <div className="text-center space-y-2">
-                                    <h3 className="text-lg font-semibold text-foreground">Nenhum post encontrado</h3>
-                                    <p className="text-sm text-muted-foreground max-w-md">
-                                        Tente ajustar os filtros/busca, ou crie um novo post de trilha.
-                                    </p>
+                            ) : (
+                                <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                                    {posts.map((p) => (
+                                        <TrilhasPostCard key={p.id} post={p} />
+                                    ))}
                                 </div>
-                                <div className="flex gap-2 mt-2">
-                                    <Button asChild size="sm">
-                                        <Link href="/admin/trilhas/new">Criar post</Link>
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            setSearchQuery("")
-                                            setCategoryFilter("all")
-                                            setStatusFilter("all")
-                                            setOnlyPinned(false)
-                                        }}
-                                    >
-                                        Limpar filtros
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                            {posts.map((p) => (
-                                <TrilhasPostCard key={p.id} post={p} />
-                            ))}
-                        </div>
-                    )}
-                </motion.div>
+                            )}
+                        </motion.div>
+                    </TabsContent>
+
+                    <TabsContent value="feedbacks" className="focus-visible:ring-0">
+                        {isLoadingFeedbacks ? (
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <Skeleton key={i} className="h-40 w-full rounded-xl" />
+                                ))}
+                            </div>
+                        ) : (
+                            <FeedbackList feedbacks={feedbacks} />
+                        )}
+                    </TabsContent>
+                </Tabs>
             </TrilhasAdminShell>
 
             <CreateCategoryDialog

@@ -58,7 +58,24 @@ export async function getTrilhasPostBySlug(slug: string) {
       excerpt: true,
       content: true,
       updatedAt: true,
-      category: { select: { name: true, slug: true, color: true } },
+      order: true,
+      category: {
+        select: {
+          name: true,
+          slug: true,
+          color: true,
+          posts: {
+            where: { status: "PUBLISHED" },
+            orderBy: { order: "asc" },
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              order: true,
+            },
+          },
+        },
+      },
       attachments: {
         select: {
           id: true,

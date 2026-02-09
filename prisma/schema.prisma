@@ -32,6 +32,8 @@ model User {
   openedTickets                    Ticket[]             @relation("OpenedTickets")
   messages                         TicketMessage[]
   timeEntries                      TimeEntry[]
+  documents                        Document[]           @relation("DocumentAuthor")
+  docFavorites                     DocFavorite[]
 }
 
 model Ticket {
@@ -303,6 +305,9 @@ model Document {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
+  author      User          @relation("DocumentAuthor", fields: [authorId], references: [id])
+  favoritedBy DocFavorite[]
+
   @@index([slug])
   @@index([authorId])
   @@index([category])
@@ -316,6 +321,9 @@ model DocFavorite {
   docId     String
   userId    String
   createdAt DateTime @default(now())
+
+  document Document @relation(fields: [docId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([docId, userId])
   @@index([userId])
@@ -406,12 +414,25 @@ model UpdatePost {
   category   UpdateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   pinned Boolean @default(false)
+  order  Int     @default(0)
   views  Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   attachments UpdatePostAttachment[]
+  feedbacks   UpdatePostFeedback[]
+}
+
+model UpdatePostFeedback {
+  id        String     @id @default(uuid())
+  postId    String
+  post      UpdatePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  rating    Int // 1-5
+  comment   String?    @db.Text
+  createdAt DateTime   @default(now())
+
+  @@index([postId])
 }
 
 model UpdatePostAttachment {

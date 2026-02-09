@@ -6,11 +6,12 @@ import { motion } from "framer-motion"
 import { UsersToolbar } from "@/components/admin/users/UsersToolbar"
 import { UsersTable } from "@/components/admin/users/UsersTable"
 import { TeamsManagementDialog } from "@/components/admin/users/TeamsManagementDialog"
+import { CreateUserDialog } from "@/components/admin/users/CreateUserDialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { Users as UsersIcon, Users2 } from "lucide-react"
+import { Users as UsersIcon, Users2, UserPlus } from "lucide-react"
 
 interface User {
   id: string
@@ -37,6 +38,7 @@ export default function UsersPage() {
     totalPages: number
   } | null>(null)
   const [teamsDialogOpen, setTeamsDialogOpen] = useState(false)
+  const [createUserOpen, setCreateUserOpen] = useState(false)
 
   // Debounce para busca
   const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -133,6 +135,14 @@ export default function UsersPage() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button
+                onClick={() => setCreateUserOpen(true)}
+                size="sm"
+                className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
+              >
+                <UserPlus className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span>Novo Usuário</span>
+              </Button>
+              <Button
                 onClick={() => setTeamsDialogOpen(true)}
                 variant="outline"
                 size="sm"
@@ -177,6 +187,15 @@ export default function UsersPage() {
           <TeamsManagementDialog
             open={teamsDialogOpen}
             onOpenChange={setTeamsDialogOpen}
+            onSuccess={() => {
+              handleRefresh()
+            }}
+          />
+
+          {/* Dialog de criação de usuário */}
+          <CreateUserDialog
+            open={createUserOpen}
+            onOpenChange={setCreateUserOpen}
             onSuccess={() => {
               handleRefresh()
             }}

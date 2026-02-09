@@ -40,6 +40,12 @@ export type CreatePostData = {
 
 export type UpdatePostData = Partial<CreatePostData>
 
+export type CreateFeedbackData = {
+    postId: string
+    rating: number
+    comment?: string
+}
+
 export const TrilhasService = {
     async listPosts(filters: ListPostsFilters) {
         const { q, cat, status, pinned } = filters
@@ -225,6 +231,36 @@ export const TrilhasService = {
                 color: true,
                 order: true,
             },
+        })
+    },
+
+    async createFeedback(data: CreateFeedbackData) {
+        return prisma.updatePostFeedback.create({
+            data: {
+                postId: data.postId,
+                rating: data.rating,
+                comment: data.comment,
+            },
+        })
+    },
+
+    async listFeedbacks() {
+        return prisma.updatePostFeedback.findMany({
+            include: {
+                post: {
+                    select: {
+                        title: true,
+                        slug: true,
+                        category: {
+                            select: {
+                                name: true,
+                                color: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { createdAt: "desc" }
         })
     }
 }
