@@ -5,6 +5,7 @@ import { getTrilhasCategories, getTrilhasPostBySlug } from "@/lib/trilhas/querie
 import { FadeIn } from "@/components/trilhas/FadeIn"
 import FeedbackForm from "@/components/trilhas/FeedbackForm"
 import TrailTimeline from "@/components/trilhas/TrailTimeline"
+import TextSelectionFeedback from "@/components/trilhas/TextSelectionFeedback"
 
 function relativeDays(date: Date) {
     const now = new Date()
@@ -40,6 +41,7 @@ export default async function PostPage({
     return (
         <div className="min-h-screen bg-slate-50">
             <TrilhasTopNav />
+            <TextSelectionFeedback />
 
             <div className="mx-auto w-full max-w-7xl px-4 py-10">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_260px]">
@@ -61,6 +63,7 @@ export default async function PostPage({
 
                             {/* ✅ render HTML do TipTap processado com IDs */}
                             <div
+                                id="trail-content"
                                 className="prose prose-slate mt-6 max-w-none"
                                 dangerouslySetInnerHTML={{ __html: processedContent }}
                             />

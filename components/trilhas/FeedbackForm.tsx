@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,8 +14,17 @@ export default function FeedbackForm({ postId }: FeedbackFormProps) {
     const [rating, setRating] = useState(0)
     const [hover, setHover] = useState(0)
     const [comment, setComment] = useState("")
+    const [quotedText, setQuotedText] = useState<string | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [submitted, setSubmitted] = useState(false)
+
+    useEffect(() => {
+        const handleSetText = (e: any) => {
+            setQuotedText(e.detail)
+        }
+        window.addEventListener("set-feedback-text", handleSetText)
+        return () => window.removeEventListener("set-feedback-text", handleSetText)
+    }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -29,7 +38,11 @@ export default function FeedbackForm({ postId }: FeedbackFormProps) {
             const res = await fetch("/api/trilhas/feedback", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ postId, rating, comment }),
+                body: JSON.stringify({
+                    postId,
+                    rating,
+                    comment: quotedText ? `Dúvida sobre o trecho: "${quotedText}"\n\n${comment}` : comment
+                }),
             })
 
             if (!res.ok) throw new Error()
@@ -84,14 +97,29 @@ export default function FeedbackForm({ postId }: FeedbackFormProps) {
                     </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-4">
                     <label htmlFor="comment" className="text-sm font-medium text-slate-700">
-                        Observações (opcional)
+                        Sua mensagem
                     </label>
+
+                    {quotedText && (
+                        <div className="relative rounded-lg border-l-4 border-sky-500 bg-slate-50 p-4 transition-all animate-in fade-in slide-in-from-left-2">
+                            <button
+                                onClick={() => setQuotedText(null)}
+                                className="absolute right-2 top-2 rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                            </button>
+                            <p className="pr-6 text-sm italic text-slate-600 line-clamp-3">
+                                "{quotedText}"
+                            </p>
+                        </div>
+                    )}
+
                     <Textarea
                         id="comment"
-                        placeholder="Conte-nos um pouco mais sobre sua experiência..."
-                        className="min-h-[100px] resize-none"
+                        placeholder={quotedText ? "O que você não entendeu sobre este trecho?" : "Conte-nos um pouco mais sobre sua experiência..."}
+                        className="min-h-[120px] resize-none focus-visible:ring-sky-500"
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                     />
