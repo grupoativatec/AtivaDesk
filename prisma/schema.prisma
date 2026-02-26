@@ -386,6 +386,23 @@ model ColaboradorExterno {
   @@index([categoriaId])
 }
 
+model SslCertificate {
+  id             String   @id @default(uuid())
+  domain         String   @unique
+  subdomains     String[] @default([])
+  issuedAt       DateTime
+  expiresAt      DateTime
+  pendingRenewal Boolean  @default(false)
+  lastExpiryAlertSentAt DateTime?
+  lastExpiryAlertFor    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@index([pendingRenewal])
+  @@index([createdAt])
+}
+
 model UpdateCategory {
   id        String       @id @default(uuid())
   name      String       @unique

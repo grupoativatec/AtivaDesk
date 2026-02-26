@@ -28,6 +28,7 @@ export const ROUTES = {
         "/admin/projetos",
         "/admin/kanban",
         "/admin/docs",
+        "/admin/certificados",
       ],
     },
     USER: {

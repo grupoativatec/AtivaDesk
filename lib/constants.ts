@@ -1,5 +1,4 @@
-import {
-  Clock,
+﻿import {
   LayoutDashboard,
   Ticket,
   ListTodo,
@@ -9,6 +8,7 @@ import {
   Users,
   Key,
   Book,
+  ShieldCheck,
 } from "lucide-react";
 
 export const data = {
@@ -30,14 +30,14 @@ export const data = {
       icon: Ticket,
     },
     {
-      title: "Projetos",
-      url: "/admin/projetos",
-      icon: FolderKanban,
-    },
-    {
       title: "Tarefas",
       url: "/admin/tarefas",
       icon: ListTodo,
+    },
+    {
+      title: "Projetos",
+      url: "/admin/projetos",
+      icon: FolderKanban,
     },
     {
       title: "Kanban",
@@ -45,24 +45,29 @@ export const data = {
       icon: Columns3,
     },
     {
-      title: "Trilhas",
-      url: "/admin/trilhas",
-      icon: Book,
-    },
-    {
       title: "Documentação",
       url: "/admin/docs",
       icon: FileText,
     },
     {
-      title: "Usuários",
-      url: "/admin/users",
-      icon: Users,
+      title: "Trilhas",
+      url: "/admin/trilhas",
+      icon: Book,
+    },
+    {
+      title: "Certificados",
+      url: "/admin/certificados",
+      icon: ShieldCheck,
     },
     {
       title: "Acessos",
       url: "/admin/acessos",
       icon: Key,
+    },
+    {
+      title: "Usuários",
+      url: "/admin/users",
+      icon: Users,
     },
   ],
 
